@@ -1,8 +1,9 @@
 lazy val projectSettings = Seq(
 	name := "machine-engine",
 	version := "0.0.1",
-	scalaVersion := "2.10.4"
+	scalaVersion := "2.11.7"
 )
+//2.10.4
 
 import sbtassembly.AssemblyPlugin._
 
@@ -27,7 +28,8 @@ libraryDependencies ++= Seq(
 	 "com.typesafe.akka" %% "akka-actor" % "2.3.9",
 	 "org.zeromq" % "jeromq" % "0.3.5",
    //http://mvnrepository.com/artifact/com.google.protobuf/protobuf-java
-   "com.google.protobuf" % "protobuf-java" % "3.0.0-beta-1"
+   "com.google.protobuf" % "protobuf-java" % "3.0.0-beta-1",
+	 "org.neo4j" % "neo4j" % "2.3.2"
 )
 
 initialCommands in console := """
