@@ -29,3 +29,8 @@ libraryDependencies ++= Seq(
    //http://mvnrepository.com/artifact/com.google.protobuf/protobuf-java
    "com.google.protobuf" % "protobuf-java" % "3.0.0-beta-1"
 )
+
+initialCommands in console := """
+  |import org.machine.engine.server._
+	|import org.machine.engine.client._
+	""".stripMargin
