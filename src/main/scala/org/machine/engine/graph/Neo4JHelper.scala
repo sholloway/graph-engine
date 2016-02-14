@@ -32,16 +32,45 @@ object Neo4JHelper{
       results += new Book(id.asInstanceOf[Long], title.toString())
     })
   */
-  def query[T:Manifest](graphDB:GraphDatabaseService,
-    query:String,
-    recordHandler:(ArrayBuffer[T],
+  // def query[T:Manifest](graphDB:GraphDatabaseService,
+  //   query:String,
+  //   recordHandler:(ArrayBuffer[T],
+  //     java.util.Map[java.lang.String, Object]) => Unit):Array[T] = {
+  //   var dbTransactionOption: Option[Transaction] = None
+  //   var resultOption: Option[Result] = None
+  //   var results = new ArrayBuffer[T]()
+  //   try{
+  //     dbTransactionOption = Some(graphDB.beginTx());
+  //     resultOption = Some(graphDB.execute(query))
+  //     while(resultOption.get.hasNext()){
+  //       val record = resultOption.get.next()
+  //       recordHandler(results, record)
+  //     }
+  //   }catch{
+  //     case e:Throwable => e.printStackTrace
+  //   }finally{
+  //     resultOption.foreach(_.close())
+  //     dbTransactionOption.foreach(tx => tx.close())
+  //   }
+  //   return results.toArray
+  // }
+
+  def query[T:Manifest](graphDB: GraphDatabaseService,
+    query: String,
+    params: java.util.Map[java.lang.String, Object],
+    recordHandler: (ArrayBuffer[T],
       java.util.Map[java.lang.String, Object]) => Unit):Array[T] = {
+    val queryParamsOption: Option[java.util.Map[java.lang.String, Object]] = Option(params).orElse(None)
     var dbTransactionOption: Option[Transaction] = None
     var resultOption: Option[Result] = None
     var results = new ArrayBuffer[T]()
     try{
       dbTransactionOption = Some(graphDB.beginTx());
-      resultOption = Some(graphDB.execute(query))
+      if (queryParamsOption.isDefined){
+        resultOption = Some(graphDB.execute(query, queryParamsOption.get))
+      }else{        
+        resultOption = Some(graphDB.execute(query))
+      }
       while(resultOption.get.hasNext()){
         val record = resultOption.get.next()
         recordHandler(results, record)
