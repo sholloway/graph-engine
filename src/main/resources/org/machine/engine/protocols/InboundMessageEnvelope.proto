@@ -1,0 +1,64 @@
+// VERSION 1
+syntax = "proto3";
+
+package org.machine.inbound;
+
+// type = "double" | "float" | "int32" | "int64" | "uint32" | "uint64"
+//      | "sint32" | "sint64" | "fixed32" | "fixed64" | "sfixed32" | "sfixed64"
+      //| "bool" | "string" | "bytes" | messageType | enumType
+message Message{
+  //Get the name in JS: https://github.com/dcodeIO/protobuf.js/issues/349
+  enum ActionType{
+    //First enum is the default, so future proofing for future enums.
+    //http://androiddevblog.com/protocol-buffers-pitfall-adding-enum-values/
+    UNKNOWN = 0;
+    CREATE = 1;
+    RETRIEVE = 2;
+    UPDATE = 3;
+    DELETE = 4;
+    UNDO = 5;
+    REDO = 6;
+    SHUTDOWN = 7;
+  }
+
+  enum ScopeType{
+    UNKNOWN = 0;
+    SYSTEM_SPACE = 1;
+    USER_SPACE = 2;
+    DATA_SET = 3;
+  }
+
+  // Which is preferable, drop the ScopeType and ActionType and just have grainular
+  // CommandTypes (e.g. DefineElementInUserSpace, DeleteElementDefinitionInDataSet)
+  // or have the mix and match style protocol that results in an internal
+  // lookup table?
+  // e.g.
+  // ActionType | ScopeType  | EntityType
+  // -----------------------------------------------
+  // CREATE     | USER_SPACE | ELEMENT_DEFINITION
+  // CREATE     | DATA_SET   | ELEMENT_DEFINITION
+  // DELETE     | DATA_SET   | ASSOCIATION
+  // DELETE     | USER_SPACE | ASSOCIATION
+  enum EntityType{
+    UNKNOWN = 0;
+    DATA_SET = 1;
+    ELEMENT_DEFINITION = 2;
+    ELEMENT = 3
+    ASSOCIATION = 4;
+  }
+
+  enum ProcessType{
+    UNKNOWN = 0;
+    NORMAL = 1;
+    VERBOSE = 2; //Enables More Verbose Logging?
+  }
+
+  required uint32 schemaVersion = 1;
+  required ActionType action = 2;
+  required ScopeType scope = 3;
+  required EntityType entity = 4;
+
+  //Message specific payload.
+  //This strategy will require two serialzing steps and two deserializing steps.
+  optional string payload = 5;
+}

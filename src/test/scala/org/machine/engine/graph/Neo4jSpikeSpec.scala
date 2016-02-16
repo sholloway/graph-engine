@@ -109,7 +109,18 @@ class Neo4jSpikeSpec extends FunSpec with Matchers with EasyMockSugar with Befor
       sequels(0).title shouldBe("The Gripping Hand")
     }
 
+    /*
+    Problem: I would like to have a strongly type definition of the nodes in a graph.
+    A cypher query could return a subgraph that contains multipe types of nodes.
 
+    Consider that:
+      - Ultimately the results of a query must be communicated back to the client.
+      - Communication between Client/Server will be over 0MQ serialied with Protocol Buffers.
+      - I want to have a meta model that allows fluid definitions.
+      - I WILL NOT expose the Neo4J types to the client.
+
+    Possible Solutions:
+    */
     it ("should be able to map queries of multiple node types")(pending)
 
     //beyound just Neo4J...

@@ -1,0 +1,98 @@
+// VERSION 1
+syntax = "proto3";
+
+package org.machine.outbound;
+
+// type = "double" | "float" | "int32" | "int64" | "uint32" | "uint64"
+//      | "sint32" | "sint64" | "fixed32" | "fixed64" | "sfixed32" | "sfixed64"
+      //| "bool" | "string" | "bytes" | messageType | enumType
+message Message{
+  //Get the name in JS: https://github.com/dcodeIO/protobuf.js/issues/349
+  enum ActionType{
+    //First enum is the default, so future proofing for future enums.
+    //http://androiddevblog.com/protocol-buffers-pitfall-adding-enum-values/
+    UNKNOWN = 0;
+    CREATE = 1;
+    RETRIEVE = 2;
+    UPDATE = 3;
+    DELETE = 4;
+    UNDO = 5;
+    REDO = 6;
+    SHUTDOWN = 7;
+  }
+
+  enum ScopeType{
+    UNKNOWN = 0;
+    SYSTEM_SPACE = 1;
+    USER_SPACE = 2;
+    DATA_SET = 3;
+  }
+
+  // Which is preferable, drop the ScopeType and ActionType and just have grainular
+  // CommandTypes (e.g. DefineElementInUserSpace, DeleteElementDefinitionInDataSet)
+  // or have the mix and match style protocol that results in an internal
+  // lookup table?
+  // e.g.
+  // ActionType | ScopeType  | EntityType
+  // -----------------------------------------------
+  // CREATE     | USER_SPACE | ELEMENT_DEFINITION
+  // CREATE     | DATA_SET   | ELEMENT_DEFINITION
+  // DELETE     | DATA_SET   | ASSOCIATION
+  enum EntityType{
+    UNKNOWN = 0;
+    DATA_SET = 1;
+    ELEMENT_DEFINITION = 2;
+    ELEMENT = 3
+    ASSOCIATION = 4;
+  }
+
+  enum ProcessType{
+    UNKNOWN = 0;
+    NORMAL = 1;
+    VERBOSE = 2; //Enables More Verbose Logging?
+  }
+
+  enum ErrorType{
+    UNKNOWN = 0;
+    //The engine could not deserial the request.
+    BAD_MESSAGE = 1;
+    //For the selected action, scope & entity combination the payload
+    //could not be deserialized.
+    BAD_PAYLOAD = 2;
+    //Internal query error. To log the cypher query, specify VERBOSE
+    //for the ProcessType
+    QUERY_ERROR = 3;
+  }
+
+  //The version of this schema.
+  required uint32 schemaVersion = 1;
+
+  //Every response should have an ID. This ID could be used for UNDO?
+  //Or would it be better to have the client assign an ID to a command.
+  //Then use the inbound command ID for undo? That approach exposes the
+  //engine to a risk that the command ID could collide with multiple clients
+  //or poor client code.
+  //The client needs some way to know that the message coming back is the one
+  //that it is waiting for. A client specified ID would provide that. Perhaps
+  //a UUID would be better.
+  required uint64 resultId = 2;
+
+  //Was the engine able to successfully process the request.
+  required bool successful = 3;
+
+  //If successful = false, then an error message will be returned.
+  optional ErrorType errorType = 4;
+
+  //The provided action type.
+  required ActionType action = 5;
+
+  //The provided scope type.
+  required ScopeType scope = 6;
+
+  //The provided entity type.
+  required EntityType entity = 7;
+
+  //Message specific payload.
+  //This strategy will require two serialzing steps and two deserializing steps.
+  optional string payload = 8;
+}
