@@ -16,7 +16,7 @@ import scala.collection.mutable.{ArrayBuffer, Map}
 class Neo4jSpikeSpec extends FunSpec with Matchers with EasyMockSugar with BeforeAndAfterAll{
   import Neo4JHelper._
 
-  val dbPath = "target/simple-db.graph"
+  val dbPath = "target/Neo4jSpikeSpec.graph"
   var graphDBOption: Option[GraphDatabaseService] = None
 
   override def beforeAll(){

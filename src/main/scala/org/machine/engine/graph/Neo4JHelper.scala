@@ -18,8 +18,7 @@ object Neo4JHelper{
     }
   }
 
-  /*
-    Generic query function.
+  /** Generic query function.
     http://www.brentsowers.com/2011/11/writing-generic-functions-that-take.html
     https://stackoverflow.com/questions/3213510/what-is-a-manifest-in-scala-and-when-do-you-need-it
 
@@ -56,8 +55,49 @@ object Neo4JHelper{
       case e:Throwable => e.printStackTrace
     }finally{
       resultOption.foreach(_.close())
-      dbTransactionOption.foreach(tx => tx.close())
+      dbTransactionOption.foreach(_.close())
     }
     return results.toArray
   }
+
+  /** Executes a cypher statement inside of a transaction.
+
+    Use:
+    val books = query[Book](db, cypher,
+      (results:ArrayBuffer[Book],
+        record: java.util.Map[java.lang.String, Object]) => {
+      val id = record.get("id")
+      val title = record.get("title")
+      results += new Book(id.asInstanceOf[Long], title.toString())
+    })
+  */
+  def insert[T:Manifest](graphDB: GraphDatabaseService,
+    statement: String,
+    params: java.util.Map[java.lang.String, Object],
+    recordHandler: (ArrayBuffer[T],
+      java.util.Map[java.lang.String, Object]) => Unit):Array[T] = {
+    val statementParamsOption: Option[java.util.Map[java.lang.String, Object]] = Option(params).orElse(None)
+    var resultOption: Option[Result] = None
+    var results = new ArrayBuffer[T]()
+    try{
+      if (statementParamsOption.isDefined){
+        resultOption = Some(graphDB.execute(statement, statementParamsOption.get))
+      }else{
+        resultOption = Some(graphDB.execute(statement))
+      }      
+      while(resultOption.get.hasNext()){
+        val record = resultOption.get.next()
+        recordHandler(results, record)
+      }
+    }catch{
+      case e:Throwable => e.printStackTrace
+    }finally{
+      resultOption.foreach(_.close())
+    }
+    return results.toArray
+  }
+
+  /** Generates a Unique Universal Identifier
+  */
+  def uuid = java.util.UUID.randomUUID.toString
 }

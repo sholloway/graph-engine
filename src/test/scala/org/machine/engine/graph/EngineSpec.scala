@@ -129,37 +129,17 @@ class EngineSpec extends FunSpec with Matchers with EasyMockSugar with BeforeAnd
        .findById(id)
        end()
   */
-  class Engine(dbPath:String, config: {
-    val logger: Logger
-  }){
-    import Neo4JHelper._
-    setup
+  
 
-    private def setup(){
-      config.logger.debug("Engine Setting Up")
-      // var graphDBOption: Option[GraphDatabaseService] = None
-      //
-      // val dbFile = new File(dbPath)
-      // FileUtils.deleteRecursively(dbFile)
-      // val graphDBFactory = new GraphDatabaseFactory()
-      // val graphDB = graphDBFactory.newEmbeddedDatabase(dbFile)
-      // graphDBOption = Some(graphDB)
-    }
-
-    def shutdown(){
-      config.logger.debug("Engine Shutting Down")
-      //TODO: Register the Neo4J shutdown with the JVM shutdown like in the example.
-      // graphDBOption.foreach(graphDB => graphDB.shutdown())
-    }
-  }
-
-  val dbPath = "target/simple-db.graph"
+  val dbPath = "target/EngineSpec.graph"
   var engine:Engine = null
   var engineOptions = new {
-    val logger = new Logger(LoggerLevels.INFO)
+    val logger = new Logger(LoggerLevels.DEBUG)
   }
 
   override def beforeAll(){
+    val dbFile = new File(dbPath)
+    FileUtils.deleteRecursively(dbFile)
     engine = new Engine(dbPath, engineOptions)
   }
 
@@ -168,12 +148,13 @@ class EngineSpec extends FunSpec with Matchers with EasyMockSugar with BeforeAnd
   }
 
   describe("Machine Engine"){
-    it("should invoke setup on initialization"){
-      println("bad test")
-    }
-
     describe("System Space"){
-      it("should have one and only one system space")(pending)
+      it("should have one and only one system space"){
+        val findSystemSpace = "match (ss:internal_system_space) return ss.mid as id, ss.name as name"
+        val systemSpaces = query[SystemSpace](engine.database, findSystemSpace, null, SystemSpace.queryMapper)
+        systemSpaces.isEmpty shouldBe false
+        systemSpaces.length shouldBe 1
+      }
 
       describe("Element Definitions"){
         it("should create an ElementDefinition")(pending)
