@@ -1,4 +1,4 @@
-package org.machine.engine.graph
+package org.machine.engine
 
 import java.io.File;
 import java.io.IOException;
@@ -9,16 +9,15 @@ import java.nio.file.{Paths, Files}
 import scala.collection.JavaConversions._
 import scala.collection.mutable.{ArrayBuffer, Map}
 
+import org.machine.engine.logger._
+import org.machine.engine.exceptions._
+import org.machine.engine.graph._
 import org.machine.engine.graph.nodes._
 import org.machine.engine.graph.labels._
-import org.machine.engine.logger._
-
-class EngineDatabaseNotValidException(message: String = null, cause: Throwable = null) extends Exception
-class InternalErrorException(message: String = null, cause: Throwable = null) extends Exception
+import org.machine.engine.graph.internal._
 
 object EngineQueries{
-  val LoadSystemSpace = "match (ss:internal_system_space) return ss.mid as id, ss.name as name"
-  val CreateSystemSpace = "merge (ss:internal_system_space {mid:{mid}, name:{name}}) return ss.mid as id, ss.name as name"
+
 }
 
 class Engine(dbPath:String, config: {
@@ -26,6 +25,7 @@ class Engine(dbPath:String, config: {
 }){
   import Neo4JHelper._
   import EngineQueries._
+  import SystemSpaceManager._
 
   var graphDBOption: Option[GraphDatabaseService] = None
   var systemSpaceOption:Option[SystemSpace] = None
@@ -38,13 +38,13 @@ class Engine(dbPath:String, config: {
     config.logger.debug("Engine: Setting Up")
     verifyFile(dbPath)
     initializeDatabase(dbPath)
-    verifySystemSpace
+    setSystemSpace(verifySystemSpace(database, config.logger))
   }
 
   def shutdown(){
     config.logger.debug("Engine: Shutting Down")
     //TODO: Register the Neo4J shutdown with the JVM shutdown like in the example.
-    // graphDBOption.foreach(graphDB => graphDB.shutdown())
+    database.shutdown()
   }
 
   def database:GraphDatabaseService = {
@@ -71,45 +71,6 @@ class Engine(dbPath:String, config: {
     val graphDBFactory = new GraphDatabaseFactory()
     val graphDB = graphDBFactory.newEmbeddedDatabase(dbFile)
     graphDBOption = Some(graphDB)
-  }
-
-  private def verifySystemSpace():Engine = {
-    config.logger.debug("Engine: Verifying System Space")
-    val db = graphDBOption.getOrElse(throw new InternalErrorException("The GraphDatabaseService was not initialized."))
-    val systemSpaceResults = query[SystemSpace](db, LoadSystemSpace, null, SystemSpace.queryMapper)
-    if(systemSpaceResults.isEmpty){
-      config.logger.warn("Engine: System Space does not exist.")
-      createSystemSpace(db)
-    }else{
-      config.logger.debug("Engine: System Space was loaded.")
-      setSystemSpace(systemSpaceResults(0))
-    }
-    return this
-  }
-
-  private def createSystemSpace(db: GraphDatabaseService) = {
-    config.logger.debug("Engine: Attempting to create System Space.")
-    transaction(db, (graphDB:GraphDatabaseService)=>{
-      graphDB
-        .schema()
-        .constraintFor(InternalElementsLabels.internal_system_space)
-        .assertPropertyIsUnique( "name" )
-        .create();
-    })
-
-    val createSystemSpaceParams = Map("mid"->uuid, "name"->"System Space")
-    var systemSpaces:Array[SystemSpace] = null
-    transaction(db, (graphDB: GraphDatabaseService) =>{
-      systemSpaces = insert[SystemSpace](graphDB, CreateSystemSpace, createSystemSpaceParams, SystemSpace.queryMapper)
-    })
-
-    if (systemSpaces.isEmpty){
-      config.logger.critical("Engine: System Space could not be created.")
-      throw new InternalErrorException("Could not create the system space.")
-    }else{
-      config.logger.debug("Engine: System Space was provisioned.")
-      setSystemSpace(systemSpaces(0))
-    }
   }
 
   private def setSystemSpace(ss:SystemSpace):SystemSpace = {

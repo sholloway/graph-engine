@@ -63,12 +63,13 @@ object Neo4JHelper{
   /** Executes a cypher statement inside of a transaction.
 
     Use:
-    val books = query[Book](db, cypher,
-      (results:ArrayBuffer[Book],
-        record: java.util.Map[java.lang.String, Object]) => {
-      val id = record.get("id")
-      val title = record.get("title")
-      results += new Book(id.asInstanceOf[Long], title.toString())
+    val createSystemSpaceParams = Map("mid"->uuid, "name"->"System Space")
+    var systemSpaces:Array[SystemSpace] = null
+    transaction(db, (graphDB: GraphDatabaseService) =>{
+      systemSpaces = insert[SystemSpace](graphDB,
+        CreateSystemSpaceCypherStatement,
+        createSystemSpaceParams,
+        SystemSpace.queryMapper)
     })
   */
   def insert[T:Manifest](graphDB: GraphDatabaseService,
@@ -84,7 +85,7 @@ object Neo4JHelper{
         resultOption = Some(graphDB.execute(statement, statementParamsOption.get))
       }else{
         resultOption = Some(graphDB.execute(statement))
-      }      
+      }
       while(resultOption.get.hasNext()){
         val record = resultOption.get.next()
         recordHandler(results, record)

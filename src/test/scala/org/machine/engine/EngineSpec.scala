@@ -1,4 +1,4 @@
-package org.machine.engine.graph
+package org.machine.engine
 
 import org.scalatest._
 import org.scalatest.mock._
@@ -13,6 +13,7 @@ import org.neo4j.io.fs.FileUtils
 import scala.collection.JavaConversions._
 import scala.collection.mutable.{ArrayBuffer, Map}
 
+import org.machine.engine.graph._
 import org.machine.engine.graph.nodes._
 import org.machine.engine.logger._
 
@@ -129,22 +130,23 @@ class EngineSpec extends FunSpec with Matchers with EasyMockSugar with BeforeAnd
        .findById(id)
        end()
   */
-  
+
 
   val dbPath = "target/EngineSpec.graph"
+  val dbFile = new File(dbPath)
   var engine:Engine = null
   var engineOptions = new {
     val logger = new Logger(LoggerLevels.DEBUG)
   }
 
   override def beforeAll(){
-    val dbFile = new File(dbPath)
     FileUtils.deleteRecursively(dbFile)
     engine = new Engine(dbPath, engineOptions)
   }
 
   override def afterAll(){
     engine.shutdown()
+    FileUtils.deleteRecursively(dbFile)
   }
 
   describe("Machine Engine"){
