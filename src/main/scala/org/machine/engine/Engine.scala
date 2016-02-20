@@ -26,11 +26,14 @@ class Engine(dbPath:String, config: {
   import Neo4JHelper._
   import EngineQueries._
   import SystemSpaceManager._
+  import UserSpaceManager._
 
   var graphDBOption: Option[GraphDatabaseService] = None
   var systemSpaceOption:Option[SystemSpace] = None
+  var userSpaceOption:Option[UserSpace] = None
 
   def systemSpace:SystemSpace = this.systemSpaceOption.getOrElse(throw new InternalErrorException("SystemSpace has not be initialized."))
+  def userSpace:UserSpace = this.userSpaceOption.getOrElse(throw new InternalErrorException("UserSpace has not be initialized."))
 
   setup
 
@@ -39,6 +42,7 @@ class Engine(dbPath:String, config: {
     verifyFile(dbPath)
     initializeDatabase(dbPath)
     setSystemSpace(verifySystemSpace(database, config.logger))
+    setUserSpace(verifyUserSpace(database, config.logger))
   }
 
   def shutdown(){
@@ -76,5 +80,10 @@ class Engine(dbPath:String, config: {
   private def setSystemSpace(ss:SystemSpace):SystemSpace = {
     this.systemSpaceOption = Some(ss)
     return this.systemSpaceOption.get
+  }
+
+  private def setUserSpace(us:UserSpace):UserSpace = {
+    this.userSpaceOption = Some(us)
+    return this.userSpaceOption.get
   }
 }

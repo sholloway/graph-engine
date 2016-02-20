@@ -14,14 +14,15 @@ class SystemSpace(_id: String, _name: String){
   def name = this._name
 
   override def toString():String = {
-    return "System Space:" + id.toString()
+    return "%s: %s".format(name, id)
   }
 }
 
 object SystemSpace{
-  def queryMapper(results: ArrayBuffer[SystemSpace], record: java.util.Map[java.lang.String, Object]):Unit = {
-    val id = record.get("id")
-    val name = record.get("name")
-    results += new SystemSpace(id.toString(), name.toString())
+  def queryMapper(results: ArrayBuffer[SystemSpace],
+    record: java.util.Map[java.lang.String, Object]):Unit = {
+    val id:String = record.get("id").toString()
+    val name:String = record.get("name").toString()
+    results += new SystemSpace(id, name)
   }
 }
