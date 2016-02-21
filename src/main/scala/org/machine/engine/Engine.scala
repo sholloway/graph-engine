@@ -92,8 +92,14 @@ class Engine(dbPath:String, config: {
   }
 
   def inSystemSpace():Engine = {
-    config.logger.debug("Engine: Set command scope to element definition.")
+    config.logger.debug("Engine: Set command scope to system space.")
     this.scope = CommandScopes.SystemSpaceScope
+    return this
+  }
+
+  def inUserSpace():Engine = {
+    config.logger.debug("Engine: Set command scope to user space.")
+    this.scope = CommandScopes.UserSpaceScope
     return this
   }
 

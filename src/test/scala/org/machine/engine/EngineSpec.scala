@@ -191,50 +191,6 @@ class EngineSpec extends FunSpec with Matchers with EasyMockSugar with BeforeAnd
       }
 
       describe("Element Definitions"){
-        /*
-        Need to:
-          Create Nodes
-            ElementDefinition
-              mid: uuid
-              name: Note
-              description: String
-              creation_time:Timestamp
-              last_modified_time:Timestamp
-
-            PropertyDefinition
-              mid: uuid
-              name: Note Text
-              type: String
-              creation_time:Timestamp
-              last_modified_time:Timestamp
-
-            PropertyDefinition
-              mid: uuid
-              name: Title
-              type: String
-              creation_time:Timestamp
-              last_modified_time:Timestamp
-
-          Create Associations
-            note -[:composed_of]-> Note Text
-            note -[:composed_of]-> Title
-
-        Statements
-        merge(ed:element_definition
-          {mid:{uuid},
-          name:{name},
-          description:{description}
-        })
-        on create set ed.creation_time = timestamp()
-        on match set ed.last_modified_time = timestamp()
-
-        merge(pd:property_definition {name:"a", type:"String"}) return pd
-        merge(pd:property_definition {name:"a", type:"String"}) return pd
-
-        match (ed:element_definition) where ed.name="note"
-        match (pd:property_definition)
-        merge (ed)-[:composed_of]->(pd)
-        */
         it("should create an ElementDefinition"){
           engine
             .inSystemSpace()
@@ -278,7 +234,33 @@ class EngineSpec extends FunSpec with Matchers with EasyMockSugar with BeforeAnd
       }
 
       describe("Element Definitions"){
-        it("should create an ElementDefinition")(pending)
+        it("should create an ElementDefinition"){
+          engine
+            .inUserSpace()
+            .defineElement("Use Case", "A practical example of a sequence of actions taken to provide value to some user. Often defined as a guide for architecture definition.")
+            .withProperty("Description", "String", "A detailed series of paragraphs capturing the use case.")
+            .end()
+
+            val findDefinedElements = """
+              |match (ss:internal_user_space)-[:exists_in]->(ed:element_definition)-[:composed_of]->(pd:property_definition)
+              |return ed.mid as elementId,
+              |  ed.name as elementName,
+              |  pd.mid as propId,
+              |  pd.name as propName,
+              |  pd.type as propType,
+              |  pd.description as propDescription
+              """.stripMargin
+
+            val records = query[(ElementDefinition, PropertyDefinition)](engine.database,
+              findDefinedElements, null,
+              elementDefAndPropDefQueryMapper)
+
+            records.length shouldBe 1
+            val elements:List[ElementDefinition] = consolidateElementDefs(records.toList)
+            elements.length shouldBe 1
+            elements(0).properties.length shouldBe 1
+        }
+
         it("should retrieve an ElementDefinition")(pending)
         it("should update an ElementDefinition")(pending)
         it("should delete an ElementDefinition")(pending)

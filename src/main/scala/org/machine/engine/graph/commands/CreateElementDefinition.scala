@@ -14,7 +14,7 @@ import org.machine.engine.graph.labels._
 import org.machine.engine.graph.internal._
 
 class CreateElementDefintion(database:GraphDatabaseService,
-  scope:CommandScope,
+  cmdScope:CommandScope,
   commandOptions:Map[String, AnyRef],
   logger:Logger) extends Neo4JCommand{
   import Neo4JHelper._
@@ -24,7 +24,7 @@ class CreateElementDefintion(database:GraphDatabaseService,
     transaction(database, (graphDB:GraphDatabaseService) => {
       createElementDefinition(graphDB)
       createPropertyDefinitions(graphDB)
-      associateTheElementToSystemSpace(graphDB)
+      registerTheElement(graphDB)
     })
   }
 
@@ -82,13 +82,13 @@ class CreateElementDefintion(database:GraphDatabaseService,
     })
   }
 
-  private def associateTheElementToSystemSpace(graphDB:GraphDatabaseService):Unit = {
+  private def registerTheElement(graphDB:GraphDatabaseService):Unit = {
     logger.debug("CreateElementDefintion: Associating the element definition to the system space.")
     val associateToSystemSpace = """
-      |match (ss:internal_system_space)
+      |match (ss:label)
       |match (ed:element_definition) where ed.mid = {elementId}
       |merge (ss)-[:exists_in]->(ed)
-      """.stripMargin
+      """.stripMargin.replaceAll("label", cmdScope.scope)
       insert(graphDB,
         associateToSystemSpace,
         Map("elementId" -> commandOptions("mid")),
