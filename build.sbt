@@ -3,7 +3,6 @@ lazy val projectSettings = Seq(
 	version := "0.0.1",
 	scalaVersion := "2.11.7"
 )
-//2.10.4
 
 import sbtassembly.AssemblyPlugin._
 

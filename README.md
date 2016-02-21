@@ -2,7 +2,7 @@
 - - -
 A marriage of 0MQ, Google Protocol Buffers, embedded Neo4J, Scala and Akka.
 
-Status: Under active development. Not stable or for general use.
+Status: Under active development. Not stable.
 
 ## Resources
 * [Scala Cheatsheet](http://docs.scala-lang.org/cheatsheets/index.html)
