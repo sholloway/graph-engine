@@ -149,6 +149,38 @@ class EngineSpec extends FunSpec with Matchers with EasyMockSugar with BeforeAnd
     FileUtils.deleteRecursively(dbFile)
   }
 
+  def elementDefAndPropDefQueryMapper( results: ArrayBuffer[(ElementDefinition, PropertyDefinition)],
+    record: java.util.Map[java.lang.String, Object]) = {
+    val elementId = record.get("elementId").toString()
+    val elementName = record.get("elementName").toString()
+    val ed = new ElementDefinition(elementId, elementName)
+
+    val propId = record.get("propId").toString()
+    val propName = record.get("propName").toString()
+    val propType = record.get("propType").toString()
+    val propDescription = record.get("propDescription").toString()
+    val pd = new PropertyDefinition(propId, propName, propType, propDescription)
+    val pair = (ed, pd)
+    results += pair
+  }
+
+  def consolidateElementDefs(records: List[(ElementDefinition, PropertyDefinition)]):List[ElementDefinition] ={
+    val elementsMap = Map[String, ElementDefinition]()
+    var ed:ElementDefinition = null;
+    var pd:PropertyDefinition = null;
+    records.foreach(r => {
+      ed = r._1
+      pd = r._2
+      if(elementsMap.contains(ed.id)){
+        elementsMap.get(ed.id).get.addProperty(pd)
+      }else{
+        ed.addProperty(pd)
+        elementsMap += (ed.id -> ed)
+      }
+    })
+    return elementsMap.values.toList
+  }
+
   describe("Machine Engine"){
     describe("System Space"){
       it("should have one and only one system space"){
@@ -223,39 +255,10 @@ class EngineSpec extends FunSpec with Matchers with EasyMockSugar with BeforeAnd
 
             val records = query[(ElementDefinition, PropertyDefinition)](engine.database,
               findDefinedElements, null,
-              ( results: ArrayBuffer[(ElementDefinition, PropertyDefinition)],
-                record: java.util.Map[java.lang.String, Object]) => {
-                val elementId = record.get("elementId").toString()
-                val elementName = record.get("elementName").toString()
-                val ed = new ElementDefinition(elementId, elementName)
-
-                val propId = record.get("propId").toString()
-                val propName = record.get("propName").toString()
-                val propType = record.get("propType").toString()
-                val propDescription = record.get("propDescription").toString()
-                val pd = new PropertyDefinition(propId, propName, propType, propDescription)
-                val pair = (ed, pd)
-                results += pair
-              })
+              elementDefAndPropDefQueryMapper)
 
             records.length shouldBe 2
-
-            val elementsMap = Map[String, ElementDefinition]()
-            var ed:ElementDefinition = null;
-            var pd:PropertyDefinition = null;
-            records.foreach(r => {
-              ed = r._1
-              pd = r._2
-              if(elementsMap.contains(ed.id)){
-                elementsMap.get(ed.id).get.addProperty(pd)
-              }else{
-                ed.addProperty(pd)
-                elementsMap += (ed.id -> ed)
-              }
-            })
-
-            //The result I want is a List[ElementDefintions]
-            val elements:List[ElementDefinition] = elementsMap.values.toList
+            val elements:List[ElementDefinition] = consolidateElementDefs(records.toList)
             elements.length shouldBe 1
             elements(0).properties.length shouldBe 2
         }
