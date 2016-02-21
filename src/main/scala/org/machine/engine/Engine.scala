@@ -7,11 +7,12 @@ import org.neo4j.graphdb.factory.GraphDatabaseFactory
 import org.neo4j.io.fs.FileUtils
 import java.nio.file.{Paths, Files}
 import scala.collection.JavaConversions._
-import scala.collection.mutable.{ArrayBuffer, Map}
+import scala.collection.mutable.{ArrayBuffer, ListBuffer, Map}
 
 import org.machine.engine.logger._
 import org.machine.engine.exceptions._
 import org.machine.engine.graph._
+import org.machine.engine.graph.commands._
 import org.machine.engine.graph.nodes._
 import org.machine.engine.graph.labels._
 import org.machine.engine.graph.internal._
@@ -31,6 +32,9 @@ class Engine(dbPath:String, config: {
   var graphDBOption: Option[GraphDatabaseService] = None
   var systemSpaceOption:Option[SystemSpace] = None
   var userSpaceOption:Option[UserSpace] = None
+  var scope:CommandScope = CommandScopes.SystemSpaceScope
+  var command:EngineCommand = EngineCommands.DefineElement
+  var commandOptions:Map[String, AnyRef] = Map()
 
   def systemSpace:SystemSpace = this.systemSpaceOption.getOrElse(throw new InternalErrorException("SystemSpace has not be initialized."))
   def userSpace:UserSpace = this.userSpaceOption.getOrElse(throw new InternalErrorException("UserSpace has not be initialized."))
@@ -86,4 +90,43 @@ class Engine(dbPath:String, config: {
     this.userSpaceOption = Some(us)
     return this.userSpaceOption.get
   }
+
+  def inSystemSpace():Engine = {
+    config.logger.debug("Engine: Set command scope to element definition.")
+    this.scope = CommandScopes.SystemSpaceScope
+    return this
+  }
+
+  //Resets the command options and sets the command type to Define Element.
+  def defineElement(name:String, description: String):Engine = {
+    config.logger.debug("Engine: Define Element")
+    command = EngineCommands.DefineElement
+    commandOptions = Map[String, AnyRef]("mid" -> uuid,
+      "name" -> name,
+      "description" -> description,
+      "properties" -> new ListBuffer[Map[String, Any]]())
+    return this
+  }
+
+  def withProperty(name:String, ptype: String, description: String):Engine = {
+    config.logger.debug("Engine: With property name:%s ptype:%s".format(name, ptype))
+    val propertyDef = Map[String, Any]("mid" -> uuid,
+      "name" -> name,
+      "type" -> ptype,
+      "description" -> description)
+    val props = commandOptions("properties").asInstanceOf[ListBuffer[Map[String, Any]]]
+    props += propertyDef
+    return this
+  }
+
+  /** Executes the built up command. */
+  def end():Engine = {
+    config.logger.debug("Engine: Attempt to execute command.")
+    new CreateElementDefintion(database,
+      scope,
+      commandOptions,
+      config.logger).execute()
+    return this
+  }
+
 }

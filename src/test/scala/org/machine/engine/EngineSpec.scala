@@ -159,7 +159,107 @@ class EngineSpec extends FunSpec with Matchers with EasyMockSugar with BeforeAnd
       }
 
       describe("Element Definitions"){
-        it("should create an ElementDefinition")(pending)
+        /*
+        Need to:
+          Create Nodes
+            ElementDefinition
+              mid: uuid
+              name: Note
+              description: String
+              creation_time:Timestamp
+              last_modified_time:Timestamp
+
+            PropertyDefinition
+              mid: uuid
+              name: Note Text
+              type: String
+              creation_time:Timestamp
+              last_modified_time:Timestamp
+
+            PropertyDefinition
+              mid: uuid
+              name: Title
+              type: String
+              creation_time:Timestamp
+              last_modified_time:Timestamp
+
+          Create Associations
+            note -[:composed_of]-> Note Text
+            note -[:composed_of]-> Title
+
+        Statements
+        merge(ed:element_definition
+          {mid:{uuid},
+          name:{name},
+          description:{description}
+        })
+        on create set ed.creation_time = timestamp()
+        on match set ed.last_modified_time = timestamp()
+
+        merge(pd:property_definition {name:"a", type:"String"}) return pd
+        merge(pd:property_definition {name:"a", type:"String"}) return pd
+
+        match (ed:element_definition) where ed.name="note"
+        match (pd:property_definition)
+        merge (ed)-[:composed_of]->(pd)
+        */
+        it("should create an ElementDefinition"){
+          engine
+            .inSystemSpace()
+            .defineElement("Note", "A brief record of something, captured to assist the memory or for future reference.")
+            .withProperty("Note Text", "String", "The body of the note.")
+            .withProperty("Title", "String", "A user defined title of the note.")
+            .end()
+
+            val findDefinedElements = """
+              |match (ss:internal_system_space)-[:exists_in]->(ed:element_definition)-[:composed_of]->(pd:property_definition)
+              |return ed.mid as elementId,
+              |  ed.name as elementName,
+              |  pd.mid as propId,
+              |  pd.name as propName,
+              |  pd.type as propType,
+              |  pd.description as propDescription
+              """.stripMargin
+
+            val records = query[(ElementDefinition, PropertyDefinition)](engine.database,
+              findDefinedElements, null,
+              ( results: ArrayBuffer[(ElementDefinition, PropertyDefinition)],
+                record: java.util.Map[java.lang.String, Object]) => {
+                val elementId = record.get("elementId").toString()
+                val elementName = record.get("elementName").toString()
+                val ed = new ElementDefinition(elementId, elementName)
+
+                val propId = record.get("propId").toString()
+                val propName = record.get("propName").toString()
+                val propType = record.get("propType").toString()
+                val propDescription = record.get("propDescription").toString()
+                val pd = new PropertyDefinition(propId, propName, propType, propDescription)
+                val pair = (ed, pd)
+                results += pair
+              })
+
+            records.length shouldBe 2
+
+            val elementsMap = Map[String, ElementDefinition]()
+            var ed:ElementDefinition = null;
+            var pd:PropertyDefinition = null;
+            records.foreach(r => {
+              ed = r._1
+              pd = r._2
+              if(elementsMap.contains(ed.id)){
+                elementsMap.get(ed.id).get.addProperty(pd)
+              }else{
+                ed.addProperty(pd)
+                elementsMap += (ed.id -> ed)
+              }
+            })
+
+            //The result I want is a List[ElementDefintions]
+            val elements:List[ElementDefinition] = elementsMap.values.toList
+            elements.length shouldBe 1
+            elements(0).properties.length shouldBe 2
+        }
+
         it("should retrieve an ElementDefinition")(pending)
         it("should update an ElementDefinition")(pending)
         it("should delete an ElementDefinition")(pending)

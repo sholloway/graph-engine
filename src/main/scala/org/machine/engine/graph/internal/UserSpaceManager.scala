@@ -47,7 +47,6 @@ object UserSpaceManager{
     })
   }
 
-  //find uuid
   private def insertNewUserSpace(db: GraphDatabaseService,
     logger: Logger):UserSpace = {
       logger.debug("Engine: Attempting to insert new User Space node.")
