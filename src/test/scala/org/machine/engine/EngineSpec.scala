@@ -234,7 +234,26 @@ class EngineSpec extends FunSpec with Matchers with EasyMockSugar with BeforeAnd
           elements.length > 1
         }
 
-        it("should revieve a specific ElementDefinition by ID")(pending)
+        it("should revieve a specific ElementDefinition by ID"){
+          engine
+            .inSystemSpace()
+            .defineElement("Note", "A brief record of something, captured to assist the memory or for future reference.")
+            .withProperty("Note Text", "String", "The body of the note.")
+            .withProperty("Title", "String", "A user defined title of the note.")
+            .end()
+
+            val elements:List[ElementDefinition] = engine
+              .inSystemSpace()
+              .elements()
+
+            val noteOption = elements.find(e => {e.name == "Note"})
+            val noteElement = engine
+              .inSystemSpace()
+              .findElementDefinitionById(noteOption.get.id)
+            noteElement.id shouldBe noteOption.get.id
+            noteElement.name shouldBe noteOption.get.name
+        }
+
         it("should update an ElementDefinition")(pending)
         it("should delete an ElementDefinition")(pending)
         it("should list all ElementDefintions")(pending)

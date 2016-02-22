@@ -13,38 +13,37 @@ import org.machine.engine.graph.nodes._
 import org.machine.engine.graph.labels._
 import org.machine.engine.graph.internal._
 
-class ListAllElementDefinitions(database:GraphDatabaseService,
+class FindElementDefinition(database:GraphDatabaseService,
   cmdScope:CommandScope,
   commandOptions:Map[String, AnyRef],
   logger:Logger){
   import Neo4JHelper._
 
-  /*
-  How do I want this to work? A query needs to return back a list of items.
-  Transactions do not.
-
-  There is going to be two levels of commnds.
-  0MQ -> Engine Protocol (Rules) Map -> Engine Command -> DSL -> GraphCommand
-
-  */
-  def execute():List[ElementDefinition] = {
-    logger.debug("ListAllElementDefintions: Executing Command")
+  def execute():ElementDefinition = {
+    logger.debug("FindElementDefinition: Executing Command")
     //TODO: Currently this only returns ElementDefinitions that have associated PropertyDefinitions.
     //TODO: Return creation_time & last_modified_time
-    val findDefinedElements = """
-      |match (ss:internal_system_space)-[:exists_in]->(ed:element_definition)-[:composed_of]->(pd:property_definition)
+    val findElement = """
+      |match (ss:scope)-[:exists_in]->(ed:element_definition {mid:{mid}})-[:composed_of]->(pd:property_definition)
       |return ed.mid as elementId,
       |  ed.name as elementName,
       |  pd.mid as propId,
       |  pd.name as propName,
       |  pd.type as propType,
       |  pd.description as propDescription
-      """.stripMargin
+      """.stripMargin.replaceAll("scope", cmdScope.scope)
 
     val records = query[(ElementDefinition, PropertyDefinition)](database,
-      findDefinedElements, null,
+      findElement, commandOptions,
       elementDefAndPropDefQueryMapper)
-    return consolidateElementDefs(records.toList)
+    val elementDefs = consolidateElementDefs(records.toList)
+
+    if(elementDefs.length < 0){
+      throw new InternalErrorException("No element with ID: %s could be found in %".format(commandOptions.get("mid"), cmdScope.scope));
+    }else if(elementDefs.length > 1){
+      throw new InternalErrorException("Multiple Element Definitions where found with ID: %s could be found in %".format(commandOptions.get("mid"), cmdScope.scope));
+    }
+    return elementDefs(0);
   }
 
   private def elementDefAndPropDefQueryMapper(

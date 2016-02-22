@@ -126,7 +126,16 @@ class Engine(dbPath:String, config: {
   }
 
   def elements():List[ElementDefinition] = {
-    val cmd = new ListAllElementDefintions(database,
+    val cmd = new ListAllElementDefinitions(database,
+      scope,
+      commandOptions,
+      config.logger)
+    return cmd.execute()
+  }
+
+  def findElementDefinitionById(id:String):ElementDefinition = {
+    commandOptions = Map[String, AnyRef]("mid" -> id)
+    val cmd = new FindElementDefinition(database,
       scope,
       commandOptions,
       config.logger)
@@ -142,5 +151,4 @@ class Engine(dbPath:String, config: {
       config.logger).execute()
     return this
   }
-
 }
