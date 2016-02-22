@@ -20,7 +20,7 @@ import org.machine.engine.logger._
 class EngineSpec extends FunSpec with Matchers with EasyMockSugar with BeforeAndAfterAll{
   import Neo4JHelper._
   /*
-  The Challenge I see with ElementDefinitions is contracts are going to evolve
+  The challenge I see with ElementDefinitions is contracts are going to evolve
   towards Maps.
 
   Thoughts:
@@ -219,7 +219,22 @@ class EngineSpec extends FunSpec with Matchers with EasyMockSugar with BeforeAnd
             elements(0).properties.length shouldBe 2
         }
 
-        it("should retrieve an ElementDefinition")(pending)
+        it("should retrieve all ElementDefinitions"){
+          engine
+            .inSystemSpace()
+            .defineElement("Note", "A brief record of something, captured to assist the memory or for future reference.")
+            .withProperty("Note Text", "String", "The body of the note.")
+            .withProperty("Title", "String", "A user defined title of the note.")
+            .end()
+
+          val elements:List[ElementDefinition] = engine
+            .inSystemSpace()
+            .elements()
+
+          elements.length > 1
+        }
+
+        it("should revieve a specific ElementDefinition by ID")(pending)
         it("should update an ElementDefinition")(pending)
         it("should delete an ElementDefinition")(pending)
         it("should list all ElementDefintions")(pending)

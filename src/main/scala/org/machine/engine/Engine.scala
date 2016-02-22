@@ -125,6 +125,14 @@ class Engine(dbPath:String, config: {
     return this
   }
 
+  def elements():List[ElementDefinition] = {
+    val cmd = new ListAllElementDefintions(database,
+      scope,
+      commandOptions,
+      config.logger)
+    return cmd.execute()
+  }
+
   /** Executes the built up command. */
   def end():Engine = {
     config.logger.debug("Engine: Attempt to execute command.")
