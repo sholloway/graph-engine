@@ -254,41 +254,9 @@ class EngineSpec extends FunSpec with Matchers with EasyMockSugar with BeforeAnd
               .findElementDefinitionById(noteOption.get.id)
             noteElement.id shouldBe noteOption.get.id
             noteElement.name shouldBe noteOption.get.name
-        }
+        }       
 
-        it("should update an ElementDefinition description"){
-          engine
-            .inSystemSpace()
-            .defineElement("System", "A thing about a thing...")
-            .withProperty("Name", "String", "The name of the system.")
-            .end()
-
-          val systemOption = engine
-            .inSystemSpace()
-            .elements()
-            .find(e => {e.name == "System"})
-
-          val updatedDescription = """
-          |A set of interacting or interdependent components
-          | forming an integrated whole.
-          """.stripMargin
-
-          engine
-            .inSystemSpace()
-            .editElementDefinition(systemOption.get.id)
-            .setDescription(updatedDescription)
-            .end()
-
-          val updatedSystemOption = engine
-            .inSystemSpace()
-            .elements()
-            .find(e => {e.name == "System"})
-
-            updatedSystemOption.get.description shouldBe updatedDescription
-        }
-
-
-        it("should update an ElementDefinition's name"){
+        it("should update both name & defintion"){
           engine
             .inSystemSpace()
             .defineElement("System", "A thing about a thing...")
@@ -301,11 +269,16 @@ class EngineSpec extends FunSpec with Matchers with EasyMockSugar with BeforeAnd
             .find(e => {e.name == "System"})
 
           val updatedName = "IT System"
+          val updatedDescription = """
+          |A set of interacting or interdependent components
+          | forming an integrated whole.
+          """.stripMargin
 
           engine
             .inSystemSpace()
             .editElementDefinition(systemOption.get.id)
             .setName(updatedName)
+            .setDescription(updatedDescription)
             .end()
 
           val updatedSystemOption = engine
@@ -314,9 +287,8 @@ class EngineSpec extends FunSpec with Matchers with EasyMockSugar with BeforeAnd
             .find(e => {e.id == systemOption.get.id})
 
             updatedSystemOption.get.name shouldBe updatedName
+            updatedSystemOption.get.description shouldBe updatedDescription
         }
-
-        it("should update both name & defintion")(pending)
 
         /*
         match (ss:scope)-[:exists_in]
