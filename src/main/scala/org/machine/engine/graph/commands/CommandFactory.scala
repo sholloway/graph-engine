@@ -16,6 +16,8 @@ object CommandFactory{
         new CreateElementDefintion(database, cmdScope, commandOptions, logger)
       case EngineCommands.EditElementDefinition =>
         new EditElementDefintion(database, cmdScope, commandOptions, logger)
+      case EngineCommands.EditElementPropertyDefinition =>
+        new EditElementPropertyDefinition(database, cmdScope, commandOptions, logger)
     }
   }
 }

@@ -136,7 +136,7 @@ class EngineSpec extends FunSpec with Matchers with EasyMockSugar with BeforeAnd
   val dbFile = new File(dbPath)
   var engine:Engine = null
   var engineOptions = new {
-    val logger = new Logger(LoggerLevels.DEBUG)
+    val logger = new Logger(LoggerLevels.ERROR)
   }
 
   override def beforeAll(){
@@ -254,7 +254,7 @@ class EngineSpec extends FunSpec with Matchers with EasyMockSugar with BeforeAnd
               .findElementDefinitionById(noteOption.get.id)
             noteElement.id shouldBe noteOption.get.id
             noteElement.name shouldBe noteOption.get.name
-        }       
+        }
 
         it("should update both name & defintion"){
           engine
@@ -276,7 +276,7 @@ class EngineSpec extends FunSpec with Matchers with EasyMockSugar with BeforeAnd
 
           engine
             .inSystemSpace()
-            .editElementDefinition(systemOption.get.id)
+            .onElementDefinition(systemOption.get.id)
             .setName(updatedName)
             .setDescription(updatedDescription)
             .end()
@@ -290,15 +290,42 @@ class EngineSpec extends FunSpec with Matchers with EasyMockSugar with BeforeAnd
             updatedSystemOption.get.description shouldBe updatedDescription
         }
 
-        /*
-        match (ss:scope)-[:exists_in]
-          ->(ed:element_definition {mid:{mid}})
-          -[:composed_of]
-          ->(pd:property_definition {name:{pname}})
-        set pd.type = {propType},
-          pd.last_modified_time = timestamp()
-        */
-        it("should update an ElementDefinition's PropertyDefintion")(pending)
+        it("should update an ElementDefinition's PropertyDefintion"){
+          engine
+            .inSystemSpace()
+            .defineElement("System", "A thing about a thing...")
+            .withProperty("Name", "String", "The name of the system.")
+            .end()
+
+          val systemOption = engine
+            .inSystemSpace()
+            .elements()
+            .find(e => {e.name == "System"})
+
+          val updatedName = "System Name"
+          val updatedType = "Blob"
+          val updatedDescription = "Illogical field. The type doesn't make sense."
+
+          //find the property by its name, then change the name, type and description.
+          engine
+            .inSystemSpace()
+            .onElementDefinition(systemOption.get.id)
+            .editPropertyDefinition("Name")
+            .setName(updatedName)
+            .setType(updatedType)
+            .setDescription(updatedDescription)
+            .end()
+
+          val updatedSystem = engine
+            .inSystemSpace()
+            .findElementDefinitionById(systemOption.get.id)
+
+          updatedSystem.properties.length shouldBe 1
+          updatedSystem.properties(0).name shouldBe updatedName
+          updatedSystem.properties(0).propertyType shouldBe updatedType
+          updatedSystem.properties(0).description shouldBe updatedDescription
+        }
+
         it("should remove an ElementDefinition's PropertyDefintion")(pending)
         it("should delete an ElementDefinition")(pending)
         it("should list all ElementDefintions")(pending)

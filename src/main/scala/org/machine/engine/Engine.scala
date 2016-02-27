@@ -141,7 +141,7 @@ class Engine(dbPath:String, config: {
       Resets Command Options to be focused on editing an ElementDefinition.
     @param id: The id for the ElementDefinition.
   */
-  def editElementDefinition(id: String):Engine = {
+  def onElementDefinition(id: String):Engine = {
     command = EngineCommands.EditElementDefinition
     commandOptions = Map[String, AnyRef]("mid" -> id)
     return this
@@ -160,6 +160,20 @@ class Engine(dbPath:String, config: {
   */
   def setName(name:String):Engine = {
     commandOptions.+=("name"->name)
+    return this
+  }
+
+  /** Sets the name on an ElementDefinition.
+    @param type: The strong type of the property.
+  */
+  def setType(name:String):Engine = {
+    commandOptions.+=("type"->name)
+    return this
+  }
+
+  def editPropertyDefinition(name:String):Engine = {
+    command = EngineCommands.EditElementPropertyDefinition
+    commandOptions.+=("pname"->name)
     return this
   }
 

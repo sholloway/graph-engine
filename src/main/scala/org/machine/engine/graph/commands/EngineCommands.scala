@@ -7,4 +7,5 @@ sealed trait EngineCommand{
 object EngineCommands{
   case object DefineElement extends EngineCommand{ val cmd = "element_definition";}
   case object EditElementDefinition extends EngineCommand{ val cmd = "edit_element_definition";}
+  case object EditElementPropertyDefinition extends EngineCommand{ val cmd = "edit_element_property_definition";}
 }

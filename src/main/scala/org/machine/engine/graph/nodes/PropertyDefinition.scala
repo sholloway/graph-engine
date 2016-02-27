@@ -15,6 +15,6 @@ class PropertyDefinition(_id: String, _name: String, _type: String, _description
   def description = this._description
 
   override def toString():String = {
-    return "PropertyDefinition: %s %s".format(id, name)
+    return "PropertyDefinition: %s | %s | %s | %s".format(id, name, propertyType, description)
   }
 }
