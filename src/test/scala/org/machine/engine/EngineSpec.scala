@@ -256,35 +256,7 @@ class EngineSpec extends FunSpec with Matchers with EasyMockSugar with BeforeAnd
             noteElement.name shouldBe noteOption.get.name
         }
 
-        /*
-        Challenge:
-          Change the ElementDefintion Name
-          Change the ElementDefintion Description
-
-        Options:
-          - update function that takes a Map(String, AnyRef)
-          - set(String, AnyRef) function that builds a Map under the covers
-          - set/update functions that are specific. e.g. setName, setDescription
-
-          engine
-            .inSystemSpace()
-            .editElementDefinition(systemOption.get.id)
-            .update(..)
-
-          Verses
-
-          engine
-            .inSystemSpace()
-            .editElementDefinition(systemOption.get.id)
-            .set(..)
-            .set(..) //under the covers this would be building up a map and calling update()
-            .end()
-
-          Both of these options removes static typing. Since The Element Defintion
-          has a rigid definition, these are probably asking for trouble. However,
-          they are a better fit for Property Definitions.
-        */
-        it("should update an ElementDefinition"){
+        it("should update an ElementDefinition description"){
           engine
             .inSystemSpace()
             .defineElement("System", "A thing about a thing...")
@@ -315,6 +287,37 @@ class EngineSpec extends FunSpec with Matchers with EasyMockSugar with BeforeAnd
             updatedSystemOption.get.description shouldBe updatedDescription
         }
 
+
+        it("should update an ElementDefinition's name"){
+          engine
+            .inSystemSpace()
+            .defineElement("System", "A thing about a thing...")
+            .withProperty("Name", "String", "The name of the system.")
+            .end()
+
+          val systemOption = engine
+            .inSystemSpace()
+            .elements()
+            .find(e => {e.name == "System"})
+
+          val updatedName = "IT System"
+
+          engine
+            .inSystemSpace()
+            .editElementDefinition(systemOption.get.id)
+            .setName(updatedName)
+            .end()
+
+          val updatedSystemOption = engine
+            .inSystemSpace()
+            .elements()
+            .find(e => {e.id == systemOption.get.id})
+
+            updatedSystemOption.get.name shouldBe updatedName
+        }
+
+        it("should update both name & defintion")(pending)
+
         /*
         match (ss:scope)-[:exists_in]
           ->(ed:element_definition {mid:{mid}})
@@ -323,8 +326,6 @@ class EngineSpec extends FunSpec with Matchers with EasyMockSugar with BeforeAnd
         set pd.type = {propType},
           pd.last_modified_time = timestamp()
         */
-        it("should update an ElementDefinition's name")(pending)
-
         it("should update an ElementDefinition's PropertyDefintion")(pending)
         it("should remove an ElementDefinition's PropertyDefintion")(pending)
         it("should delete an ElementDefinition")(pending)

@@ -155,6 +155,14 @@ class Engine(dbPath:String, config: {
     return this
   }
 
+  /** Sets the name on an ElementDefinition.
+    @param name: The name of the ElementDefinition.
+  */
+  def setName(name:String):Engine = {
+    commandOptions.+=("name"->name)
+    return this
+  }
+
   /** Executes the built up command. */
   def end():Engine = {
     config.logger.debug("Engine: Attempt to execute command.")
