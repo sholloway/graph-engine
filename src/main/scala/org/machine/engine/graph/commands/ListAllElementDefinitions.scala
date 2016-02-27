@@ -35,6 +35,7 @@ class ListAllElementDefinitions(database:GraphDatabaseService,
       |match (ss:internal_system_space)-[:exists_in]->(ed:element_definition)-[:composed_of]->(pd:property_definition)
       |return ed.mid as elementId,
       |  ed.name as elementName,
+      |  ed.description as elementDescription,
       |  pd.mid as propId,
       |  pd.name as propName,
       |  pd.type as propType,
@@ -76,7 +77,8 @@ class ListAllElementDefinitions(database:GraphDatabaseService,
   private def mapElementDefintion(record: java.util.Map[java.lang.String, Object]):ElementDefinition = {
     val elementId = record.get("elementId").toString()
     val elementName = record.get("elementName").toString()
-    return new ElementDefinition(elementId, elementName)
+    val elementDescription = record.get("elementDescription").toString()
+    return new ElementDefinition(elementId, elementName, elementDescription)
   }
 
   private def mapPropertyDefintion(record: java.util.Map[java.lang.String, Object]):PropertyDefinition = {

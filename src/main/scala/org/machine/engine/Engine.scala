@@ -17,15 +17,10 @@ import org.machine.engine.graph.nodes._
 import org.machine.engine.graph.labels._
 import org.machine.engine.graph.internal._
 
-object EngineQueries{
-
-}
-
 class Engine(dbPath:String, config: {
   val logger: Logger
 }){
   import Neo4JHelper._
-  import EngineQueries._
   import SystemSpaceManager._
   import UserSpaceManager._
 
@@ -142,13 +137,30 @@ class Engine(dbPath:String, config: {
     return cmd.execute()
   }
 
+  /** Sets the mode to be in edit for an ElementDefintion.
+      Resets Command Options to be focused on editing an ElementDefinition.
+    @param id: The id for the ElementDefinition.
+  */
+  def editElementDefinition(id: String):Engine = {
+    command = EngineCommands.EditElementDefinition
+    commandOptions = Map[String, AnyRef]("mid" -> id)
+    return this
+  }
+
+  /** Sets the description on an ElementDefinition.
+    @param description: The description of the ElementDefinition.
+  */
+  def setDescription(description: String):Engine = {
+    commandOptions.+=("description"->description)
+    return this
+  }
+
   /** Executes the built up command. */
   def end():Engine = {
     config.logger.debug("Engine: Attempt to execute command.")
-    new CreateElementDefintion(database,
-      scope,
-      commandOptions,
-      config.logger).execute()
+    val cmd = CommandFactory.build(command, database, scope, commandOptions,
+      config.logger)
+    cmd.execute();
     return this
   }
 }

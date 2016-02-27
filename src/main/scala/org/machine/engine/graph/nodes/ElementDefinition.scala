@@ -9,11 +9,14 @@ import scala.collection.mutable.ListBuffer
 * @param _name: The Element Definition's name.
 */
 class ElementDefinition(_id: String,
-  _name: String){
+  _name: String,
+  _description: String){
   private val propertiesBuffer = new ListBuffer[PropertyDefinition]()
 
   def id = this._id
   def name = this._name
+  def description = this._description
+
   def properties:List[PropertyDefinition] = {
     return propertiesBuffer.toList
   }

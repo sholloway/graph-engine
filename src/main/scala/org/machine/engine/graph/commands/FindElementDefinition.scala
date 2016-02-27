@@ -27,6 +27,7 @@ class FindElementDefinition(database:GraphDatabaseService,
       |match (ss:scope)-[:exists_in]->(ed:element_definition {mid:{mid}})-[:composed_of]->(pd:property_definition)
       |return ed.mid as elementId,
       |  ed.name as elementName,
+      |  ed.description as elementDescription,
       |  pd.mid as propId,
       |  pd.name as propName,
       |  pd.type as propType,
@@ -37,15 +38,17 @@ class FindElementDefinition(database:GraphDatabaseService,
       findElement, commandOptions,
       elementDefAndPropDefQueryMapper)
     val elementDefs = consolidateElementDefs(records.toList)
+    return validateQueryResponse(elementDefs)(0);
+  }
 
+  private def validateQueryResponse(elementDefs: List[ElementDefinition]):List[ElementDefinition] = {
     if(elementDefs.length < 0){
       throw new InternalErrorException("No element with ID: %s could be found in %".format(commandOptions.get("mid"), cmdScope.scope));
     }else if(elementDefs.length > 1){
       throw new InternalErrorException("Multiple Element Definitions where found with ID: %s could be found in %".format(commandOptions.get("mid"), cmdScope.scope));
     }
-    return elementDefs(0);
+    return elementDefs
   }
-
   private def elementDefAndPropDefQueryMapper(
     results: ArrayBuffer[(ElementDefinition, PropertyDefinition)],
     record: java.util.Map[java.lang.String, Object]) = {
@@ -75,7 +78,8 @@ class FindElementDefinition(database:GraphDatabaseService,
   private def mapElementDefintion(record: java.util.Map[java.lang.String, Object]):ElementDefinition = {
     val elementId = record.get("elementId").toString()
     val elementName = record.get("elementName").toString()
-    return new ElementDefinition(elementId, elementName)
+    val elementDescription = record.get("elementDescription").toString()
+    return new ElementDefinition(elementId, elementName, elementDescription)
   }
 
   private def mapPropertyDefintion(record: java.util.Map[java.lang.String, Object]):PropertyDefinition = {

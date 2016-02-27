@@ -153,7 +153,8 @@ class EngineSpec extends FunSpec with Matchers with EasyMockSugar with BeforeAnd
     record: java.util.Map[java.lang.String, Object]) = {
     val elementId = record.get("elementId").toString()
     val elementName = record.get("elementName").toString()
-    val ed = new ElementDefinition(elementId, elementName)
+    val elementDescription = record.get("elementDescription").toString()
+    val ed = new ElementDefinition(elementId, elementName, elementDescription)
 
     val propId = record.get("propId").toString()
     val propName = record.get("propName").toString()
@@ -203,6 +204,7 @@ class EngineSpec extends FunSpec with Matchers with EasyMockSugar with BeforeAnd
               |match (ss:internal_system_space)-[:exists_in]->(ed:element_definition)-[:composed_of]->(pd:property_definition)
               |return ed.mid as elementId,
               |  ed.name as elementName,
+              |  ed.description as elementDescription,
               |  pd.mid as propId,
               |  pd.name as propName,
               |  pd.type as propType,
@@ -234,7 +236,7 @@ class EngineSpec extends FunSpec with Matchers with EasyMockSugar with BeforeAnd
           elements.length > 1
         }
 
-        it("should revieve a specific ElementDefinition by ID"){
+        it("should retrieve a specific ElementDefinition by ID"){
           engine
             .inSystemSpace()
             .defineElement("Note", "A brief record of something, captured to assist the memory or for future reference.")
@@ -254,7 +256,77 @@ class EngineSpec extends FunSpec with Matchers with EasyMockSugar with BeforeAnd
             noteElement.name shouldBe noteOption.get.name
         }
 
-        it("should update an ElementDefinition")(pending)
+        /*
+        Challenge:
+          Change the ElementDefintion Name
+          Change the ElementDefintion Description
+
+        Options:
+          - update function that takes a Map(String, AnyRef)
+          - set(String, AnyRef) function that builds a Map under the covers
+          - set/update functions that are specific. e.g. setName, setDescription
+
+          engine
+            .inSystemSpace()
+            .editElementDefinition(systemOption.get.id)
+            .update(..)
+
+          Verses
+
+          engine
+            .inSystemSpace()
+            .editElementDefinition(systemOption.get.id)
+            .set(..)
+            .set(..) //under the covers this would be building up a map and calling update()
+            .end()
+
+          Both of these options removes static typing. Since The Element Defintion
+          has a rigid definition, these are probably asking for trouble. However,
+          they are a better fit for Property Definitions.
+        */
+        it("should update an ElementDefinition"){
+          engine
+            .inSystemSpace()
+            .defineElement("System", "A thing about a thing...")
+            .withProperty("Name", "String", "The name of the system.")
+            .end()
+
+          val systemOption = engine
+            .inSystemSpace()
+            .elements()
+            .find(e => {e.name == "System"})
+
+          val updatedDescription = """
+          |A set of interacting or interdependent components
+          | forming an integrated whole.
+          """.stripMargin
+
+          engine
+            .inSystemSpace()
+            .editElementDefinition(systemOption.get.id)
+            .setDescription(updatedDescription)
+            .end()
+
+          val updatedSystemOption = engine
+            .inSystemSpace()
+            .elements()
+            .find(e => {e.name == "System"})
+
+            updatedSystemOption.get.description shouldBe updatedDescription
+        }
+
+        /*
+        match (ss:scope)-[:exists_in]
+          ->(ed:element_definition {mid:{mid}})
+          -[:composed_of]
+          ->(pd:property_definition {name:{pname}})
+        set pd.type = {propType},
+          pd.last_modified_time = timestamp()
+        */
+        it("should update an ElementDefinition's name")(pending)
+
+        it("should update an ElementDefinition's PropertyDefintion")(pending)
+        it("should remove an ElementDefinition's PropertyDefintion")(pending)
         it("should delete an ElementDefinition")(pending)
         it("should list all ElementDefintions")(pending)
       }
@@ -279,6 +351,7 @@ class EngineSpec extends FunSpec with Matchers with EasyMockSugar with BeforeAnd
               |match (ss:internal_user_space)-[:exists_in]->(ed:element_definition)-[:composed_of]->(pd:property_definition)
               |return ed.mid as elementId,
               |  ed.name as elementName,
+              |  ed.description as elementDescription,
               |  pd.mid as propId,
               |  pd.name as propName,
               |  pd.type as propType,
