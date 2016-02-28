@@ -140,7 +140,44 @@ class UserSpaceSpec extends FunSpec with Matchers with EasyMockSugar with Before
             updatedSystem.description shouldBe updatedDescription
         }
 
-        it("should update an ElementDefinition's PropertyDefintion")(pending)
+        it("should update an ElementDefinition's PropertyDefintion"){
+          engine
+            .inUserSpace()
+            .defineElement("System", "A thing about a thing...")
+            .withProperty("Name", "String", "The name of the system.")
+            .end()
+
+          val systemOption = engine
+            .inUserSpace()
+            .elements()
+            .find(e => {e.name == "System"})
+
+          val updatedName = "System Name"
+          val updatedType = "Blob"
+          val updatedDescription = "Illogical field. The type doesn't make sense."
+
+          //find the property by its name, then change the name, type and description.
+          engine
+            .inUserSpace()
+            .onElementDefinition(systemOption.get.id)
+            .editPropertyDefinition("Name")
+            .setName(updatedName)
+            .setType(updatedType)
+            .setDescription(updatedDescription)
+            .end()
+
+          val updatedSystem = engine
+            .inUserSpace()
+            .findElementDefinitionById(systemOption.get.id)
+
+          updatedSystem.properties.length shouldBe 1
+          updatedSystem.properties(0) should have(
+            'name (updatedName),
+            'propertyType (updatedType),
+            'description (updatedDescription)
+          )
+        }
+
         it("should remove an ElementDefinition's PropertyDefintion")(pending)
         it("should delete an ElementDefinition")(pending)
         it("should list all ElementDefintions")(pending)
