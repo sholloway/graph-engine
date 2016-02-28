@@ -281,13 +281,12 @@ class EngineSpec extends FunSpec with Matchers with EasyMockSugar with BeforeAnd
             .setDescription(updatedDescription)
             .end()
 
-          val updatedSystemOption = engine
+          val updatedSystem = engine
             .inSystemSpace()
-            .elements()
-            .find(e => {e.id == systemOption.get.id})
+            .findElementDefinitionById(systemOption.get.id)
 
-            updatedSystemOption.get.name shouldBe updatedName
-            updatedSystemOption.get.description shouldBe updatedDescription
+            updatedSystem.name shouldBe updatedName
+            updatedSystem.description shouldBe updatedDescription
         }
 
         it("should update an ElementDefinition's PropertyDefintion"){
@@ -326,7 +325,37 @@ class EngineSpec extends FunSpec with Matchers with EasyMockSugar with BeforeAnd
           updatedSystem.properties(0).description shouldBe updatedDescription
         }
 
-        it("should remove an ElementDefinition's PropertyDefintion")(pending)
+        it("should remove an ElementDefinition's PropertyDefintion"){
+          engine
+            .inSystemSpace()
+            .defineElement("Committee Review", "Critical examination of a document or plan, resulting in a score and/or written feedback.")
+            .withProperty("Status", "String", "The current status of the review in the review process.")
+            .withProperty("Review Date", "Date", "The date the review will happen or did happen.")
+            .withProperty("Rating", "String", "The rating that was issued by the review board.")
+            .end()
+
+          val committeReviewOption = engine
+            .inSystemSpace()
+            .elements()
+            .find(e => {e.name == "Committee Review"})
+
+          committeReviewOption.get.properties.length shouldBe 3
+          committeReviewOption.get.properties.exists(_.name == "Rating") shouldBe true
+
+          engine
+            .inSystemSpace()
+            .onElementDefinition(committeReviewOption.get.id)
+            .removePropertyDefinition("Rating")
+            .end()
+
+          val committeReview = engine
+            .inSystemSpace()
+            .findElementDefinitionById(committeReviewOption.get.id)
+
+          committeReview.properties.length shouldBe 2
+          committeReview.properties.exists(_.name == "Rating") shouldBe false
+        }
+
         it("should delete an ElementDefinition")(pending)
         it("should list all ElementDefintions")(pending)
       }

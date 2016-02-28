@@ -53,7 +53,7 @@ object UserSpaceManager{
       val createUserSpaceParams = Map("mid"->uuid, "name"->"User Space")
       var userSpaces:Array[UserSpace] = null
       transaction(db, (graphDB: GraphDatabaseService) =>{
-        userSpaces = insert[UserSpace](graphDB, createUserSpace, createUserSpaceParams, UserSpace.queryMapper)
+        userSpaces = run[UserSpace](graphDB, createUserSpace, createUserSpaceParams, UserSpace.queryMapper)
       })
 
       if (userSpaces.isEmpty){

@@ -43,7 +43,7 @@ class CreateElementDefintion(database:GraphDatabaseService,
       |on match set ed.last_modified_time = timestamp()
       """.stripMargin
 
-    insert( graphDB,
+    run( graphDB,
       createElementDefinitionStatement,
       commandOptions,
       emptyResultProcessor)
@@ -69,12 +69,12 @@ class CreateElementDefintion(database:GraphDatabaseService,
       """.stripMargin
 
     commandOptions("properties").asInstanceOf[ListBuffer[Map[String, AnyRef]]].foreach(property => {
-      insert( graphDB,
+      run( graphDB,
         createPropertyStatement,
         property,
         emptyResultProcessor)
 
-      insert( graphDB,
+      run( graphDB,
         createAssoicationStatement,
         Map("elementId" -> commandOptions("mid"),
           "propertyId" -> property("mid")),
@@ -89,7 +89,7 @@ class CreateElementDefintion(database:GraphDatabaseService,
       |match (ed:element_definition) where ed.mid = {elementId}
       |merge (ss)-[:exists_in]->(ed)
       """.stripMargin.replaceAll("label", cmdScope.scope)
-      insert(graphDB,
+      run(graphDB,
         associateToSystemSpace,
         Map("elementId" -> commandOptions("mid")),
         emptyResultProcessor)

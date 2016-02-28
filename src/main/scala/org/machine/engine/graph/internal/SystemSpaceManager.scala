@@ -32,7 +32,7 @@ object SystemSpaceManager{
   private def createSystemSpace(db: GraphDatabaseService, logger: Logger):SystemSpace = {
     logger.debug("Engine: Attempting to create System Space.")
     createUniqueSystemSpaceConstraint(db, logger)
-    return insertNewSystemSpace(db, logger)    
+    return insertNewSystemSpace(db, logger)
   }
 
   private def createUniqueSystemSpaceConstraint(db: GraphDatabaseService,
@@ -53,7 +53,7 @@ object SystemSpaceManager{
       val createSystemSpaceParams = Map("mid"->uuid, "name"->"System Space")
       var systemSpaces:Array[SystemSpace] = null
       transaction(db, (graphDB: GraphDatabaseService) =>{
-        systemSpaces = insert[SystemSpace](graphDB, createSystemSpace, createSystemSpaceParams, SystemSpace.queryMapper)
+        systemSpaces = run[SystemSpace](graphDB, createSystemSpace, createSystemSpaceParams, SystemSpace.queryMapper)
       })
 
       if (systemSpaces.isEmpty){

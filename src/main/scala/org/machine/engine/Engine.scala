@@ -17,9 +17,14 @@ import org.machine.engine.graph.nodes._
 import org.machine.engine.graph.labels._
 import org.machine.engine.graph.internal._
 
+//Pull DSL contract up to here for clearer definition.
+trait GraphDSL{
+
+}
+
 class Engine(dbPath:String, config: {
   val logger: Logger
-}){
+})extends GraphDSL{
   import Neo4JHelper._
   import SystemSpaceManager._
   import UserSpaceManager._
@@ -173,6 +178,12 @@ class Engine(dbPath:String, config: {
 
   def editPropertyDefinition(name:String):Engine = {
     command = EngineCommands.EditElementPropertyDefinition
+    commandOptions.+=("pname"->name)
+    return this
+  }
+
+  def removePropertyDefinition(name: String):Engine = {
+    command = EngineCommands.RemoveElementPropertyDefinition
     commandOptions.+=("pname"->name)
     return this
   }

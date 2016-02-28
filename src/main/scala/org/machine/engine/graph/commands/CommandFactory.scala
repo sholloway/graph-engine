@@ -18,6 +18,8 @@ object CommandFactory{
         new EditElementDefintion(database, cmdScope, commandOptions, logger)
       case EngineCommands.EditElementPropertyDefinition =>
         new EditElementPropertyDefinition(database, cmdScope, commandOptions, logger)
+      case EngineCommands.RemoveElementPropertyDefinition =>
+        new RemoveElementPropertyDefinition(database, cmdScope, commandOptions, logger)        
     }
   }
 }

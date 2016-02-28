@@ -39,7 +39,7 @@ class EditElementDefintion(database:GraphDatabaseService,
        .replaceAll("space", cmdScope.scope)
        .replaceAll("setClause", setClause)
 
-    insert( graphDB,
+    run( graphDB,
       editElementDefinitionStatement,
       commandOptions,
       emptyResultProcessor)

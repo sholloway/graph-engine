@@ -72,7 +72,7 @@ object Neo4JHelper{
         SystemSpace.queryMapper)
     })
   */
-  def insert[T:Manifest](graphDB: GraphDatabaseService,
+  def run[T:Manifest](graphDB: GraphDatabaseService,
     statement: String,
     params: java.util.Map[java.lang.String, Object],
     recordHandler: (ArrayBuffer[T],
