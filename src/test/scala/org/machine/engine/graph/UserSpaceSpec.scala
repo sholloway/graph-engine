@@ -178,7 +178,37 @@ class UserSpaceSpec extends FunSpec with Matchers with EasyMockSugar with Before
           )
         }
 
-        it("should remove an ElementDefinition's PropertyDefintion")(pending)
+        it("should remove an ElementDefinition's PropertyDefintion"){
+          engine
+            .inUserSpace()
+            .defineElement("Committee Review", "Critical examination of a document or plan, resulting in a score and/or written feedback.")
+            .withProperty("Status", "String", "The current status of the review in the review process.")
+            .withProperty("Review Date", "Date", "The date the review will happen or did happen.")
+            .withProperty("Rating", "String", "The rating that was issued by the review board.")
+            .end()
+
+          val committeReviewOption = engine
+            .inUserSpace()
+            .elements()
+            .find(e => {e.name == "Committee Review"})
+
+          committeReviewOption.get.properties.length shouldBe 3
+          committeReviewOption.get.properties.exists(_.name == "Rating") shouldBe true
+
+          engine
+            .inUserSpace()
+            .onElementDefinition(committeReviewOption.get.id)
+            .removePropertyDefinition("Rating")
+            .end()
+
+          val committeReview = engine
+            .inUserSpace()
+            .findElementDefinitionById(committeReviewOption.get.id)
+
+          committeReview.properties.length shouldBe 2
+          committeReview.properties.exists(_.name == "Rating") shouldBe false
+        }
+
         it("should delete an ElementDefinition")(pending)
         it("should list all ElementDefintions")(pending)
         it("should retrieve an ElementDefinition")(pending)
