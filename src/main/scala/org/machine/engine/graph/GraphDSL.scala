@@ -11,11 +11,13 @@ trait GraphDSL{
   def withProperty(name:String, ptype: String, description: String):GraphDSL
   def elements():List[ElementDefinition]
   def findElementDefinitionById(id:String):ElementDefinition
+  def findElementDefinitionByName(name:String):ElementDefinition
   def onElementDefinition(id: String):GraphDSL
   def setDescription(description: String):GraphDSL
   def setName(name:String):GraphDSL
   def setType(name:String):GraphDSL
   def editPropertyDefinition(name:String):GraphDSL
   def removePropertyDefinition(name: String):GraphDSL
+  def delete():GraphDSL
   def end():GraphDSL
 }

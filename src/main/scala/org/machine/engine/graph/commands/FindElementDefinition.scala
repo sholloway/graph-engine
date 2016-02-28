@@ -13,18 +13,26 @@ import org.machine.engine.graph.nodes._
 import org.machine.engine.graph.labels._
 import org.machine.engine.graph.internal._
 
-class FindElementDefinition(database:GraphDatabaseService,
-  cmdScope:CommandScope,
-  commandOptions:Map[String, AnyRef],
-  logger:Logger){
+/** Find an ElementDefinition in a specified graph space by ID or Name.
+*/
+trait FindElementDefinition{
   import Neo4JHelper._
 
   def execute():ElementDefinition = {
     logger.debug("FindElementDefinition: Executing Command")
-    //TODO: Currently this only returns ElementDefinitions that have associated PropertyDefinitions.
-    //TODO: Return creation_time & last_modified_time
-    val findElement = """
-      |match (ss:scope)-[:exists_in]->(ed:element_definition {mid:{mid}})-[:composed_of]->(pd:property_definition)
+    val findElement = buildQuery(cmdScope, commandOptions)
+    val records = query[(ElementDefinition, PropertyDefinition)](database,
+      findElement,
+      commandOptions,
+      elementDefAndPropDefQueryMapper)
+    val elementDefs = consolidateElementDefs(records.toList)
+    return validateQueryResponse(elementDefs)(0);
+  }
+
+  protected def buildQuery(cmdScope:CommandScope, commandOptions:Map[String, AnyRef]):String = {
+    val edMatchClause = buildElementDefinitionMatchClause(commandOptions)
+    return """
+      |match (ss:scope)-[:exists_in]->(ed:element_definition ed_match)-[:composed_of]->(pd:property_definition)
       |return ed.mid as elementId,
       |  ed.name as elementName,
       |  ed.description as elementDescription,
@@ -32,24 +40,20 @@ class FindElementDefinition(database:GraphDatabaseService,
       |  pd.name as propName,
       |  pd.type as propType,
       |  pd.description as propDescription
-      """.stripMargin.replaceAll("scope", cmdScope.scope)
-
-    val records = query[(ElementDefinition, PropertyDefinition)](database,
-      findElement, commandOptions,
-      elementDefAndPropDefQueryMapper)
-    val elementDefs = consolidateElementDefs(records.toList)
-    return validateQueryResponse(elementDefs)(0);
+      """.stripMargin
+        .replaceAll("scope", cmdScope.scope)
+        .replaceAll("ed_match", edMatchClause)
   }
 
-  private def validateQueryResponse(elementDefs: List[ElementDefinition]):List[ElementDefinition] = {
-    if(elementDefs.length < 0){
-      throw new InternalErrorException("No element with ID: %s could be found in %".format(commandOptions.get("mid"), cmdScope.scope));
-    }else if(elementDefs.length > 1){
-      throw new InternalErrorException("Multiple Element Definitions where found with ID: %s could be found in %".format(commandOptions.get("mid"), cmdScope.scope));
-    }
-    return elementDefs
-  }
-  private def elementDefAndPropDefQueryMapper(
+  protected def commandOptions:Map[String, AnyRef]
+  protected def database:GraphDatabaseService
+  protected def cmdScope:CommandScope
+  protected def logger:Logger
+
+  protected def buildElementDefinitionMatchClause(commandOptions:Map[String, AnyRef]):String
+  protected def validateQueryResponse(elementDefs: List[ElementDefinition]):List[ElementDefinition]
+
+  protected def elementDefAndPropDefQueryMapper(
     results: ArrayBuffer[(ElementDefinition, PropertyDefinition)],
     record: java.util.Map[java.lang.String, Object]) = {
     val ed = mapElementDefintion(record)
@@ -58,7 +62,7 @@ class FindElementDefinition(database:GraphDatabaseService,
     results += pair
   }
 
-  private def consolidateElementDefs(records: List[(ElementDefinition, PropertyDefinition)]):List[ElementDefinition] ={
+  protected def consolidateElementDefs(records: List[(ElementDefinition, PropertyDefinition)]):List[ElementDefinition] ={
     val elementsMap = Map[String, ElementDefinition]()
     var ed:ElementDefinition = null;
     var pd:PropertyDefinition = null;
@@ -75,14 +79,14 @@ class FindElementDefinition(database:GraphDatabaseService,
     return elementsMap.values.toList
   }
 
-  private def mapElementDefintion(record: java.util.Map[java.lang.String, Object]):ElementDefinition = {
+  protected def mapElementDefintion(record: java.util.Map[java.lang.String, Object]):ElementDefinition = {
     val elementId = record.get("elementId").toString()
     val elementName = record.get("elementName").toString()
     val elementDescription = record.get("elementDescription").toString()
     return new ElementDefinition(elementId, elementName, elementDescription)
   }
 
-  private def mapPropertyDefintion(record: java.util.Map[java.lang.String, Object]):PropertyDefinition = {
+  protected def mapPropertyDefintion(record: java.util.Map[java.lang.String, Object]):PropertyDefinition = {
     val propId = record.get("propId").toString()
     val propName = record.get("propName").toString()
     val propType = record.get("propType").toString()

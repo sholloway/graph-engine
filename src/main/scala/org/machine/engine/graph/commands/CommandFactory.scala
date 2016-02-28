@@ -16,10 +16,12 @@ object CommandFactory{
         new CreateElementDefintion(database, cmdScope, commandOptions, logger)
       case EngineCommands.EditElementDefinition =>
         new EditElementDefintion(database, cmdScope, commandOptions, logger)
+      case EngineCommands.DeleteElementDefintion =>
+        new DeleteElementDefintion(database, cmdScope, commandOptions, logger)
       case EngineCommands.EditElementPropertyDefinition =>
         new EditElementPropertyDefinition(database, cmdScope, commandOptions, logger)
       case EngineCommands.RemoveElementPropertyDefinition =>
-        new RemoveElementPropertyDefinition(database, cmdScope, commandOptions, logger)        
+        new RemoveElementPropertyDefinition(database, cmdScope, commandOptions, logger)
     }
   }
 }

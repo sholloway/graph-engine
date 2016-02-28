@@ -130,7 +130,16 @@ class Engine(dbPath:String, config: {
 
   def findElementDefinitionById(id:String):ElementDefinition = {
     commandOptions = Map[String, AnyRef]("mid" -> id)
-    val cmd = new FindElementDefinition(database,
+    val cmd = new FindElementDefinitionById(database,
+      scope,
+      commandOptions,
+      config.logger)
+    return cmd.execute()
+  }
+
+  def findElementDefinitionByName(name:String):ElementDefinition = {
+    commandOptions = Map[String, AnyRef]("name" -> name)
+    val cmd = new FindElementDefinitionByName(database,
       scope,
       commandOptions,
       config.logger)
@@ -183,6 +192,13 @@ class Engine(dbPath:String, config: {
     return this
   }
 
+  def delete():GraphDSL = {
+    command = command match {
+      case EngineCommands.EditElementDefinition => EngineCommands.DeleteElementDefintion
+      case unknown => throw new InternalErrorException("Cannot delete when %s is selected".format(unknown.toString()))
+    }
+    return this
+  }
   /** Executes the built up command. */
   def end():GraphDSL = {
     config.logger.debug("Engine: Attempt to execute command.")
