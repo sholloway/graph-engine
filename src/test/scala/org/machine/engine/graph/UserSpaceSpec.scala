@@ -209,9 +209,46 @@ class UserSpaceSpec extends FunSpec with Matchers with EasyMockSugar with Before
           committeReview.properties.exists(_.name == "Rating") shouldBe false
         }
 
-        it("should delete an ElementDefinition")(pending)
-        it("should list all ElementDefintions")(pending)
-        it("should retrieve an ElementDefinition")(pending)
+        it("should delete an ElementDefinition"){
+          val definition = """
+          |A fundamental statement of belief, approach, or intent that guides
+          |the definition of an architecture. It may refer to current circumstances
+          |or to a desired future state. A good principle is constructive, reasoned,
+          |well articulated, testable, and significant.
+          """.stripMargin
+
+          engine
+            .inUserSpace
+            .defineElement("Architecture Principle", definition)
+            .withProperty("Description", "String", "A paragraph about the principle.")
+            .withProperty("Heuristic Indicator", "String", "How the principle is measured.")
+            .withProperty("Area of Relevence", "String", "Classification of when the principle is appropriate.")
+            .end
+
+          val archPrinciple = engine
+            .inUserSpace
+            .findElementDefinitionByName("Architecture Principle")
+
+          engine
+            .inUserSpace
+            .onElementDefinition(archPrinciple.id)
+            .delete()
+            .end
+
+          val expectedIdMsg = "No element with ID: %s could be found in %s".format(archPrinciple.id, "internal_user_space")
+          the [InternalErrorException] thrownBy{
+            engine
+              .inUserSpace
+              .findElementDefinitionById(archPrinciple.id)
+          }should have message expectedIdMsg
+
+          val expectedNameMsg = "No element with Name: %s could be found in %s".format(archPrinciple.name, "internal_user_space")
+          the [InternalErrorException] thrownBy{
+            engine
+              .inUserSpace
+              .findElementDefinitionByName(archPrinciple.name)
+          }should have message expectedNameMsg
+        }
       }
     }
   }
