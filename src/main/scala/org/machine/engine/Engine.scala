@@ -17,11 +17,6 @@ import org.machine.engine.graph.nodes._
 import org.machine.engine.graph.labels._
 import org.machine.engine.graph.internal._
 
-//Pull DSL contract up to here for clearer definition.
-trait GraphDSL{
-
-}
-
 class Engine(dbPath:String, config: {
   val logger: Logger
 })extends GraphDSL{
@@ -91,20 +86,20 @@ class Engine(dbPath:String, config: {
     return this.userSpaceOption.get
   }
 
-  def inSystemSpace():Engine = {
+  def inSystemSpace():GraphDSL = {
     config.logger.debug("Engine: Set command scope to system space.")
     this.scope = CommandScopes.SystemSpaceScope
     return this
   }
 
-  def inUserSpace():Engine = {
+  def inUserSpace():GraphDSL = {
     config.logger.debug("Engine: Set command scope to user space.")
     this.scope = CommandScopes.UserSpaceScope
     return this
   }
 
   //Resets the command options and sets the command type to Define Element.
-  def defineElement(name:String, description: String):Engine = {
+  def defineElement(name:String, description: String):GraphDSL = {
     config.logger.debug("Engine: Define Element")
     command = EngineCommands.DefineElement
     commandOptions = Map[String, AnyRef]("mid" -> uuid,
@@ -114,7 +109,7 @@ class Engine(dbPath:String, config: {
     return this
   }
 
-  def withProperty(name:String, ptype: String, description: String):Engine = {
+  def withProperty(name:String, ptype: String, description: String):GraphDSL = {
     config.logger.debug("Engine: With property name:%s ptype:%s".format(name, ptype))
     val propertyDef = Map[String, Any]("mid" -> uuid,
       "name" -> name,
@@ -146,7 +141,7 @@ class Engine(dbPath:String, config: {
       Resets Command Options to be focused on editing an ElementDefinition.
     @param id: The id for the ElementDefinition.
   */
-  def onElementDefinition(id: String):Engine = {
+  def onElementDefinition(id: String):GraphDSL = {
     command = EngineCommands.EditElementDefinition
     commandOptions = Map[String, AnyRef]("mid" -> id)
     return this
@@ -155,7 +150,7 @@ class Engine(dbPath:String, config: {
   /** Sets the description on an ElementDefinition.
     @param description: The description of the ElementDefinition.
   */
-  def setDescription(description: String):Engine = {
+  def setDescription(description: String):GraphDSL = {
     commandOptions.+=("description"->description)
     return this
   }
@@ -163,7 +158,7 @@ class Engine(dbPath:String, config: {
   /** Sets the name on an ElementDefinition.
     @param name: The name of the ElementDefinition.
   */
-  def setName(name:String):Engine = {
+  def setName(name:String):GraphDSL = {
     commandOptions.+=("name"->name)
     return this
   }
@@ -171,25 +166,25 @@ class Engine(dbPath:String, config: {
   /** Sets the name on an ElementDefinition.
     @param type: The strong type of the property.
   */
-  def setType(name:String):Engine = {
+  def setType(name:String):GraphDSL = {
     commandOptions.+=("type"->name)
     return this
   }
 
-  def editPropertyDefinition(name:String):Engine = {
+  def editPropertyDefinition(name:String):GraphDSL = {
     command = EngineCommands.EditElementPropertyDefinition
     commandOptions.+=("pname"->name)
     return this
   }
 
-  def removePropertyDefinition(name: String):Engine = {
+  def removePropertyDefinition(name: String):GraphDSL = {
     command = EngineCommands.RemoveElementPropertyDefinition
     commandOptions.+=("pname"->name)
     return this
   }
 
   /** Executes the built up command. */
-  def end():Engine = {
+  def end():GraphDSL = {
     config.logger.debug("Engine: Attempt to execute command.")
     val cmd = CommandFactory.build(command, database, scope, commandOptions,
       config.logger)
