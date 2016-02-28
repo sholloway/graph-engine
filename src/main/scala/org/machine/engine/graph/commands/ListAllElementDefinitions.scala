@@ -32,7 +32,7 @@ class ListAllElementDefinitions(database:GraphDatabaseService,
     //TODO: Currently this only returns ElementDefinitions that have associated PropertyDefinitions.
     //TODO: Return creation_time & last_modified_time
     val findDefinedElements = """
-      |match (ss:internal_system_space)-[:exists_in]->(ed:element_definition)-[:composed_of]->(pd:property_definition)
+      |match (ss:space)-[:exists_in]->(ed:element_definition)-[:composed_of]->(pd:property_definition)
       |return ed.mid as elementId,
       |  ed.name as elementName,
       |  ed.description as elementDescription,
@@ -41,6 +41,7 @@ class ListAllElementDefinitions(database:GraphDatabaseService,
       |  pd.type as propType,
       |  pd.description as propDescription
       """.stripMargin
+        .replaceAll("space", cmdScope.scope)
 
     val records = query[(ElementDefinition, PropertyDefinition)](database,
       findDefinedElements, null,

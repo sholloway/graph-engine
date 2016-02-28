@@ -81,37 +81,70 @@ class UserSpaceSpec extends FunSpec with Matchers with EasyMockSugar with Before
 
       describe("Element Definitions"){
         it("should create an ElementDefinition"){
+          val name = "Use Case"
+          val description = "A practical example of a sequence of actions taken to provide value to some user. Often defined as a guide for architecture definition."
+
+          val pname = "Description"
+          val ptype = "String"
+          val pdescription = "A detailed series of paragraphs capturing the use case."
           engine
-            .inUserSpace()
-            .defineElement("Use Case", "A practical example of a sequence of actions taken to provide value to some user. Often defined as a guide for architecture definition.")
-            .withProperty("Description", "String", "A detailed series of paragraphs capturing the use case.")
-            .end()
+            .inUserSpace
+            .defineElement(name, description)
+            .withProperty(pname, ptype, pdescription)
+            .end
 
-          val findDefinedElements = """
-            |match (ss:internal_user_space)-[:exists_in]->(ed:element_definition)-[:composed_of]->(pd:property_definition)
-            |return ed.mid as elementId,
-            |  ed.name as elementName,
-            |  ed.description as elementDescription,
-            |  pd.mid as propId,
-            |  pd.name as propName,
-            |  pd.type as propType,
-            |  pd.description as propDescription
-            """.stripMargin
+          val useCase = engine
+            .inUserSpace
+            .findElementDefinitionByName("Use Case")
 
-          val records = query[(ElementDefinition, PropertyDefinition)](engine.database,
-            findDefinedElements, null,
-            elementDefAndPropDefQueryMapper)
-
-          records.length shouldBe 1
-          val elements:List[ElementDefinition] = consolidateElementDefs(records.toList)
-          elements.length shouldBe 1
-          elements(0).properties.length shouldBe 1
+          useCase.name shouldBe name
+          useCase.description shouldBe description
+          useCase.properties.length shouldBe 1
+          useCase.properties(0) should have (
+            'name (pname),
+            'propertyType (ptype),
+            'description (pdescription)
+          )
         }
 
-        it("should retrieve an ElementDefinition")(pending)
-        it("should update an ElementDefinition")(pending)
+        it("should update both name & defintion"){
+          engine
+            .inUserSpace()
+            .defineElement("System", "A thing about a thing...")
+            .withProperty("Name", "String", "The name of the system.")
+            .end()
+
+          val systemOption = engine
+            .inUserSpace()
+            .elements()
+            .find(e => {e.name == "System"})
+
+          val updatedName = "IT System"
+          val updatedDescription = """
+          |A set of interacting or interdependent components
+          | forming an integrated whole.
+          """.stripMargin
+
+          engine
+            .inUserSpace()
+            .onElementDefinition(systemOption.get.id)
+            .setName(updatedName)
+            .setDescription(updatedDescription)
+            .end()
+
+          val updatedSystem = engine
+            .inUserSpace()
+            .findElementDefinitionById(systemOption.get.id)
+
+            updatedSystem.name shouldBe updatedName
+            updatedSystem.description shouldBe updatedDescription
+        }
+
+        it("should update an ElementDefinition's PropertyDefintion")(pending)
+        it("should remove an ElementDefinition's PropertyDefintion")(pending)
         it("should delete an ElementDefinition")(pending)
         it("should list all ElementDefintions")(pending)
+        it("should retrieve an ElementDefinition")(pending)
       }
     }
   }
