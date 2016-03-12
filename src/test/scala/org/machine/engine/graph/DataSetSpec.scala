@@ -273,7 +273,41 @@ class DataSetSpec extends FunSpec with Matchers with EasyMockSugar with BeforeAn
           )
         }
 
-        it("should remove an ElementDefinition's PropertyDefintion")(pending)
+        it("should remove an ElementDefinition's PropertyDefintion"){
+          val datasetName = "Architecture Components"
+          val edName = "Committee Review"
+          engine
+            .createDataSet(datasetName, "A collection of system architecture components.")
+            .onDataSetByName(datasetName)
+            .defineElement(edName, "Critical examination of a document or plan, resulting in a score and/or written feedback.")
+            .withProperty("Status", "String", "The current status of the review in the review process.")
+            .withProperty("Review Date", "Date", "The date the review will happen or did happen.")
+            .withProperty("Rating", "String", "The rating that was issued by the review board.")
+            .end()
+
+          val committeReview =
+            engine
+              .onDataSetByName(datasetName)
+              .findElementDefinitionByName(edName)
+
+          committeReview.properties should have length 3
+          committeReview.properties.exists(_.name == "Rating") shouldBe true
+
+          engine
+            .onDataSetByName(datasetName)
+            .onElementDefinition(committeReview.id)
+            .removePropertyDefinition("Rating")
+            .end()
+
+          val updatedCommitteReview =
+            engine
+              .onDataSetByName(datasetName)
+              .findElementDefinitionById(committeReview.id)
+
+          updatedCommitteReview.properties should have length 2
+          updatedCommitteReview.properties.exists(_.name == "Rating") shouldBe false
+        }
+        
         it("should delete an ElementDefinition")(pending)
         it("should list all ElementDefintions")(pending)
       }
