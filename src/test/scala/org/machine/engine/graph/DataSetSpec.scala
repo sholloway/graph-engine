@@ -121,6 +121,7 @@ class DataSetSpec extends FunSpec with Matchers with EasyMockSugar with BeforeAn
       }
 
       it("should delete a DataSet")(pending)
+
       it("should list all available DataSets"){
         engine
           .createDataSet("A", "Empty Data Set")
@@ -132,8 +133,71 @@ class DataSetSpec extends FunSpec with Matchers with EasyMockSugar with BeforeAn
       }
 
       describe("Element Definitions"){
-        it("should create an ElementDefinition")(pending)
-        it("should retrieve an ElementDefinition")(pending)
+        it("should create an ElementDefinition"){
+          val datasetName = "Capability Definitions"
+
+          val bizCapName = "Business Capability"
+          val bizCapDef = """
+          The expression or the articulation of the capacity, materials and
+          expertise an organization needs in order to perform core functions.
+          """
+
+          engine
+            .createDataSet(datasetName, "A collection of business capabilities.")
+            .onDataSetByName(datasetName)
+            .defineElement(bizCapName, bizCapDef)
+              .withProperty("name", "String", "The name of the business capability.")
+              .withProperty("description", "String", "A short paragraph describing the business capability.")
+            .end
+
+          val bizCap =
+            engine
+              .onDataSetByName(datasetName)
+              .findElementDefinitionByName(bizCapName)
+
+          bizCap should have(
+            'name (bizCapName),
+            'description (bizCapDef)
+          )
+
+          bizCap.properties should have length 2
+        }
+
+        it("should retrieve an ElementDefinition by ID"){
+          val datasetName = "Capability Definitions"
+
+          val bizCapName = "Business Capability"
+          val bizCapDef = """
+          The expression or the articulation of the capacity, materials and
+          expertise an organization needs in order to perform core functions.
+          """
+
+          engine
+            .createDataSet(datasetName, "A collection of business capabilities.")
+            .onDataSetByName(datasetName)
+            .defineElement(bizCapName, bizCapDef)
+              .withProperty("name", "String", "The name of the business capability.")
+              .withProperty("description", "String", "A short paragraph describing the business capability.")
+            .end
+
+          val bizCapByName =
+            engine
+              .onDataSetByName(datasetName)
+              .findElementDefinitionByName(bizCapName)
+
+          val bizCapById =
+            engine
+              .onDataSetByName(datasetName)
+              .findElementDefinitionById(bizCapByName.id)
+
+          bizCapById should have(
+            'name (bizCapName),
+            'description (bizCapDef)
+          )
+
+          bizCapById.properties should have length 2
+        }
+
         it("should update an ElementDefinition")(pending)
         it("should delete an ElementDefinition")(pending)
         it("should list all ElementDefintions")(pending)

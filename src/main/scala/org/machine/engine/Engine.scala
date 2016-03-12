@@ -126,15 +126,22 @@ class Engine(dbPath:String, config: {
   }
 
   def onDataSet(id: String):GraphDSL = {
-    scope = CommandScopes.UserSpaceScope
+    scope = CommandScopes.DataSetScope
     command = EngineCommands.EditDataSet
-    commandOptions = Map[String, AnyRef]("mid" -> id)
+    commandOptions = Map[String, AnyRef]("dsId" -> id)
+    return this;
+  }
+
+  def onDataSetByName(name: String):GraphDSL = {
+    scope = CommandScopes.DataSetScope
+    command = EngineCommands.EditDataSet
+    commandOptions = Map[String, AnyRef]("dsName" -> name)
     return this;
   }
 
   def findDataSetById(id: String):DataSet = {
     scope = CommandScopes.UserSpaceScope
-    commandOptions = Map[String, AnyRef]("mid" -> id)
+    commandOptions = Map[String, AnyRef]("dsId" -> id)
     val cmd = new FindDataSetById(database, scope, commandOptions, config.logger)
     val elements = cmd.execute()
     return elements(0)
@@ -143,11 +150,18 @@ class Engine(dbPath:String, config: {
   //Resets the command options and sets the command type to Define Element.
   def defineElement(name:String, description: String):GraphDSL = {
     config.logger.debug("Engine: Define Element")
+    if(scope == CommandScopes.DataSetScope){
+      commandOptions += ("mid" -> uuid,
+        "name" -> name,
+        "description" -> description,
+        "properties" -> new ListBuffer[Map[String, Any]]())
+    }else{
+      commandOptions = Map[String, AnyRef]("mid" -> uuid,
+        "name" -> name,
+        "description" -> description,
+        "properties" -> new ListBuffer[Map[String, Any]]())
+    }
     command = EngineCommands.DefineElement
-    commandOptions = Map[String, AnyRef]("mid" -> uuid,
-      "name" -> name,
-      "description" -> description,
-      "properties" -> new ListBuffer[Map[String, Any]]())
     return this
   }
 
@@ -168,14 +182,22 @@ class Engine(dbPath:String, config: {
   }
 
   def findElementDefinitionById(id:String):ElementDefinition = {
-    commandOptions = Map[String, AnyRef]("mid" -> id)
+    if(scope == CommandScopes.DataSetScope){
+      commandOptions += ("mid" -> id)
+    }else{
+      commandOptions = Map[String, AnyRef]("mid" -> id)
+    }
     val cmd = new FindElementDefinitionById(database, scope, commandOptions, config.logger)
     val elements = cmd.execute()
     return elements(0)
   }
 
   def findElementDefinitionByName(name:String):ElementDefinition = {
-    commandOptions = Map[String, AnyRef]("name" -> name)
+    if(scope == CommandScopes.DataSetScope){
+      commandOptions += ("name" -> name)
+    }else{
+      commandOptions = Map[String, AnyRef]("name" -> name)
+    }    
     val cmd = new FindElementDefinitionByName(database, scope, commandOptions, config.logger)
     val elements = cmd.execute()
     return elements(0)

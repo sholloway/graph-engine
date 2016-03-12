@@ -30,10 +30,9 @@ class EditDataSet(database:GraphDatabaseService,
     logger.debug("EditDataSet: Editing element definition.")
     val setClause = buidSetClause("ds", commandOptions.toMap, List("mid"))
     val editDataSetStatement = """
-    |match (ss:space)-[:contains]->(ds:internal_data_set {mid:{mid}})
+    |match (us:internal_user_space)-[:contains]->(ds:internal_data_set {mid:{dsId}})
     |set setClause, ds.last_modified_time = timestamp()
     """.stripMargin
-       .replaceAll("space", cmdScope.scope)
        .replaceAll("setClause", setClause)
 
     run( graphDB,

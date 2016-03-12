@@ -13,14 +13,48 @@ import org.machine.engine.graph.nodes._
 import org.machine.engine.graph.labels._
 import org.machine.engine.graph.internal._
 
-class FindElementDefinitionById(_database:GraphDatabaseService,
-  _cmdScope:CommandScope,
-  _commandOptions:Map[String, AnyRef],
-  _logger:Logger) extends FindElementDefinition{
-  protected def commandOptions:Map[String, AnyRef] = this._commandOptions
-  protected def database:GraphDatabaseService = this._database
-  protected def cmdScope:CommandScope = this._cmdScope
-  protected def logger:Logger = this._logger
+class FindElementDefinitionById(database:GraphDatabaseService,
+  cmdScope:CommandScope,
+  commandOptions:Map[String, AnyRef],
+  logger:Logger) extends FindElementDefinition{
+  import Neo4JHelper._
+
+  def execute():List[ElementDefinition] = {
+    logger.debug("FindElementDefinitionById: Executing Command")
+    val findElement = buildQuery(cmdScope, commandOptions)
+    val records = query[(ElementDefinition, PropertyDefinition)](database,
+      findElement,
+      commandOptions,
+      elementDefAndPropDefQueryMapper)
+    val elementDefs = consolidateElementDefs(records.toList)
+    return validateQueryResponse(elementDefs);
+  }
+
+  protected def buildQuery(cmdScope:CommandScope, commandOptions:Map[String, AnyRef]):String = {
+    val edMatchClause = buildElementDefinitionMatchClause(commandOptions)
+    val scope = buildScope(cmdScope, commandOptions)
+    return """
+      |match (ss:scope)-[:exists_in]->(ed:element_definition ed_match)-[:composed_of]->(pd:property_definition)
+      |return ed.mid as elementId,
+      |  ed.name as elementName,
+      |  ed.description as elementDescription,
+      |  pd.mid as propId,
+      |  pd.name as propName,
+      |  pd.type as propType,
+      |  pd.description as propDescription
+      """.stripMargin
+        .replaceAll("scope", cmdScope.scope)
+        .replaceAll("ed_match", edMatchClause)
+  }
+
+  private def buildScope(cmdScope:CommandScope, options:Map[String, AnyRef]):String = {
+    val scope = cmdScope match{
+      case CommandScopes.SystemSpaceScope => CommandScopes.SystemSpaceScope.scope
+      case CommandScopes.UserSpaceScope => CommandScopes.UserSpaceScope.scope
+      case CommandScopes.DataSetScope => { "%s {mid:%s}".format(CommandScopes.DataSetScope.scope, options.get("dsId"))}
+    }
+    return scope
+  }
 
   protected def buildElementDefinitionMatchClause(commandOptions:Map[String, AnyRef]):String = {
     return "{mid:{mid}}"

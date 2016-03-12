@@ -7,4 +7,5 @@ sealed trait CommandScope{
 object CommandScopes{
   case object SystemSpaceScope extends CommandScope{ val scope = "internal_system_space";}
   case object UserSpaceScope extends CommandScope{ val scope = "internal_user_space";}
+  case object DataSetScope extends CommandScope{ val scope = "internal_data_set";}
 }

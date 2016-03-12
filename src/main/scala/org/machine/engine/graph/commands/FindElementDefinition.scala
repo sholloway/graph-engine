@@ -16,43 +16,6 @@ import org.machine.engine.graph.internal._
 /** Find an ElementDefinition in a specified graph space by ID or Name.
 */
 trait FindElementDefinition extends Neo4JQueryCommand[ElementDefinition]{
-  import Neo4JHelper._
-
-  def execute():List[ElementDefinition] = {
-    logger.debug("FindElementDefinition: Executing Command")
-    val findElement = buildQuery(cmdScope, commandOptions)
-    val records = query[(ElementDefinition, PropertyDefinition)](database,
-      findElement,
-      commandOptions,
-      elementDefAndPropDefQueryMapper)
-    val elementDefs = consolidateElementDefs(records.toList)
-    return validateQueryResponse(elementDefs);    
-  }
-
-  protected def buildQuery(cmdScope:CommandScope, commandOptions:Map[String, AnyRef]):String = {
-    val edMatchClause = buildElementDefinitionMatchClause(commandOptions)
-    return """
-      |match (ss:scope)-[:exists_in]->(ed:element_definition ed_match)-[:composed_of]->(pd:property_definition)
-      |return ed.mid as elementId,
-      |  ed.name as elementName,
-      |  ed.description as elementDescription,
-      |  pd.mid as propId,
-      |  pd.name as propName,
-      |  pd.type as propType,
-      |  pd.description as propDescription
-      """.stripMargin
-        .replaceAll("scope", cmdScope.scope)
-        .replaceAll("ed_match", edMatchClause)
-  }
-
-  protected def commandOptions:Map[String, AnyRef]
-  protected def database:GraphDatabaseService
-  protected def cmdScope:CommandScope
-  protected def logger:Logger
-
-  protected def buildElementDefinitionMatchClause(commandOptions:Map[String, AnyRef]):String
-  protected def validateQueryResponse(elementDefs: List[ElementDefinition]):List[ElementDefinition]
-
   protected def elementDefAndPropDefQueryMapper(
     results: ArrayBuffer[(org.machine.engine.graph.nodes.ElementDefinition, PropertyDefinition)],
     record: java.util.Map[java.lang.String, Object]) = {

@@ -11,6 +11,7 @@ trait GraphDSL{
   def createDataSet(name:String, description:String):GraphDSL
   def datasets():List[DataSet]
   def onDataSet(id: String):GraphDSL
+  def onDataSetByName(name: String):GraphDSL
   def findDataSetByName(name:String):DataSet
   def findDataSetById(id: String):DataSet
 

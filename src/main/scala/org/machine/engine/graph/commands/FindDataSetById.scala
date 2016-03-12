@@ -22,14 +22,13 @@ class FindDataSetById(database:GraphDatabaseService,
   def execute():List[DataSet] = {
     logger.debug("FindDataSetById: Executing Command")
     val findDataSets = """
-      |match (ss:space)-[:contains]->(ds:internal_data_set {mid:{mid}})
+      |match (us:internal_user_space)-[:contains]->(ds:internal_data_set {mid:{dsId}})
       |return ds.mid as id,
       |  ds.name as name,
       |  ds.description as description,
       |  ds.creation_time as creationTime,
       |  ds.last_modified_time as lastModifiedTime
       """.stripMargin
-        .replaceAll("space", cmdScope.scope)
 
     val records = query[DataSet](database,
       findDataSets, commandOptions, dataSetMapper)
@@ -52,7 +51,7 @@ class FindDataSetById(database:GraphDatabaseService,
   }
 
   private def validateQueryResponse(datasets: List[DataSet]):List[DataSet] = {
-    val mid = commandOptions.get("mid").getOrElse(throw new InternalErrorException("FindDataSetById requires that mid be specified on commandOptions."))
+    val mid = commandOptions.get("dsId").getOrElse(throw new InternalErrorException("FindDataSetById requires that dsId be specified on commandOptions."))
     if(datasets.length < 1){
       val msg = "No dataset with mid: %s could be found in %s".format(mid, cmdScope.scope)
       throw new InternalErrorException(msg);
