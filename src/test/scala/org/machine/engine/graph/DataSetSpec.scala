@@ -198,7 +198,41 @@ class DataSetSpec extends FunSpec with Matchers with EasyMockSugar with BeforeAn
           bizCapById.properties should have length 2
         }
 
-        it("should update an ElementDefinition")(pending)
+        it("should update both name & defintion"){
+          val datasetName = "Architecture Components"
+          engine
+            .createDataSet(datasetName, "A collection of system architecture components.")
+            .onDataSetByName(datasetName)
+            .defineElement("System", "A thing about a thing...")
+            .withProperty("Name", "String", "The name of the system.")
+            .end()
+
+          val system =
+            engine
+              .onDataSetByName(datasetName)
+              .findElementDefinitionByName("System")
+
+          val updatedName = "IT System"
+          val updatedDescription = """
+          |A set of interacting or interdependent components
+          | forming an integrated whole.
+          """.stripMargin
+
+          engine
+            .onDataSetByName(datasetName)
+            .onElementDefinition(system.id)
+            .setName(updatedName)
+            .setDescription(updatedDescription)
+            .end()
+
+          val updatedSystem = engine
+            .onDataSetByName(datasetName)
+            .findElementDefinitionById(system.id)
+
+          updatedSystem.name shouldBe updatedName
+          updatedSystem.description shouldBe updatedDescription
+        }
+
         it("should delete an ElementDefinition")(pending)
         it("should list all ElementDefintions")(pending)
       }

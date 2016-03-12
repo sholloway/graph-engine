@@ -197,7 +197,7 @@ class Engine(dbPath:String, config: {
       commandOptions += ("name" -> name)
     }else{
       commandOptions = Map[String, AnyRef]("name" -> name)
-    }    
+    }
     val cmd = new FindElementDefinitionByName(database, scope, commandOptions, config.logger)
     val elements = cmd.execute()
     return elements(0)
@@ -209,7 +209,11 @@ class Engine(dbPath:String, config: {
   */
   def onElementDefinition(id: String):GraphDSL = {
     command = EngineCommands.EditElementDefinition
-    commandOptions = Map[String, AnyRef]("mid" -> id)
+    if(scope == CommandScopes.DataSetScope){
+      commandOptions += ("mid" -> id)
+    }else{
+      commandOptions = Map[String, AnyRef]("mid" -> id)
+    }
     return this
   }
 
