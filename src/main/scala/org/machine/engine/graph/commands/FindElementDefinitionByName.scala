@@ -21,6 +21,7 @@ class FindElementDefinitionByName(_database:GraphDatabaseService,
   protected def database:GraphDatabaseService = this._database
   protected def cmdScope:CommandScope = this._cmdScope
   protected def logger:Logger = this._logger
+  
   protected def buildElementDefinitionMatchClause(commandOptions:Map[String, AnyRef]):String = {
     return "{name:{name}}"
   }

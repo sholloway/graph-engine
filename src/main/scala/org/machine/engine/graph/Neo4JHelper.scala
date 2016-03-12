@@ -3,9 +3,36 @@ package org.machine.engine.graph
 import org.neo4j.graphdb._
 import scala.collection.JavaConversions._
 import scala.collection.mutable.ArrayBuffer
+import org.machine.engine.exceptions._
 
+/** A mixin for making working with Neo4J easier.
+*/
 object Neo4JHelper{
-  def transaction(graphDB:GraphDatabaseService, tx:GraphDatabaseService => Unit){
+  val NOT_FOUND_VALUE = ""
+
+  /** A wrapper function for executing Neo4J operations inside a database transaction.
+
+    Use:
+    transaction(db, (graphDB: GraphDatabaseService) => {
+      val aBook: Node = graphDB.createNode()
+      aBook.setProperty("title", "The Left Hand of Darkness")
+      aBook.addLabel(LibraryLabels.Book)
+    })
+
+    Or
+    val createSystemSpaceParams = Map("mid"->uuid, "name"->"System Space")
+    var systemSpaces:Array[SystemSpace] = null
+    transaction(db, (graphDB: GraphDatabaseService) =>{
+      systemSpaces = insert[SystemSpace](graphDB,
+        CreateSystemSpaceCypherStatement,
+        createSystemSpaceParams,
+        SystemSpace.queryMapper)
+    })
+
+    @param graphDB: The Neo4J client.
+    @param tx: Function to execute inside the scope of the transaction.
+  */
+  def transaction(graphDB:GraphDatabaseService, tx:GraphDatabaseService => Unit):Unit = {
     var dbTransactionOption: Option[Transaction] = None
     try{
       dbTransactionOption = Some(graphDB.beginTx());
@@ -19,8 +46,6 @@ object Neo4JHelper{
   }
 
   /** Generic query function.
-    http://www.brentsowers.com/2011/11/writing-generic-functions-that-take.html
-    https://stackoverflow.com/questions/3213510/what-is-a-manifest-in-scala-and-when-do-you-need-it
 
     Use:
     val books = query[Book](db, cypher,
@@ -30,6 +55,11 @@ object Neo4JHelper{
       val title = record.get("title")
       results += new Book(id.asInstanceOf[Long], title.toString())
     })
+
+    @param graphDB: The Neo4J client.
+    @param query: The cypher statement to execute.
+    @param params: The parameters for the cypher statement.
+    @param recordHandler: The function to execute for handling result mapping.
   */
   def query[T:Manifest](graphDB: GraphDatabaseService,
     query: String,
@@ -71,6 +101,11 @@ object Neo4JHelper{
         createSystemSpaceParams,
         SystemSpace.queryMapper)
     })
+
+    @param graphDB: The Neo4J client.
+    @param statement: The cypher statement to execute.
+    @param params: The parameters for the cypher statement.
+    @param recordHandler: The function to execute for handling result mapping.
   */
   def run[T:Manifest](graphDB: GraphDatabaseService,
     statement: String,
@@ -101,4 +136,27 @@ object Neo4JHelper{
   /** Generates a Unique Universal Identifier
   */
   def uuid = java.util.UUID.randomUUID.toString
+
+  /** Given a record from a query result set, finds a value corrisponding to
+  *   the provided column name. Thows an exception if the field is not found
+  *   when required is set to true.
+  *
+  * @param name: The name of the field to find.
+  * @param record: The record to map a value from.
+  * @param required: Specifies if an error should be thrown if the desired field is not found.
+  */
+  def mapString(name:String,
+    record:java.util.Map[java.lang.String, Object],
+    required: Boolean):String = {
+    var response:String = null
+    if (record.containsKey(name) && record.get(name) != null){
+      response = record.get(name).toString()
+    }else if(!record.containsKey(name) && required){
+      val msg = "The required field: %s was not found in the query response.".format(name)
+      throw new InternalErrorException(msg)
+    }else{
+      response = NOT_FOUND_VALUE
+    }
+    return response
+  }
 }

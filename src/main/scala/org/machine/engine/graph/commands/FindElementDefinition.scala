@@ -15,10 +15,10 @@ import org.machine.engine.graph.internal._
 
 /** Find an ElementDefinition in a specified graph space by ID or Name.
 */
-trait FindElementDefinition{
+trait FindElementDefinition extends Neo4JQueryCommand[ElementDefinition]{
   import Neo4JHelper._
 
-  def execute():ElementDefinition = {
+  def execute():List[ElementDefinition] = {
     logger.debug("FindElementDefinition: Executing Command")
     val findElement = buildQuery(cmdScope, commandOptions)
     val records = query[(ElementDefinition, PropertyDefinition)](database,
@@ -26,7 +26,8 @@ trait FindElementDefinition{
       commandOptions,
       elementDefAndPropDefQueryMapper)
     val elementDefs = consolidateElementDefs(records.toList)
-    return validateQueryResponse(elementDefs)(0);
+    return validateQueryResponse(elementDefs);
+    return null;
   }
 
   protected def buildQuery(cmdScope:CommandScope, commandOptions:Map[String, AnyRef]):String = {
@@ -54,7 +55,7 @@ trait FindElementDefinition{
   protected def validateQueryResponse(elementDefs: List[ElementDefinition]):List[ElementDefinition]
 
   protected def elementDefAndPropDefQueryMapper(
-    results: ArrayBuffer[(ElementDefinition, PropertyDefinition)],
+    results: ArrayBuffer[(org.machine.engine.graph.nodes.ElementDefinition, PropertyDefinition)],
     record: java.util.Map[java.lang.String, Object]) = {
     val ed = mapElementDefintion(record)
     val pd = mapPropertyDefintion(record)

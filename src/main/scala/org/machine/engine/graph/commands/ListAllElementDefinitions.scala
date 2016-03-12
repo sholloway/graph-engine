@@ -16,17 +16,9 @@ import org.machine.engine.graph.internal._
 class ListAllElementDefinitions(database:GraphDatabaseService,
   cmdScope:CommandScope,
   commandOptions:Map[String, AnyRef],
-  logger:Logger){
+  logger:Logger) extends Neo4JQueryCommand[ElementDefinition]{
   import Neo4JHelper._
 
-  /*
-  How do I want this to work? A query needs to return back a list of items.
-  Transactions do not.
-
-  There is going to be two levels of commnds.
-  0MQ -> Engine Protocol (Rules) Map -> Engine Command -> DSL -> GraphCommand
-
-  */
   def execute():List[ElementDefinition] = {
     logger.debug("ListAllElementDefintions: Executing Command")
     //TODO: Currently this only returns ElementDefinitions that have associated PropertyDefinitions.

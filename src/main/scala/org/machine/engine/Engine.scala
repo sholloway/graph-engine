@@ -98,6 +98,25 @@ class Engine(dbPath:String, config: {
     return this
   }
 
+  def createDataSet(name:String, description:String):GraphDSL = {
+    this.scope = CommandScopes.UserSpaceScope
+    command = EngineCommands.CreateDataSet
+    commandOptions = Map[String, AnyRef](
+      "mid" -> uuid,
+      "name" -> name,
+      "description" -> description)
+    val cmd = CommandFactory.build(command, database, scope,commandOptions, config.logger)
+    cmd.execute()
+    return this
+  }
+
+  def datasets():List[DataSet] = {
+    this.scope = CommandScopes.UserSpaceScope
+    commandOptions = Map[String, AnyRef]()
+    val cmd = new ListDataSets(database, scope, commandOptions, config.logger)
+    return cmd.execute()
+  }
+
   //Resets the command options and sets the command type to Define Element.
   def defineElement(name:String, description: String):GraphDSL = {
     config.logger.debug("Engine: Define Element")
@@ -121,29 +140,22 @@ class Engine(dbPath:String, config: {
   }
 
   def elements():List[ElementDefinition] = {
-    val cmd = new ListAllElementDefinitions(database,
-      scope,
-      commandOptions,
-      config.logger)
+    val cmd = new ListAllElementDefinitions(database, scope, commandOptions, config.logger)
     return cmd.execute()
   }
 
   def findElementDefinitionById(id:String):ElementDefinition = {
     commandOptions = Map[String, AnyRef]("mid" -> id)
-    val cmd = new FindElementDefinitionById(database,
-      scope,
-      commandOptions,
-      config.logger)
-    return cmd.execute()
+    val cmd = new FindElementDefinitionById(database, scope, commandOptions, config.logger)
+    val elements = cmd.execute()
+    return elements(0)
   }
 
   def findElementDefinitionByName(name:String):ElementDefinition = {
-    commandOptions = Map[String, AnyRef]("name" -> name)
-    val cmd = new FindElementDefinitionByName(database,
-      scope,
-      commandOptions,
-      config.logger)
-    return cmd.execute()
+    commandOptions = Map[String, AnyRef]("name" -> name)    
+    val cmd = new FindElementDefinitionByName(database, scope, commandOptions, config.logger)
+    val elements = cmd.execute()
+    return elements(0)
   }
 
   /** Sets the mode to be in edit for an ElementDefintion.

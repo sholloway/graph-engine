@@ -9,7 +9,7 @@ package org.machine.engine.graph.nodes
 * @param _createTime: When the DataSet was created.
 * @param _lastModifiedType: When the DataSet was last edited.
 */
-class DataSet(_id: Long,
+class DataSet(_id: String,
   _name: String,
   _description: String,
   _createTime: String, //change to some kind of time type.
