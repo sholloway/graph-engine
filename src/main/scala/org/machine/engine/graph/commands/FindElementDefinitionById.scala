@@ -30,7 +30,7 @@ class FindElementDefinitionById(database:GraphDatabaseService,
     return validateQueryResponse(elementDefs);
   }
 
-  protected def buildQuery(cmdScope:CommandScope, commandOptions:Map[String, AnyRef]):String = {
+  private def buildQuery(cmdScope:CommandScope, commandOptions:Map[String, AnyRef]):String = {
     val edMatchClause = buildElementDefinitionMatchClause(commandOptions)
     val scope = buildScope(cmdScope, commandOptions)
     return """
@@ -43,32 +43,46 @@ class FindElementDefinitionById(database:GraphDatabaseService,
       |  pd.type as propType,
       |  pd.description as propDescription
       """.stripMargin
-        .replaceAll("scope", cmdScope.scope)
+        .replaceAll("scope", scope)
         .replaceAll("ed_match", edMatchClause)
   }
 
-  private def buildScope(cmdScope:CommandScope, options:Map[String, AnyRef]):String = {
-    val scope = cmdScope match{
-      case CommandScopes.SystemSpaceScope => CommandScopes.SystemSpaceScope.scope
-      case CommandScopes.UserSpaceScope => CommandScopes.UserSpaceScope.scope
-      case CommandScopes.DataSetScope => { "%s {mid:%s}".format(CommandScopes.DataSetScope.scope, options.get("dsId"))}
-    }
-    return scope
-  }
-
-  protected def buildElementDefinitionMatchClause(commandOptions:Map[String, AnyRef]):String = {
+  private def buildElementDefinitionMatchClause(commandOptions:Map[String, AnyRef]):String = {
     return "{mid:{mid}}"
   }
 
-  protected def validateQueryResponse(elementDefs: List[ElementDefinition]):List[ElementDefinition] = {
-    val id = commandOptions.get("mid").getOrElse(throw new InternalErrorException("FindElementDefinitionById requires that mid be specified on commandOptions."))
+  private def validateQueryResponse(elementDefs: List[ElementDefinition]):List[ElementDefinition] = {
     if(elementDefs.length < 1){
-      val msg = "No element with ID: %s could be found in %s".format(id, cmdScope.scope)
+      val msg = noElementDefFoundErrorMsg()
       throw new InternalErrorException(msg);
     }else if(elementDefs.length > 1){
-      val msg = "Multiple Element Definitions where found with ID: %s in %s".format(id, cmdScope.scope)
+      val msg = tooManyElementDefsFoundErrorMsg()
       throw new InternalErrorException(msg);
     }
     return elementDefs
+  }
+
+  private def noElementDefFoundErrorMsg():String = {
+    val id = commandOptions.get("mid").getOrElse(throw new InternalErrorException("FindElementDefinitionById requires that mid be specified on commandOptions."))
+    return cmdScope match{
+      case CommandScopes.SystemSpaceScope => "No element with ID: %s could be found in %s".format(id, cmdScope.scope)
+      case CommandScopes.UserSpaceScope => "No element with ID: %s could be found in %s".format(id, cmdScope.scope)
+      case CommandScopes.DataSetScope => {
+        val dsIdentifier = getDataSetIdentifier(commandOptions)
+        "No element with ID: %s could be found in dataset: %s".format(id, dsIdentifier)
+      }
+    }
+  }
+
+  private def tooManyElementDefsFoundErrorMsg():String = {
+    val id = commandOptions.get("mid").getOrElse(throw new InternalErrorException("FindElementDefinitionById requires that mid be specified on commandOptions."))
+    return cmdScope match{
+      case CommandScopes.SystemSpaceScope => "Multiple Element Definitions where found with ID: %s in %s".format(id, cmdScope.scope)
+      case CommandScopes.UserSpaceScope => "Multiple Element Definitions where found with ID: %s in %s".format(id, cmdScope.scope)
+      case CommandScopes.DataSetScope => {
+        val dsIdentifier = getDataSetIdentifier(commandOptions)
+        "Multiple Element Definitions where found with ID: %s in dataset: %s".format(id, dsIdentifier)
+      }
+    }
   }
 }

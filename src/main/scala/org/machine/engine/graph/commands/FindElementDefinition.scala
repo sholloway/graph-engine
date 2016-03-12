@@ -16,6 +16,33 @@ import org.machine.engine.graph.internal._
 /** Find an ElementDefinition in a specified graph space by ID or Name.
 */
 trait FindElementDefinition extends Neo4JQueryCommand[ElementDefinition]{
+  protected def buildScope(cmdScope:CommandScope, options:Map[String, AnyRef]):String = {
+    val scope = cmdScope match{
+      case CommandScopes.SystemSpaceScope => CommandScopes.SystemSpaceScope.scope
+      case CommandScopes.UserSpaceScope => CommandScopes.UserSpaceScope.scope
+      case CommandScopes.DataSetScope => {
+        var str:String = null
+        if(options.contains("dsId")){
+          str = "%s {mid:{dsId}}".format(CommandScopes.DataSetScope.scope)
+        }else if(options.contains("dsName")){
+          str = "%s {name:{dsName}}".format(CommandScopes.DataSetScope.scope)
+        }
+        str
+      }
+    }
+    return scope
+  }
+
+  protected def getDataSetIdentifier(options: Map[String, AnyRef]):String = {
+    var dsIdentifier:String = null
+    if(options.contains("dsId")){
+      dsIdentifier = options.get("dsId").get.toString
+    }else if(options.contains("dsName")){
+      dsIdentifier = options.get("dsName").get.toString
+    }
+    return dsIdentifier
+  }
+
   protected def elementDefAndPropDefQueryMapper(
     results: ArrayBuffer[(org.machine.engine.graph.nodes.ElementDefinition, PropertyDefinition)],
     record: java.util.Map[java.lang.String, Object]) = {

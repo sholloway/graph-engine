@@ -307,8 +307,52 @@ class DataSetSpec extends FunSpec with Matchers with EasyMockSugar with BeforeAn
           updatedCommitteReview.properties should have length 2
           updatedCommitteReview.properties.exists(_.name == "Rating") shouldBe false
         }
-        
-        it("should delete an ElementDefinition")(pending)
+
+        it("should delete an ElementDefinition"){
+          val datasetName = "Architecture Components"
+
+          val definition = """
+          |A fundamental statement of belief, approach, or intent that guides
+          |the definition of an architecture. It may refer to current circumstances
+          |or to a desired future state. A good principle is constructive, reasoned,
+          |well articulated, testable, and significant.
+          """.stripMargin
+
+          engine
+            .createDataSet(datasetName, "A collection of system architecture components.")
+            .onDataSetByName(datasetName)
+            .defineElement("Architecture Principle", definition)
+            .withProperty("Description", "String", "A paragraph about the principle.")
+            .withProperty("Heuristic Indicator", "String", "How the principle is measured.")
+            .withProperty("Area of Relevence", "String", "Classification of when the principle is appropriate.")
+            .end
+
+          val archPrinciple =
+            engine
+              .onDataSetByName(datasetName)
+              .findElementDefinitionByName("Architecture Principle")
+
+          engine
+            .onDataSetByName(datasetName)
+            .onElementDefinition(archPrinciple.id)
+            .delete()
+            .end
+
+          val expectedIdMsg = "No element with ID: %s could be found in dataset: %s".format(archPrinciple.id, datasetName)
+          the [InternalErrorException] thrownBy{
+            engine
+              .onDataSetByName(datasetName)
+              .findElementDefinitionById(archPrinciple.id)
+          }should have message expectedIdMsg
+
+          val expectedNameMsg = "No element with Name: %s could be found in dataset: %s".format(archPrinciple.name, datasetName)
+          the [InternalErrorException] thrownBy{
+            engine
+              .onDataSetByName(datasetName)
+              .findElementDefinitionByName(archPrinciple.name)
+          }should have message expectedNameMsg
+        }
+
         it("should list all ElementDefintions")(pending)
       }
 

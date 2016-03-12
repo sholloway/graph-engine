@@ -29,11 +29,12 @@ class DeleteElementDefintion(database:GraphDatabaseService,
 
   private def deleteAssociatedPropertyDefinitions(graphDB:GraphDatabaseService):Unit = {
     logger.debug("DeleteElementDefintion: Deleting associated property definitions")
+    val scope = buildScope(cmdScope, commandOptions)
     val statement = """
     |match (ss:space)-[:exists_in]->(ed:element_definition {mid:{mid}})-[:composed_of]->(pd:property_definition)
     |detach delete pd
     """.stripMargin
-       .replaceAll("space", cmdScope.scope)
+       .replaceAll("space", scope)
 
     run( graphDB,
       statement,
@@ -43,15 +44,33 @@ class DeleteElementDefintion(database:GraphDatabaseService,
 
   private def deleteElementDefinition(graphDB:GraphDatabaseService):Unit = {
     logger.debug("DeleteElementDefintion: Deleting element definition.")
+    val scope = buildScope(cmdScope, commandOptions)
     val statement = """
     |match (ss:space)-[:exists_in]->(ed:element_definition {mid:{mid}})
     |detach delete ed
     """.stripMargin
-       .replaceAll("space", cmdScope.scope)
+       .replaceAll("space", scope)
 
     run( graphDB,
       statement,
       commandOptions,
       emptyResultProcessor[ElementDefinition])
+  }
+
+  protected def buildScope(cmdScope:CommandScope, options:Map[String, AnyRef]):String = {
+    val scope = cmdScope match{
+      case CommandScopes.SystemSpaceScope => CommandScopes.SystemSpaceScope.scope
+      case CommandScopes.UserSpaceScope => CommandScopes.UserSpaceScope.scope
+      case CommandScopes.DataSetScope => {
+        var str:String = null
+        if(options.contains("dsId")){
+          str = "%s {mid:{dsId}}".format(CommandScopes.DataSetScope.scope)
+        }else if(options.contains("dsName")){
+          str = "%s {name:{dsName}}".format(CommandScopes.DataSetScope.scope)
+        }
+        str
+      }
+    }
+    return scope
   }
 }

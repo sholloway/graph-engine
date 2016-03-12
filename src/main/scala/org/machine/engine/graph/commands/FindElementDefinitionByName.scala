@@ -18,7 +18,7 @@ class FindElementDefinitionByName(database:GraphDatabaseService,
   commandOptions:Map[String, AnyRef],
   logger:Logger) extends FindElementDefinition{
   import Neo4JHelper._
-  
+
   def execute():List[ElementDefinition] = {
     logger.debug("FindElementDefinitionByName: Executing Command")
     val findElement = buildQuery(cmdScope, commandOptions)
@@ -43,17 +43,8 @@ class FindElementDefinitionByName(database:GraphDatabaseService,
       |  pd.type as propType,
       |  pd.description as propDescription
       """.stripMargin
-        .replaceAll("scope", cmdScope.scope)
+        .replaceAll("scope", scope)
         .replaceAll("ed_match", edMatchClause)
-  }
-
-  private def buildScope(cmdScope:CommandScope, options:Map[String, AnyRef]):String = {
-    val scope = cmdScope match{
-      case CommandScopes.SystemSpaceScope => CommandScopes.SystemSpaceScope.scope
-      case CommandScopes.UserSpaceScope => CommandScopes.UserSpaceScope.scope
-      case CommandScopes.DataSetScope => { "%s {name:%s}".format(CommandScopes.DataSetScope.scope, options.get("dsName"))}
-    }
-    return scope
   }
 
   protected def buildElementDefinitionMatchClause(commandOptions:Map[String, AnyRef]):String = {
@@ -61,14 +52,37 @@ class FindElementDefinitionByName(database:GraphDatabaseService,
   }
 
   protected def validateQueryResponse(elementDefs: List[ElementDefinition]):List[ElementDefinition] = {
-    val name = commandOptions.get("name").getOrElse(throw new InternalErrorException("FindElementDefinitionByName requires that name be specified on commandOptions."))
     if(elementDefs.length < 1){
-      val msg = "No element with Name: %s could be found in %s".format(name, cmdScope.scope)
+      val msg = noElementDefFoundErrorMsg()
       throw new InternalErrorException(msg);
     }else if(elementDefs.length > 1){
-      val msg = "Multiple Element Definitions where found with Name: %s in %s".format(name, cmdScope.scope)
+      val msg = tooManyElementDefsFoundErrorMsg()
       throw new InternalErrorException(msg);
     }
     return elementDefs
+  }
+
+  private def noElementDefFoundErrorMsg():String = {
+    val name = commandOptions.get("name").getOrElse(throw new InternalErrorException("FindElementDefinitionByName requires that name be specified on commandOptions."))
+    return cmdScope match{
+      case CommandScopes.SystemSpaceScope => "No element with Name: %s could be found in %s".format(name, cmdScope.scope)
+      case CommandScopes.UserSpaceScope => "No element with Name: %s could be found in %s".format(name, cmdScope.scope)
+      case CommandScopes.DataSetScope => {
+        val dsIdentifier = getDataSetIdentifier(commandOptions)
+        "No element with Name: %s could be found in dataset: %s".format(name, dsIdentifier)
+      }
+    }
+  }
+
+  private def tooManyElementDefsFoundErrorMsg():String = {
+    val name = commandOptions.get("name").getOrElse(throw new InternalErrorException("FindElementDefinitionByName requires that name be specified on commandOptions."))
+    return cmdScope match{
+      case CommandScopes.SystemSpaceScope => "Multiple Element Definitions where found with Name: %s in %s".format(name, cmdScope.scope)
+      case CommandScopes.UserSpaceScope => "Multiple Element Definitions where found with Name: %s in %s".format(name, cmdScope.scope)
+      case CommandScopes.DataSetScope => {
+        val dsIdentifier = getDataSetIdentifier(commandOptions)
+        "Multiple Element Definitions where found with Name: %s in dataset: %s".format(name, dsIdentifier)
+      }
+    }
   }
 }
