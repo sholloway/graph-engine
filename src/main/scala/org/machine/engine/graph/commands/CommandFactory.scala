@@ -29,7 +29,9 @@ object CommandFactory{
       case EngineCommands.RemoveElementPropertyDefinition =>
         new RemoveElementPropertyDefinition(database, cmdScope, commandOptions, logger)
       case EngineCommands.CreateDataSet =>
-        new CreateDataSet(database, cmdScope, commandOptions, logger)      
+        new CreateDataSet(database, cmdScope, commandOptions, logger)
+      case EngineCommands.EditDataSet =>
+        new EditDataSet(database, cmdScope, commandOptions, logger)
     }
   }
 }

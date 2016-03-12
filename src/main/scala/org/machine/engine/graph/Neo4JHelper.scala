@@ -159,4 +159,22 @@ object Neo4JHelper{
     }
     return response
   }
+
+  /** Helper function for statements that do not have result statements.
+  *
+  * @param results: The list of records returned by the statement.
+  * @param record: The record to process.
+  */
+  def emptyResultProcessor[T](results: ArrayBuffer[T], record: java.util.Map[java.lang.String, Object]) = { }
+
+
+  def buidSetClause(prefix:String, commandOptions:Map[String, AnyRef], exclude: List[String]):String = {
+    val clause = new StringBuilder()
+    commandOptions.keys.foreach(key => {
+      if(!exclude.contains(key)){
+        clause append "%s.%s = {%s}\n".format(prefix, key, key)
+      }
+    })
+    return clause.lines.mkString(", ")
+  }
 }

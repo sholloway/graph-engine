@@ -10,7 +10,9 @@ trait GraphDSL{
 
   def createDataSet(name:String, description:String):GraphDSL
   def datasets():List[DataSet]
+  def onDataSet(id: String):GraphDSL
   def findDataSetByName(name:String):DataSet
+  def findDataSetById(id: String):DataSet
 
   def defineElement(name:String, description: String):GraphDSL
   def withProperty(name:String, ptype: String, description: String):GraphDSL

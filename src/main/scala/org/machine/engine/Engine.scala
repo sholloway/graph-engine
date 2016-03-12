@@ -125,6 +125,21 @@ class Engine(dbPath:String, config: {
     return elements(0)
   }
 
+  def onDataSet(id: String):GraphDSL = {
+    scope = CommandScopes.UserSpaceScope
+    command = EngineCommands.EditDataSet
+    commandOptions = Map[String, AnyRef]("mid" -> id)
+    return this;
+  }
+
+  def findDataSetById(id: String):DataSet = {
+    scope = CommandScopes.UserSpaceScope
+    commandOptions = Map[String, AnyRef]("mid" -> id)
+    val cmd = new FindDataSetById(database, scope, commandOptions, config.logger)
+    val elements = cmd.execute()
+    return elements(0)
+  }
+
   //Resets the command options and sets the command type to Define Element.
   def defineElement(name:String, description: String):GraphDSL = {
     config.logger.debug("Engine: Define Element")

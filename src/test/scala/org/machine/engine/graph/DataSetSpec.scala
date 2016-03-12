@@ -94,7 +94,32 @@ class DataSetSpec extends FunSpec with Matchers with EasyMockSugar with BeforeAn
         )
       }
 
-      it("should update a DataSet")(pending)
+      it("should update both name & defintion"){
+        val datasetName = "Capability Definitions"
+        val datasetDescription = "A collection of business capabilities."
+        engine.createDataSet(datasetName, datasetDescription)
+        val ds = engine.findDataSetByName(datasetName)
+
+        val newName = "Capability Definitions: V1"
+        val newDescription = "Version 1 of business capabilities definitions."
+        engine
+          .onDataSet(ds.id)
+          .setName(newName)
+          .setDescription(newDescription)
+          .end
+
+        val modifiedDS = engine.findDataSetById(ds.id)
+
+        modifiedDS should have(
+          'id (ds.id),
+          'name (newName),
+          'description (newDescription),
+          'creationTime (ds.creationTime)
+        )
+
+        modifiedDS.lastModifiedType.length should be > 0
+      }
+
       it("should delete a DataSet")(pending)
       it("should list all available DataSets")(pending)
 
