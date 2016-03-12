@@ -233,6 +233,47 @@ class DataSetSpec extends FunSpec with Matchers with EasyMockSugar with BeforeAn
           updatedSystem.description shouldBe updatedDescription
         }
 
+        it("should update an ElementDefinition's PropertyDefintion"){
+          val datasetName = "Architecture Components"
+          engine
+            .createDataSet(datasetName, "A collection of system architecture components.")
+            .onDataSetByName(datasetName)
+            .defineElement("System", "A thing about a thing...")
+            .withProperty("Name", "String", "The name of the system.")
+            .end()
+
+          val system =
+            engine
+              .onDataSetByName(datasetName)
+              .findElementDefinitionByName("System")
+
+          val updatedName = "System Name"
+          val updatedType = "Blob"
+          val updatedDescription = "Illogical field. The type doesn't make sense."
+
+          //find the property by its name, then change the name, type and description.
+          engine
+            .onDataSetByName(datasetName)
+            .onElementDefinition(system.id)
+            .editPropertyDefinition("Name")
+            .setName(updatedName)
+            .setType(updatedType)
+            .setDescription(updatedDescription)
+            .end()
+
+          val updatedSystem = engine
+            .onDataSetByName(datasetName)
+            .findElementDefinitionById(system.id)
+
+          updatedSystem.properties should have length 1
+          updatedSystem.properties(0) should have(
+            'name (updatedName),
+            'propertyType (updatedType),
+            'description (updatedDescription)
+          )
+        }
+
+        it("should remove an ElementDefinition's PropertyDefintion")(pending)
         it("should delete an ElementDefinition")(pending)
         it("should list all ElementDefintions")(pending)
       }

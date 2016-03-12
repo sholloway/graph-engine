@@ -39,12 +39,36 @@ class EditElementPropertyDefinition(database:GraphDatabaseService,
 
   private def buildStatement():String = {
     val setClause = buidSetClause("pd", commandOptions.toMap, filter)
+    val scope = buildScope(cmdScope, commandOptions)
     val editPropertyDefinitionStatement = """
     |match (ss:space)-[:exists_in]->(ed:element_definition {mid:{mid}})-[:composed_of]->(pd:property_definition {name:{pname}})
     |set setClause, pd.last_modified_time = timestamp()
     """.stripMargin
-       .replaceAll("space", cmdScope.scope)
+       .replaceAll("space", scope)
        .replaceAll("setClause", setClause)
      return editPropertyDefinitionStatement
+  }
+
+  private def buildScope(datScope:CommandScope, options:Map[String, AnyRef]):String = {
+    val scope = datScope match{
+      case CommandScopes.SystemSpaceScope => CommandScopes.SystemSpaceScope.scope
+      case CommandScopes.UserSpaceScope => CommandScopes.UserSpaceScope.scope
+      case CommandScopes.DataSetScope => {
+        var filter:String = null
+        if(options.contains("dsId")){
+          filter = "%s {mid:{dsId}}".format(CommandScopes.DataSetScope.scope)
+        }else if(options.contains("dsName")){
+          filter = "%s {name:{dsName}}".format(CommandScopes.DataSetScope.scope)
+        }else{
+          val msg = """
+          |EditElementPropertyDefinition requires that dsId or dsName is provided on
+          |commandOptions when the scope is of type CommandScopes.DataSet.
+          """.stripMargin
+          throw new InternalErrorException(msg)
+        }
+        filter
+      }
+    }
+    return scope
   }
 }
