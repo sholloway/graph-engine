@@ -353,7 +353,29 @@ class DataSetSpec extends FunSpec with Matchers with EasyMockSugar with BeforeAn
           }should have message expectedNameMsg
         }
 
-        it("should list all ElementDefintions")(pending)
+        it("should list all ElementDefintions"){
+          engine
+            .createDataSet("X", "A mysterious dataset.")
+            .onDataSetByName("X")
+            .defineElement("AA", "blah")
+            .withProperty("AA:P", "String", "Blah blah")
+          .end
+            .onDataSetByName("X")
+            .defineElement("BB", "blah")
+            .withProperty("BB:P", "String", "Blah blah")
+          .end
+            .onDataSetByName("X")
+            .defineElement("CC", "blah")
+            .withProperty("CC:P", "String", "Blah blah")
+          .end
+
+          val elementDefs =
+            engine
+              .onDataSetByName("X")
+              .elements
+
+          elementDefs should have length 3
+        }
       }
 
       describe("Element Instances"){

@@ -21,6 +21,7 @@ class ListAllElementDefinitions(database:GraphDatabaseService,
 
   def execute():List[ElementDefinition] = {
     logger.debug("ListAllElementDefintions: Executing Command")
+    val scope = buildScope(cmdScope, commandOptions)
     //TODO: Currently this only returns ElementDefinitions that have associated PropertyDefinitions.
     //TODO: Return creation_time & last_modified_time
     val findDefinedElements = """
@@ -33,12 +34,29 @@ class ListAllElementDefinitions(database:GraphDatabaseService,
       |  pd.type as propType,
       |  pd.description as propDescription
       """.stripMargin
-        .replaceAll("space", cmdScope.scope)
+        .replaceAll("space", scope)
 
     val records = query[(ElementDefinition, PropertyDefinition)](database,
-      findDefinedElements, null,
+      findDefinedElements, commandOptions,
       elementDefAndPropDefQueryMapper)
     return consolidateElementDefs(records.toList)
+  }
+
+  protected def buildScope(cmdScope:CommandScope, options:Map[String, AnyRef]):String = {
+    val scope = cmdScope match{
+      case CommandScopes.SystemSpaceScope => CommandScopes.SystemSpaceScope.scope
+      case CommandScopes.UserSpaceScope => CommandScopes.UserSpaceScope.scope
+      case CommandScopes.DataSetScope => {
+        var str:String = null
+        if(options.contains("dsId")){
+          str = "%s {mid:{dsId}}".format(CommandScopes.DataSetScope.scope)
+        }else if(options.contains("dsName")){
+          str = "%s {name:{dsName}}".format(CommandScopes.DataSetScope.scope)
+        }
+        str
+      }
+    }
+    return scope
   }
 
   private def elementDefAndPropDefQueryMapper(
