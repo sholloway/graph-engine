@@ -26,8 +26,7 @@ trait FindElementDefinition extends Neo4JQueryCommand[ElementDefinition]{
       commandOptions,
       elementDefAndPropDefQueryMapper)
     val elementDefs = consolidateElementDefs(records.toList)
-    return validateQueryResponse(elementDefs);
-    return null;
+    return validateQueryResponse(elementDefs);    
   }
 
   protected def buildQuery(cmdScope:CommandScope, commandOptions:Map[String, AnyRef]):String = {

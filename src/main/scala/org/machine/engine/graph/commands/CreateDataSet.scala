@@ -34,11 +34,12 @@ class CreateDataSet(database:GraphDatabaseService,
     logger.debug("CreateDataSet: Creating data set.")
     val createDataSetStatement = """
       |merge(ds:internal_data_set
-      |  {mid:{mid},
-      |  name:{name},
-      |  description:{description}
+      |{
+      |  name:{name}
       |})
       |on create set ds.creation_time = timestamp()
+      |on create set ds.mid = {mid}
+      |on create set ds.description = {description}
       |on match set ds.last_modified_time = timestamp()
       """.stripMargin
 

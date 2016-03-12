@@ -117,6 +117,14 @@ class Engine(dbPath:String, config: {
     return cmd.execute()
   }
 
+  def findDataSetByName(name:String):DataSet = {
+    this.scope = CommandScopes.UserSpaceScope
+    commandOptions = Map[String, AnyRef]("name" -> name)
+    val cmd = new FindDataSetByName(database, scope, commandOptions, config.logger)
+    val elements = cmd.execute()
+    return elements(0)
+  }
+
   //Resets the command options and sets the command type to Define Element.
   def defineElement(name:String, description: String):GraphDSL = {
     config.logger.debug("Engine: Define Element")
@@ -152,7 +160,7 @@ class Engine(dbPath:String, config: {
   }
 
   def findElementDefinitionByName(name:String):ElementDefinition = {
-    commandOptions = Map[String, AnyRef]("name" -> name)    
+    commandOptions = Map[String, AnyRef]("name" -> name)
     val cmd = new FindElementDefinitionByName(database, scope, commandOptions, config.logger)
     val elements = cmd.execute()
     return elements(0)
