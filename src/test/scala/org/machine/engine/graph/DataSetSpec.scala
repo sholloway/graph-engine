@@ -119,7 +119,7 @@ class DataSetSpec extends FunSpec with Matchers with EasyMockSugar with BeforeAn
 
         modifiedDS.lastModifiedType.length should be > 0
       }
-
+      
       it("should delete a DataSet")(pending)
       it("should list all available DataSets")(pending)
 

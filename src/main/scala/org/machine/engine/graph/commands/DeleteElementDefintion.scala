@@ -27,9 +27,6 @@ class DeleteElementDefintion(database:GraphDatabaseService,
     })
   }
 
-  private def emptyResultProcessor(results: ArrayBuffer[UserSpace],
-    record: java.util.Map[java.lang.String, Object]) = { }
-
   private def deleteAssociatedPropertyDefinitions(graphDB:GraphDatabaseService):Unit = {
     logger.debug("DeleteElementDefintion: Deleting associated property definitions")
     val statement = """
@@ -41,7 +38,7 @@ class DeleteElementDefintion(database:GraphDatabaseService,
     run( graphDB,
       statement,
       commandOptions,
-      emptyResultProcessor)
+      emptyResultProcessor[ElementDefinition])
   }
 
   private def deleteElementDefinition(graphDB:GraphDatabaseService):Unit = {
@@ -55,6 +52,6 @@ class DeleteElementDefintion(database:GraphDatabaseService,
     run( graphDB,
       statement,
       commandOptions,
-      emptyResultProcessor)
+      emptyResultProcessor[ElementDefinition])
   }
 }

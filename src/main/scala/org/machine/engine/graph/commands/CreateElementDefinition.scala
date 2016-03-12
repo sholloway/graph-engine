@@ -28,9 +28,6 @@ class CreateElementDefintion(database:GraphDatabaseService,
     })
   }
 
-  private def emptyResultProcessor(results: ArrayBuffer[UserSpace],
-    record: java.util.Map[java.lang.String, Object]) = { }
-
   private def createElementDefinition(graphDB:GraphDatabaseService):Unit = {
     logger.debug("CreateElementDefintion: Creating element definition.")
     val createElementDefinitionStatement = """
@@ -46,7 +43,7 @@ class CreateElementDefintion(database:GraphDatabaseService,
     run( graphDB,
       createElementDefinitionStatement,
       commandOptions,
-      emptyResultProcessor)
+      emptyResultProcessor[ElementDefinition])
   }
 
   private def createPropertyDefinitions(graphDB:GraphDatabaseService):Unit = {
@@ -72,13 +69,13 @@ class CreateElementDefintion(database:GraphDatabaseService,
       run( graphDB,
         createPropertyStatement,
         property,
-        emptyResultProcessor)
+        emptyResultProcessor[ElementDefinition])
 
       run( graphDB,
         createAssoicationStatement,
         Map("elementId" -> commandOptions("mid"),
           "propertyId" -> property("mid")),
-        emptyResultProcessor)
+        emptyResultProcessor[ElementDefinition])
     })
   }
 
@@ -92,6 +89,6 @@ class CreateElementDefintion(database:GraphDatabaseService,
       run(graphDB,
         associateToSystemSpace,
         Map("elementId" -> commandOptions("mid")),
-        emptyResultProcessor)
+        emptyResultProcessor[ElementDefinition])
   }
 }

@@ -28,20 +28,17 @@ class EditElementPropertyDefinition(database:GraphDatabaseService,
     })
   }
 
-  private def emptyResultProcessor(results: ArrayBuffer[UserSpace],
-    record: java.util.Map[java.lang.String, Object]) = { }
-
   private def editPropertyDefinition(graphDB:GraphDatabaseService):Unit = {
     logger.debug("EditElementPropertyDefinition: Editing property definition.")
     val editPropertyDefinitionStatement = buildStatement()
     run( graphDB,
       editPropertyDefinitionStatement,
       commandOptions,
-      emptyResultProcessor)
+      emptyResultProcessor[PropertyDefinition])
   }
 
   private def buildStatement():String = {
-    val setClause = buidSetClause(commandOptions)
+    val setClause = buidSetClause("pd", commandOptions.toMap, filter)
     val editPropertyDefinitionStatement = """
     |match (ss:space)-[:exists_in]->(ed:element_definition {mid:{mid}})-[:composed_of]->(pd:property_definition {name:{pname}})
     |set setClause, pd.last_modified_time = timestamp()
@@ -49,15 +46,5 @@ class EditElementPropertyDefinition(database:GraphDatabaseService,
        .replaceAll("space", cmdScope.scope)
        .replaceAll("setClause", setClause)
      return editPropertyDefinitionStatement
-  }
-
-  private def buidSetClause(commandOptions:Map[String, AnyRef]):String = {
-    val clause = new StringBuilder()
-    commandOptions.keys.foreach(k => {
-      if(!filter.contains(k)){
-        clause append "pd.%s = {%s}\n".format(k,k)
-      }
-    })
-    return clause.lines.mkString(", ")
   }
 }

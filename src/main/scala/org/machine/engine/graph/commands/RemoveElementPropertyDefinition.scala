@@ -28,16 +28,13 @@ class RemoveElementPropertyDefinition(database:GraphDatabaseService,
     })
   }
 
-  private def emptyResultProcessor(results: ArrayBuffer[UserSpace],
-    record: java.util.Map[java.lang.String, Object]) = { }
-
   private def removePropertyDefinition(graphDB:GraphDatabaseService):Unit = {
     logger.debug("RemoveElementPropertyDefinition: Editing property definition.")
     val removePropertyDefinitionStatement = buildStatement()
     run( graphDB,
       removePropertyDefinitionStatement,
       commandOptions,
-      emptyResultProcessor)
+      emptyResultProcessor[PropertyDefinition])
   }
 
   private def buildStatement():String = {

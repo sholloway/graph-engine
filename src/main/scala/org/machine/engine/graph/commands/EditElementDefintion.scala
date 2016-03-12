@@ -26,9 +26,6 @@ class EditElementDefintion(database:GraphDatabaseService,
     })
   }
 
-  private def emptyResultProcessor(results: ArrayBuffer[UserSpace],
-    record: java.util.Map[java.lang.String, Object]) = { }
-
   private def editElementDefinition(graphDB:GraphDatabaseService):Unit = {
     logger.debug("EditElementDefintion: Editing element definition.")
     val setClause = buidSetClause(commandOptions)
@@ -42,7 +39,7 @@ class EditElementDefintion(database:GraphDatabaseService,
     run( graphDB,
       editElementDefinitionStatement,
       commandOptions,
-      emptyResultProcessor)
+      emptyResultProcessor[ElementDefinition])
   }
 
   private def buidSetClause(commandOptions:Map[String, AnyRef]):String = {

@@ -27,9 +27,6 @@ class CreateDataSet(database:GraphDatabaseService,
     })
   }
 
-  private def emptyResultProcessor(results: ArrayBuffer[UserSpace],
-    record: java.util.Map[java.lang.String, Object]) = { }
-
   private def createDataSet(graphDB:GraphDatabaseService):Unit = {
     logger.debug("CreateDataSet: Creating data set.")
     val createDataSetStatement = """
@@ -46,7 +43,7 @@ class CreateDataSet(database:GraphDatabaseService,
     run( graphDB,
       createDataSetStatement,
       commandOptions,
-      emptyResultProcessor)
+      emptyResultProcessor[DataSet])
   }
 
   private def registerDataSet(graphDB:GraphDatabaseService):Unit = {
@@ -59,6 +56,6 @@ class CreateDataSet(database:GraphDatabaseService,
       run(graphDB,
         associateToScopedSpace,
         commandOptions,
-        emptyResultProcessor)
+        emptyResultProcessor[DataSet])
   }
 }
