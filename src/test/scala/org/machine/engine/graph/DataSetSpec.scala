@@ -119,9 +119,17 @@ class DataSetSpec extends FunSpec with Matchers with EasyMockSugar with BeforeAn
 
         modifiedDS.lastModifiedType.length should be > 0
       }
-      
+
       it("should delete a DataSet")(pending)
-      it("should list all available DataSets")(pending)
+      it("should list all available DataSets"){
+        engine
+          .createDataSet("A", "Empty Data Set")
+          .createDataSet("B", "Empty Data Set")
+          .createDataSet("C", "Empty Data Set")
+          .createDataSet("D", "Empty Data Set")
+
+        engine.datasets().length should be >= 4
+      }
 
       describe("Element Definitions"){
         it("should create an ElementDefinition")(pending)
