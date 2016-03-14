@@ -21,11 +21,13 @@ class EditElementPropertyDefinition(database:GraphDatabaseService,
 
   val filter = List("mid", "pname")
 
-  def execute() = {
+  def execute():String = {
     logger.debug("EditElementPropertyDefinition: Executing Command")
     transaction(database, (graphDB:GraphDatabaseService) => {
       editPropertyDefinition(graphDB)
     })
+    val mid = commandOptions.get("mid").getOrElse(throw new InternalErrorException("mid required"))
+    return mid.toString
   }
 
   private def editPropertyDefinition(graphDB:GraphDatabaseService):Unit = {
@@ -38,7 +40,7 @@ class EditElementPropertyDefinition(database:GraphDatabaseService,
   }
 
   private def buildStatement():String = {
-    val setClause = buidSetClause("pd", commandOptions.toMap, filter)
+    val setClause = buildSetClause("pd", commandOptions.toMap, filter)
     val scope = buildScope(cmdScope, commandOptions)
     val editPropertyDefinitionStatement = """
     |match (ss:space)-[:exists_in]->(ed:element_definition {mid:{mid}})-[:composed_of]->(pd:property_definition {name:{pname}})

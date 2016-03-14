@@ -19,17 +19,20 @@ class EditElementDefintion(database:GraphDatabaseService,
   logger:Logger) extends Neo4JCommand{
   import Neo4JHelper._
 
-  def execute() = {
+  def execute():String = {
     logger.debug("EditElementDefintion: Executing Command")
     transaction(database, (graphDB:GraphDatabaseService) => {
       editElementDefinition(graphDB)
     })
+    val mid = commandOptions.get("mid").getOrElse(throw new InternalErrorException("mid required"))
+    return mid.toString
   }
 
   private def editElementDefinition(graphDB:GraphDatabaseService):Unit = {
     logger.debug("EditElementDefintion: Editing element definition.")
     val setClause = buidSetClause(commandOptions)
     val scope = buildScope(cmdScope, commandOptions)
+
     val editElementDefinitionStatement = """
     |match (ss:space)-[:exists_in]->(ed:element_definition {mid:{mid}})
     |set setClause, ed.last_modified_time = timestamp()
@@ -37,7 +40,6 @@ class EditElementDefintion(database:GraphDatabaseService,
        .replaceAll("space", scope)
        .replaceAll("setClause", setClause)
 
-    // Console.println(editElementDefinitionStatement)
     run( graphDB,
       editElementDefinitionStatement,
       commandOptions,

@@ -19,12 +19,14 @@ class CreateDataSet(database:GraphDatabaseService,
   logger:Logger) extends Neo4JCommand{
   import Neo4JHelper._
 
-  def execute() = {
+  def execute():String = {
     logger.debug("CreateDataSet: Executing Command")
     transaction(database, (graphDB:GraphDatabaseService) => {
       createDataSet(graphDB)
       registerDataSet(graphDB)
     })
+    val mid = commandOptions.get("mid").getOrElse(throw new InternalErrorException("mid required"))
+    return mid.toString
   }
 
   private def createDataSet(graphDB:GraphDatabaseService):Unit = {

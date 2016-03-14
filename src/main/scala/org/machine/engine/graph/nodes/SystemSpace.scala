@@ -6,8 +6,8 @@ import scala.collection.mutable.ArrayBuffer
 *   instantiate, but can not be redefined.
 *
 * @constructor Creates a new SystemSpace.
-* @param _id: The SystemSpace UUID.
-* @param _name: The SystemSpace name. This always says "System Space"
+* @param _id The SystemSpace UUID.
+* @param _name The SystemSpace name. This always says "System Space"
 */
 class SystemSpace(_id: String, _name: String){
   def id = this._id

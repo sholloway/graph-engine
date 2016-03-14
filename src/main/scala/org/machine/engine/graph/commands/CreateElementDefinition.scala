@@ -19,13 +19,15 @@ class CreateElementDefintion(database:GraphDatabaseService,
   logger:Logger) extends Neo4JCommand{
   import Neo4JHelper._
 
-  def execute() = {
+  def execute():String = {
     logger.debug("CreateElementDefintion: Executing Command")
     transaction(database, (graphDB:GraphDatabaseService) => {
       createElementDefinition(graphDB)
       createPropertyDefinitions(graphDB)
       registerTheElement(graphDB)
     })
+    val mid = commandOptions.get("mid").getOrElse(throw new InternalErrorException("mid required"))
+    return mid.toString
   }
 
   private def createElementDefinition(graphDB:GraphDatabaseService):Unit = {

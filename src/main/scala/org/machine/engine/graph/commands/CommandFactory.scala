@@ -32,6 +32,8 @@ object CommandFactory{
         new CreateDataSet(database, cmdScope, commandOptions, logger)
       case EngineCommands.EditDataSet =>
         new EditDataSet(database, cmdScope, commandOptions, logger)
+      case EngineCommands.ProvisionElement =>
+        new CreateElement(database, cmdScope, commandOptions, logger)
     }
   }
 }

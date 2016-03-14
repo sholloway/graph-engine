@@ -19,7 +19,7 @@ import org.machine.engine.graph.internal._
 
 class Engine(dbPath:String, config: {
   val logger: Logger
-})extends GraphDSL{
+}) extends GraphDSL{
   import Neo4JHelper._
   import SystemSpaceManager._
   import UserSpaceManager._
@@ -98,7 +98,7 @@ class Engine(dbPath:String, config: {
     return this
   }
 
-  def createDataSet(name:String, description:String):GraphDSL = {
+  def createDataSet(name:String, description:String):String = {
     this.scope = CommandScopes.UserSpaceScope
     command = EngineCommands.CreateDataSet
     commandOptions = Map[String, AnyRef](
@@ -106,8 +106,7 @@ class Engine(dbPath:String, config: {
       "name" -> name,
       "description" -> description)
     val cmd = CommandFactory.build(command, database, scope,commandOptions, config.logger)
-    cmd.execute()
-    return this
+    return cmd.execute()
   }
 
   def datasets():List[DataSet] = {
@@ -176,7 +175,7 @@ class Engine(dbPath:String, config: {
     return this
   }
 
-  def elements():List[ElementDefinition] = {
+  def elementDefinitions():List[ElementDefinition] = {
     val cmd = new ListAllElementDefinitions(database, scope, commandOptions, config.logger)
     return cmd.execute()
   }
@@ -261,11 +260,31 @@ class Engine(dbPath:String, config: {
     return this
   }
   /** Executes the built up command. */
-  def end():GraphDSL = {
+  def end():String = {
     config.logger.debug("Engine: Attempt to execute command.")
-    val cmd = CommandFactory.build(command, database, scope, commandOptions,
+    val cmd = CommandFactory.build(command,
+      database,
+      scope,
+      commandOptions,
       config.logger)
-    cmd.execute();
+    return cmd.execute()
+  }
+
+  def provision(elementDefId: String):GraphDSL = {
+    command = EngineCommands.ProvisionElement
+    commandOptions.+=("edId"->elementDefId, "mid"->uuid)
     return this
+  }
+
+  def withFields(fields: scala.collection.immutable.Map[String, AnyRef]):GraphDSL = {
+    commandOptions ++= fields
+    return this
+  }
+
+  def findElement(elementId: String):Element = {
+    commandOptions += ("mid" -> elementId)
+    val cmd = new FindElementById(database, scope, commandOptions, config.logger)
+    val elements = cmd.execute()
+    return elements(0)
   }
 }

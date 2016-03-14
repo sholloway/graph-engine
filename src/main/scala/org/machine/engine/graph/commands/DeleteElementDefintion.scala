@@ -19,12 +19,14 @@ class DeleteElementDefintion(database:GraphDatabaseService,
   logger:Logger) extends Neo4JCommand{
   import Neo4JHelper._
 
-  def execute() = {
+  def execute():String = {
     logger.debug("DeleteElementDefintion: Executing Command")
     transaction(database, (graphDB:GraphDatabaseService) => {
       deleteAssociatedPropertyDefinitions(graphDB)
       deleteElementDefinition(graphDB)
     })
+    val mid = commandOptions.get("mid").getOrElse(throw new InternalErrorException("mid required"))
+    return mid.toString
   }
 
   private def deleteAssociatedPropertyDefinitions(graphDB:GraphDatabaseService):Unit = {

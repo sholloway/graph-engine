@@ -3,10 +3,10 @@ package org.machine.engine.graph.nodes
 /** A property associated with an ElementDefinition.
 *
 * @constructor Create a new PropertyDefinition.
-* @param _id: The PropertyDefinition NodeJS ID.
-* @param _name: The PropertyDefinition's name.
-* @param _type: The PropertyDefinition's type.
-* @param _description: The PropertyDefinition's description.
+* @param _id The PropertyDefinition NodeJS ID.
+* @param _name The PropertyDefinition's name.
+* @param _type The PropertyDefinition's type.
+* @param _description The PropertyDefinition's description.
 */
 class PropertyDefinition(_id: String, _name: String, _type: String, _description: String){
   def id = this._id

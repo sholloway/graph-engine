@@ -5,16 +5,28 @@ A marriage of 0MQ, Google Protocol Buffers, embedded Neo4J, Scala and Akka.
 Status: Under active development. Not stable.
 
 ## Getting Started
+* See available tasks
+```
+sbt tasks
+```
+
 * Run tests.
 ```
 sbt test
 ```
+
 * Generate code coverage report.
 ```
 sbt clean coverage test
 sbt coverageReport
 open target/scala-2.11/scoverage-report/index.html
 ```
+
+* Generate docs.
+```
+sbt docs
+```
+
 
 ## Resources
 * [Scala Cheatsheet](http://docs.scala-lang.org/cheatsheets/index.html)

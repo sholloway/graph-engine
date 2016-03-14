@@ -8,18 +8,21 @@ import org.machine.engine.exceptions._
 /** A mixin for making working with Neo4J easier.
 */
 object Neo4JHelper{
-  val NOT_FOUND_VALUE = ""
+  private val NOT_FOUND_VALUE = ""
 
   /** A wrapper function for executing Neo4J operations inside a database transaction.
 
-    Use:
+    @example
+    {{{
     transaction(db, (graphDB: GraphDatabaseService) => {
       val aBook: Node = graphDB.createNode()
       aBook.setProperty("title", "The Left Hand of Darkness")
       aBook.addLabel(LibraryLabels.Book)
     })
+    }}}
 
-    Or
+    @example
+    {{{
     val createSystemSpaceParams = Map("mid"->uuid, "name"->"System Space")
     var systemSpaces:Array[SystemSpace] = null
     transaction(db, (graphDB: GraphDatabaseService) =>{
@@ -28,9 +31,10 @@ object Neo4JHelper{
         createSystemSpaceParams,
         SystemSpace.queryMapper)
     })
+    }}}
 
-    @param graphDB: The Neo4J client.
-    @param tx: Function to execute inside the scope of the transaction.
+    @param graphDB The Neo4J client.
+    @param tx Function to execute inside the scope of the transaction.
   */
   def transaction(graphDB:GraphDatabaseService, tx:GraphDatabaseService => Unit):Unit = {
     var dbTransactionOption: Option[Transaction] = None
@@ -45,9 +49,9 @@ object Neo4JHelper{
     }
   }
 
-  /** Generic query function.
-
-    Use:
+  /** Generic query function executed inside a transaction.
+    @example
+    {{{
     val books = query[Book](db, cypher,
       (results:ArrayBuffer[Book],
         record: java.util.Map[java.lang.String, Object]) => {
@@ -55,11 +59,12 @@ object Neo4JHelper{
       val title = record.get("title")
       results += new Book(id.asInstanceOf[Long], title.toString())
     })
+    }}}
 
-    @param graphDB: The Neo4J client.
-    @param query: The cypher statement to execute.
-    @param params: The parameters for the cypher statement.
-    @param recordHandler: The function to execute for handling result mapping.
+    @param graphDB The Neo4J client.
+    @param query The cypher statement to execute.
+    @param params The parameters for the cypher statement.
+    @param recordHandler The function to execute for handling result mapping.
   */
   def query[T:Manifest](graphDB: GraphDatabaseService,
     query: String,
@@ -90,9 +95,9 @@ object Neo4JHelper{
     return results.toArray
   }
 
-  /** Executes a cypher statement inside of a transaction.
-
-    Use:
+  /** Executes a cypher statement. Use with [[org.machine.engine.graph.Neo4JHelper.transaction]]
+    @example
+    {{{
     val createSystemSpaceParams = Map("mid"->uuid, "name"->"System Space")
     var systemSpaces:Array[SystemSpace] = null
     transaction(db, (graphDB: GraphDatabaseService) =>{
@@ -101,11 +106,12 @@ object Neo4JHelper{
         createSystemSpaceParams,
         SystemSpace.queryMapper)
     })
+    }}}
 
-    @param graphDB: The Neo4J client.
-    @param statement: The cypher statement to execute.
-    @param params: The parameters for the cypher statement.
-    @param recordHandler: The function to execute for handling result mapping.
+    @param graphDB The Neo4J client.
+    @param statement The cypher statement to execute.
+    @param params The parameters for the cypher statement.
+    @param recordHandler The function to execute for handling result mapping.
   */
   def run[T:Manifest](graphDB: GraphDatabaseService,
     statement: String,
@@ -141,9 +147,10 @@ object Neo4JHelper{
   *   the provided column name. Thows an exception if the field is not found
   *   when required is set to true.
   *
-  * @param name: The name of the field to find.
-  * @param record: The record to map a value from.
-  * @param required: Specifies if an error should be thrown if the desired field is not found.
+  * @param name The name of the field to find.
+  * @param record The record to map a value from.
+  * @param required Specifies if an error should be thrown if the desired field is not found.
+  * @return The mapped value as a String.
   */
   def mapString(name:String,
     record:java.util.Map[java.lang.String, Object],
@@ -162,13 +169,17 @@ object Neo4JHelper{
 
   /** Helper function for statements that do not have result statements.
   *
-  * @param results: The list of records returned by the statement.
-  * @param record: The record to process.
+  * @param results The list of records returned by the statement.
+  * @param record The record to process.
   */
   def emptyResultProcessor[T](results: ArrayBuffer[T], record: java.util.Map[java.lang.String, Object]) = { }
 
-
-  def buidSetClause(prefix:String, commandOptions:Map[String, AnyRef], exclude: List[String]):String = {
+  /** Helper function for building up a comma seperated list of parameters in a query.
+  */
+  def buildSetClause(prefix: String,
+    commandOptions: Map[String, AnyRef],
+    exclude: List[String]
+  ):String = {
     val clause = new StringBuilder()
     commandOptions.keys.foreach(key => {
       if(!exclude.contains(key)){
@@ -176,5 +187,15 @@ object Neo4JHelper{
       }
     })
     return clause.lines.mkString(", ")
+  }
+
+  /** Helper function for building up a comma seperated list of keys in a result set.
+  */
+  def buildFetchClause(prefix: String, keys: List[String]):String = {
+    val clause = new StringBuilder()
+    keys.foreach(key => {
+      clause append "%s.%s as %s\n".format(prefix, key, key)
+    })
+    return clause.lines.mkString(",\n")
   }
 }

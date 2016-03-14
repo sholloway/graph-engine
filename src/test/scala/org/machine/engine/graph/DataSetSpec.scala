@@ -106,7 +106,7 @@ class DataSetSpec extends FunSpec with Matchers with EasyMockSugar with BeforeAn
           .onDataSet(ds.id)
           .setName(newName)
           .setDescription(newDescription)
-          .end
+        .end
 
         val modifiedDS = engine.findDataSetById(ds.id)
 
@@ -117,7 +117,7 @@ class DataSetSpec extends FunSpec with Matchers with EasyMockSugar with BeforeAn
           'creationTime (ds.creationTime)
         )
 
-        modifiedDS.lastModifiedType.length should be > 0
+        modifiedDS.lastModifiedTime.length should be > 0
       }
 
       it("should delete a DataSet")(pending)
@@ -125,8 +125,14 @@ class DataSetSpec extends FunSpec with Matchers with EasyMockSugar with BeforeAn
       it("should list all available DataSets"){
         engine
           .createDataSet("A", "Empty Data Set")
+
+        engine
           .createDataSet("B", "Empty Data Set")
+
+        engine
           .createDataSet("C", "Empty Data Set")
+
+        engine
           .createDataSet("D", "Empty Data Set")
 
         engine.datasets().length should be >= 4
@@ -144,6 +150,8 @@ class DataSetSpec extends FunSpec with Matchers with EasyMockSugar with BeforeAn
 
           engine
             .createDataSet(datasetName, "A collection of business capabilities.")
+
+          engine
             .onDataSetByName(datasetName)
             .defineElement(bizCapName, bizCapDef)
               .withProperty("name", "String", "The name of the business capability.")
@@ -174,6 +182,8 @@ class DataSetSpec extends FunSpec with Matchers with EasyMockSugar with BeforeAn
 
           engine
             .createDataSet(datasetName, "A collection of business capabilities.")
+
+          engine
             .onDataSetByName(datasetName)
             .defineElement(bizCapName, bizCapDef)
               .withProperty("name", "String", "The name of the business capability.")
@@ -202,10 +212,12 @@ class DataSetSpec extends FunSpec with Matchers with EasyMockSugar with BeforeAn
           val datasetName = "Architecture Components"
           engine
             .createDataSet(datasetName, "A collection of system architecture components.")
+
+          engine
             .onDataSetByName(datasetName)
             .defineElement("System", "A thing about a thing...")
             .withProperty("Name", "String", "The name of the system.")
-            .end()
+          .end
 
           val system =
             engine
@@ -223,11 +235,12 @@ class DataSetSpec extends FunSpec with Matchers with EasyMockSugar with BeforeAn
             .onElementDefinition(system.id)
             .setName(updatedName)
             .setDescription(updatedDescription)
-            .end()
+          .end
 
-          val updatedSystem = engine
-            .onDataSetByName(datasetName)
-            .findElementDefinitionById(system.id)
+          val updatedSystem =
+            engine
+              .onDataSetByName(datasetName)
+              .findElementDefinitionById(system.id)
 
           updatedSystem.name shouldBe updatedName
           updatedSystem.description shouldBe updatedDescription
@@ -237,10 +250,12 @@ class DataSetSpec extends FunSpec with Matchers with EasyMockSugar with BeforeAn
           val datasetName = "Architecture Components"
           engine
             .createDataSet(datasetName, "A collection of system architecture components.")
+
+          engine
             .onDataSetByName(datasetName)
             .defineElement("System", "A thing about a thing...")
             .withProperty("Name", "String", "The name of the system.")
-            .end()
+          .end
 
           val system =
             engine
@@ -259,11 +274,12 @@ class DataSetSpec extends FunSpec with Matchers with EasyMockSugar with BeforeAn
             .setName(updatedName)
             .setType(updatedType)
             .setDescription(updatedDescription)
-            .end()
+          .end
 
-          val updatedSystem = engine
-            .onDataSetByName(datasetName)
-            .findElementDefinitionById(system.id)
+          val updatedSystem =
+            engine
+              .onDataSetByName(datasetName)
+              .findElementDefinitionById(system.id)
 
           updatedSystem.properties should have length 1
           updatedSystem.properties(0) should have(
@@ -276,14 +292,14 @@ class DataSetSpec extends FunSpec with Matchers with EasyMockSugar with BeforeAn
         it("should remove an ElementDefinition's PropertyDefintion"){
           val datasetName = "Architecture Components"
           val edName = "Committee Review"
+          engine.createDataSet(datasetName, "A collection of system architecture components.")
           engine
-            .createDataSet(datasetName, "A collection of system architecture components.")
             .onDataSetByName(datasetName)
             .defineElement(edName, "Critical examination of a document or plan, resulting in a score and/or written feedback.")
             .withProperty("Status", "String", "The current status of the review in the review process.")
             .withProperty("Review Date", "Date", "The date the review will happen or did happen.")
             .withProperty("Rating", "String", "The rating that was issued by the review board.")
-            .end()
+          .end
 
           val committeReview =
             engine
@@ -297,7 +313,7 @@ class DataSetSpec extends FunSpec with Matchers with EasyMockSugar with BeforeAn
             .onDataSetByName(datasetName)
             .onElementDefinition(committeReview.id)
             .removePropertyDefinition("Rating")
-            .end()
+          .end
 
           val updatedCommitteReview =
             engine
@@ -320,6 +336,8 @@ class DataSetSpec extends FunSpec with Matchers with EasyMockSugar with BeforeAn
 
           engine
             .createDataSet(datasetName, "A collection of system architecture components.")
+
+          engine
             .onDataSetByName(datasetName)
             .defineElement("Architecture Principle", definition)
             .withProperty("Description", "String", "A paragraph about the principle.")
@@ -335,8 +353,8 @@ class DataSetSpec extends FunSpec with Matchers with EasyMockSugar with BeforeAn
           engine
             .onDataSetByName(datasetName)
             .onElementDefinition(archPrinciple.id)
-            .delete()
-            .end
+            .delete
+          .end
 
           val expectedIdMsg = "No element with ID: %s could be found in dataset: %s".format(archPrinciple.id, datasetName)
           the [InternalErrorException] thrownBy{
@@ -356,14 +374,20 @@ class DataSetSpec extends FunSpec with Matchers with EasyMockSugar with BeforeAn
         it("should list all ElementDefintions"){
           engine
             .createDataSet("X", "A mysterious dataset.")
+
+          engine
             .onDataSetByName("X")
             .defineElement("AA", "blah")
             .withProperty("AA:P", "String", "Blah blah")
           .end
+
+          engine
             .onDataSetByName("X")
             .defineElement("BB", "blah")
             .withProperty("BB:P", "String", "Blah blah")
           .end
+
+          engine
             .onDataSetByName("X")
             .defineElement("CC", "blah")
             .withProperty("CC:P", "String", "Blah blah")
@@ -372,14 +396,51 @@ class DataSetSpec extends FunSpec with Matchers with EasyMockSugar with BeforeAn
           val elementDefs =
             engine
               .onDataSetByName("X")
-              .elements
+              .elementDefinitions
 
           elementDefs should have length 3
         }
       }
 
       describe("Element Instances"){
-        it("should create an Element")(pending)
+        it("should create an Element"){
+          val dsId =
+            engine
+              .createDataSet("ZZ", "")
+
+          val edId =
+            engine
+              .onDataSet(dsId)
+              .defineElement("note", "short piece of text")
+                .withProperty("title", "String", "The title of the note.")
+                .withProperty("description", "String", "An optional description of the note.")
+                .withProperty("body", "String", "The body of the note.")
+            .end
+
+          val noteId =
+            engine
+              .onDataSet(dsId)
+              .provision(edId)
+                .withFields(Map("title"->"observations",
+                  "description"->"My observations",
+                  "body"->"This is a short little note on the meaning of life."
+                ).toMap)
+            .end
+
+          val note =
+            engine
+              .onDataSet(dsId)
+              .findElement(noteId)
+
+          note.elementType should equal("note")
+          note.fields should have size 3
+
+          //TODO: Add a convience method to avoid dealing with a map.
+          note.fields.get("title").get should equal("observations")
+          note.fields.get("description").get should equal("My observations")
+          note.fields.get("body").get should equal("This is a short little note on the meaning of life.")
+        }
+
         it("should retrieve an Element")(pending)
         it("should update an Element")(pending)
         it("should delete an Element")(pending)

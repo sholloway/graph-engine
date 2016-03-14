@@ -5,8 +5,8 @@ import scala.collection.mutable.ListBuffer
 /** A base element used to define what can be created by the user.
 *
 * @constructor Create a new Element Definition.
-* @param _id: The Element Defintion NodeJS ID.
-* @param _name: The Element Definition's name.
+* @param _id The Element Defintion NodeJS ID.
+* @param _name The Element Definition's name.
 */
 class ElementDefinition(_id: String,
   _name: String,

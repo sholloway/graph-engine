@@ -12,4 +12,5 @@ object EngineCommands{
   case object DeleteElementDefintion extends EngineCommand{ val cmd = "delete_element_definition"}
   case object CreateDataSet extends EngineCommand{ val cmd = "create_data_set"}
   case object EditDataSet extends EngineCommand{ val cmd = "edit_data_set"}
+  case object ProvisionElement extends EngineCommand{ val cmd = "create_element_definition"}
 }

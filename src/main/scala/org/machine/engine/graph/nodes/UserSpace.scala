@@ -5,7 +5,8 @@ import scala.collection.mutable.ArrayBuffer
 /** The collection of ElementDefinitions the user defines.
 *
 * @constructor Creates a new UserSpace.
-* @param _id: The UserSpace NodeJS ID.
+* @param _id The UserSpace unique identifier.
+* @param _name The UserSpace name.
 */
 class UserSpace(_id: String, _name: String){
   def id = this._id

@@ -21,11 +21,13 @@ class RemoveElementPropertyDefinition(database:GraphDatabaseService,
 
   val filter = List("mid", "pname")
 
-  def execute() = {
+  def execute():String = {
     logger.debug("RemoveElementPropertyDefinition: Executing Command")
     transaction(database, (graphDB:GraphDatabaseService) => {
       removePropertyDefinition(graphDB)
     })
+    val mid = commandOptions.get("mid").getOrElse(throw new InternalErrorException("mid required"))
+    return mid.toString
   }
 
   private def removePropertyDefinition(graphDB:GraphDatabaseService):Unit = {

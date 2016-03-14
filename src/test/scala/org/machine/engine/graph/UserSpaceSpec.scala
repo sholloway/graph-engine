@@ -116,7 +116,7 @@ class UserSpaceSpec extends FunSpec with Matchers with EasyMockSugar with Before
 
           val systemOption = engine
             .inUserSpace()
-            .elements()
+            .elementDefinitions()
             .find(e => {e.name == "System"})
 
           val updatedName = "IT System"
@@ -149,7 +149,7 @@ class UserSpaceSpec extends FunSpec with Matchers with EasyMockSugar with Before
 
           val systemOption = engine
             .inUserSpace()
-            .elements()
+            .elementDefinitions()
             .find(e => {e.name == "System"})
 
           val updatedName = "System Name"
@@ -189,7 +189,7 @@ class UserSpaceSpec extends FunSpec with Matchers with EasyMockSugar with Before
 
           val committeReviewOption = engine
             .inUserSpace()
-            .elements()
+            .elementDefinitions()
             .find(e => {e.name == "Committee Review"})
 
           committeReviewOption.get.properties.length shouldBe 3

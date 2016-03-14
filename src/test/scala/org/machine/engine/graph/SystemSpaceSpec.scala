@@ -122,7 +122,7 @@ class SystemSpaceSpec extends FunSpec
 
           val elements:List[ElementDefinition] = engine
             .inSystemSpace()
-            .elements()
+            .elementDefinitions()
 
           elements.length > 1
         }
@@ -137,7 +137,7 @@ class SystemSpaceSpec extends FunSpec
 
             val elements:List[ElementDefinition] = engine
               .inSystemSpace()
-              .elements()
+              .elementDefinitions()
 
             val noteOption = elements.find(e => {e.name == "Note"})
             val noteElement = engine
@@ -156,7 +156,7 @@ class SystemSpaceSpec extends FunSpec
 
           val systemOption = engine
             .inSystemSpace()
-            .elements()
+            .elementDefinitions()
             .find(e => {e.name == "System"})
 
           val updatedName = "IT System"
@@ -189,7 +189,7 @@ class SystemSpaceSpec extends FunSpec
 
           val systemOption = engine
             .inSystemSpace()
-            .elements()
+            .elementDefinitions()
             .find(e => {e.name == "System"})
 
           val updatedName = "System Name"
@@ -227,7 +227,7 @@ class SystemSpaceSpec extends FunSpec
 
           val committeReviewOption = engine
             .inSystemSpace()
-            .elements()
+            .elementDefinitions()
             .find(e => {e.name == "Committee Review"})
 
           committeReviewOption.get.properties.length shouldBe 3
@@ -271,7 +271,7 @@ class SystemSpaceSpec extends FunSpec
             .inSystemSpace
             .onElementDefinition(archPrinciple.id)
             .delete()
-            .end
+          .end
 
           val expectedIdMsg = "No element with ID: %s could be found in %s".format(archPrinciple.id, "internal_system_space")
           the [InternalErrorException] thrownBy{

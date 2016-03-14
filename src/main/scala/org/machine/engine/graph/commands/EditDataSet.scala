@@ -19,16 +19,18 @@ class EditDataSet(database:GraphDatabaseService,
   logger:Logger) extends Neo4JCommand{
   import Neo4JHelper._
 
-  def execute() = {
+  def execute():String = {
     logger.debug("EditDataSet: Executing Command")
     transaction(database, (graphDB:GraphDatabaseService) => {
       editDataSet(graphDB)
     })
+    val mid = commandOptions.get("dsId").getOrElse(throw new InternalErrorException("dsId required"))
+    return mid.toString
   }
 
   private def editDataSet(graphDB:GraphDatabaseService):Unit = {
     logger.debug("EditDataSet: Editing element definition.")
-    val setClause = buidSetClause("ds", commandOptions.toMap, List("mid"))
+    val setClause = buildSetClause("ds", commandOptions.toMap, List("mid"))
     val editDataSetStatement = """
     |match (us:internal_user_space)-[:contains]->(ds:internal_data_set {mid:{dsId}})
     |set setClause, ds.last_modified_time = timestamp()
