@@ -17,9 +17,7 @@ sbt test
 
 * Generate code coverage report.
 ```
-sbt clean coverage test
-sbt coverageReport
-open target/scala-2.11/scoverage-report/index.html
+sbt cov
 ```
 
 * Generate docs.

@@ -31,6 +31,14 @@ libraryDependencies ++= Seq(
 	 "org.neo4j" % "neo4j" % "2.3.2"
 )
 
+lazy val displayCoverage = taskKey[Unit]("blah...")
+displayCoverage := {
+	import sys.process._
+	"open target/scala-2.11/scoverage-report/index.html" !
+}
+
+addCommandAlias("cov", ";clean;coverage;test;coverageReport;displayCoverage")
+
 initialCommands in console := """
   |import org.machine.engine.server._
 	|import org.machine.engine.client._

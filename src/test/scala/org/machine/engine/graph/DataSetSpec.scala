@@ -441,6 +441,12 @@ class DataSetSpec extends FunSpec with Matchers with EasyMockSugar with BeforeAn
           note.fields.get("body").get should equal("This is a short little note on the meaning of life.")
         }
 
+        /*
+        Next steps:
+        1. Create fields convience methods.
+        2. Make finding elements work with types other than strings.
+        */
+
         it("should retrieve an Element")(pending)
         it("should update an Element")(pending)
         it("should delete an Element")(pending)
