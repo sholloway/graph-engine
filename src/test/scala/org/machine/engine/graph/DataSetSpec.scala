@@ -436,15 +436,14 @@ class DataSetSpec extends FunSpec with Matchers with EasyMockSugar with BeforeAn
           note.fields should have size 3
 
           //TODO: Add a convience method to avoid dealing with a map.
-          note.fields.get("title").get should equal("observations")
-          note.fields.get("description").get should equal("My observations")
-          note.fields.get("body").get should equal("This is a short little note on the meaning of life.")
+          note.field[String]("title") should equal("observations")
+          note.field[String]("description") should equal("My observations")
+          note.field[String]("body") should equal("This is a short little note on the meaning of life.")
         }
 
         /*
         Next steps:
-        1. Create fields convience methods.
-        2. Make finding elements work with types other than strings.
+        1. Make finding elements work with types other than strings.
         */
 
         it("should retrieve an Element")(pending)

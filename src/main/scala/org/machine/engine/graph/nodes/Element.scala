@@ -1,5 +1,7 @@
 package org.machine.engine.graph.nodes
 
+import org.machine.engine.exceptions._
+
 /** An immutable element in a dataset.
 *
 * @constructor Creates a new Element.
@@ -25,5 +27,21 @@ class Element(_id: String,
 
   override def toString():String = {
     "Element: %s %s".format(id, elementType)
+  }
+
+  /** Convience method for working with the element's fields.
+  @param name The name of the field to retrieve.
+
+  @example
+  {{{
+  val name = element.field[String]("name")
+  }}}
+  */
+  def field[T](name:String):T = {
+    val msg = "The element (%s) does not contain the field (%s)".format(id, name)
+    if (!fields.contains(name)){
+      throw new InternalErrorException(msg)
+    }
+    return fields.get(name).getOrElse(throw new InternalErrorException(msg)).asInstanceOf[T]
   }
 }
