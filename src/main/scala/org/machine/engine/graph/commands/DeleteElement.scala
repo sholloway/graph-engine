@@ -13,33 +13,29 @@ import org.machine.engine.graph.nodes._
 import org.machine.engine.graph.labels._
 import org.machine.engine.graph.internal._
 
-class EditElement(database: GraphDatabaseService,
+class DeleteElement(database: GraphDatabaseService,
   cmdScope: CommandScope,
   cmdOptions: GraphCommandOptions,
   logger: Logger) extends Neo4JCommand{
   import Neo4JHelper._
 
   def execute():String = {
-    logger.debug("EditDataSet: Executing Command")
-    transaction(database, (graphDB:GraphDatabaseService) => {
-      editDataSet(graphDB)
+    logger.debug("DeleteElement: Executing Command")
+    transaction(database, (graphDB: GraphDatabaseService) => {
+      deleteElement(graphDB)
     })
-    return cmdOptions.option[String]("dsId")
+    return cmdOptions.option[String]("elementId")
   }
 
-  private def editDataSet(graphDB:GraphDatabaseService):Unit = {
-    logger.debug("EditElement: Editing element definition.")
-    val prefix = "e"
-    val exclude = List("mid", "dsId", "elementId")
-    val setClause = buildSetClause(prefix, cmdOptions.keys, exclude)
-    val editDataSetStatement = """
+  private def deleteElement(graphDB: GraphDatabaseService):Unit = {
+    logger.debug("DeleteElement: Deleting element.")
+    val statement = """
     |match (ds:internal_data_set {mid:{dsId}})-[:contains]->(e {mid:{elementId}})
-    |set setClause, ds.last_modified_time = timestamp()
+    |detach delete e
     """.stripMargin
-       .replaceAll("setClause", setClause)
 
     run( graphDB,
-      editDataSetStatement,
+      statement,
       cmdOptions.toJavaMap,
       emptyResultProcessor[Element])
   }

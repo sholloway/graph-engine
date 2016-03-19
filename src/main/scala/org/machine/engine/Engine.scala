@@ -252,6 +252,7 @@ class Engine(dbPath:String, config: {
   def delete():GraphDSL = {
     command = command match {
       case EngineCommands.EditElementDefinition => EngineCommands.DeleteElementDefintion
+      case EngineCommands.EditElement => EngineCommands.DeleteElement
       case unknown => throw new InternalErrorException("Cannot delete when %s is selected".format(unknown.toString()))
     }
     return this

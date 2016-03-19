@@ -35,6 +35,8 @@ object CommandFactory{
         new CreateElement(database, cmdScope, cmdOptions, logger)
       case EngineCommands.EditElement =>
         new EditElement(database, cmdScope, cmdOptions, logger)
+      case EngineCommands.DeleteElement =>
+        new DeleteElement(database, cmdScope, cmdOptions, logger)
     }
   }
 }
