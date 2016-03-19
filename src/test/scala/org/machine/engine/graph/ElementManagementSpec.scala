@@ -231,7 +231,37 @@ class ElementManagementSpec extends FunSpec with Matchers with EasyMockSugar wit
           noteElement.field[String]("body") should equal(updatedBody)
         }
 
-        it ("should update multiple fields on an Element")(pending)
+        it ("should update multiple fields on an Element"){
+          val noteId =
+            engine
+              .onDataSet(notesDataSetId)
+              .provision(noteElementDefininitionId)
+                .withField("title", "Blah")
+                .withField("description", "")
+                .withField("body", "")
+            .end
+
+          val updatedTitle = "Colors that strike my fancy"
+          val updatedDesc = "Colors that I enjoy"
+          val updatedBody = "Blue, light blue, and robin blue."
+
+          engine
+            .onDataSet(notesDataSetId)
+            .onElement(noteId)
+            .setField("title", updatedTitle)
+            .setField("description", updatedDesc)
+            .setField("body", updatedBody)
+          .end
+
+          val noteElement =
+            engine
+              .onDataSet(notesDataSetId)
+              .findElement(noteId)
+
+          noteElement.field[String]("title") should equal(updatedTitle)
+          noteElement.field[String]("description") should equal(updatedDesc)
+          noteElement.field[String]("body") should equal(updatedBody)
+        }
 
         it("should delete an Element")(pending)
         it("should find a specific Element by ID")(pending)
