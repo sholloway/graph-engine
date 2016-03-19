@@ -203,5 +203,5 @@ object Neo4JHelper{
   /** Helper function to calculate the current time. Measured in milliseconds
   since January 1st 1970.
   */
-  def time:Long = System.currentTimeMillis / 1000
+  def time:Long = System.currentTimeMillis
 }
