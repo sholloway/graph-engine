@@ -26,10 +26,21 @@ class ElementManagementSpec extends FunSpec with Matchers with EasyMockSugar wit
   var engineOptions = new {
     val logger = new Logger(LoggerLevels.ERROR)
   }
+  var notesDataSetId:String = null
+  var noteElementDefininitionId:String = null
 
   override def beforeAll(){
     FileUtils.deleteRecursively(dbFile)
     engine = new Engine(dbPath, engineOptions)
+    notesDataSetId = engine.createDataSet("notes", "My collection of notes.")
+    noteElementDefininitionId =
+      engine
+        .onDataSet(notesDataSetId)
+        .defineElement("note", "short piece of text")
+          .withProperty("title", "String", "The title of the note.")
+          .withProperty("description", "String", "An optional description of the note.")
+          .withProperty("body", "String", "The body of the note.")
+      .end
   }
 
   override def afterAll(){
@@ -74,32 +85,23 @@ class ElementManagementSpec extends FunSpec with Matchers with EasyMockSugar wit
     describe("DataSet"){
       describe("Element Instances"){
         it("should create an Element"){
-          val dsId =
-            engine
-              .createDataSet("ZZ", "")
-
-          val edId =
-            engine
-              .onDataSet(dsId)
-              .defineElement("note", "short piece of text")
-                .withProperty("title", "String", "The title of the note.")
-                .withProperty("description", "String", "An optional description of the note.")
-                .withProperty("body", "String", "The body of the note.")
-            .end
+          val noteTxt = """
+          |This is a short little note on the meaning of life.
+          |Haven't found any meaning yet...
+          """.stripMargin
 
           val noteId =
             engine
-              .onDataSet(dsId)
-              .provision(edId)
+              .onDataSet(notesDataSetId)
+              .provision(noteElementDefininitionId)
                 .withField("title", "observations")
                 .withField("description", "My observations")
-                .withField("body", "This is a short little note on the meaning of life.")
-
+                .withField("body", noteTxt)
             .end
 
           val note =
             engine
-              .onDataSet(dsId)
+              .onDataSet(notesDataSetId)
               .findElement(noteId)
 
           note.elementType should equal("note")
@@ -107,7 +109,7 @@ class ElementManagementSpec extends FunSpec with Matchers with EasyMockSugar wit
 
           note.field[String]("title") should equal("observations")
           note.field[String]("description") should equal("My observations")
-          note.field[String]("body") should equal("This is a short little note on the meaning of life.")
+          note.field[String]("body") should equal(noteTxt)
         }
 
         it("should store and retrieve elements with Java primative types"){
@@ -200,7 +202,37 @@ class ElementManagementSpec extends FunSpec with Matchers with EasyMockSugar wit
               .end
         }
 
-        it("should update an Element")(pending)
+        it("should update an Element's fields"){
+          val noteId =
+            engine
+              .onDataSet(notesDataSetId)
+              .provision(noteElementDefininitionId)
+                .withField("title", "Funny Thing Happened Today")
+                .withField("description", "Note about earlier today.")
+                .withField("body", "I noticed a John had two cups of coffee.")
+            .end
+
+          val updatedBody = """
+          I noticed a John had two cups of coffee.
+          John never haves two cups of coffee.
+          """.stripMargin
+
+          engine
+            .onDataSet(notesDataSetId)
+            .onElement(noteId)
+            .setField("body", updatedBody)
+          .end
+
+          val noteElement =
+            engine
+              .onDataSet(notesDataSetId)
+              .findElement(noteId)
+
+          noteElement.field[String]("body") should equal(updatedBody)
+        }
+
+        it ("should update multiple fields on an Element")(pending)
+
         it("should delete an Element")(pending)
         it("should find a specific Element by ID")(pending)
         it("should associate two elements")(pending)

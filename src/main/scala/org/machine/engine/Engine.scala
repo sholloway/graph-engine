@@ -284,4 +284,14 @@ class Engine(dbPath:String, config: {
     val cmd = new FindElementById(database, scope, cmdOptions, config.logger)
     return cmd.execute()
   }
+
+  def onElement(elementId: String):GraphDSL = {
+    command = EngineCommands.EditElement
+    cmdOptions.addOption("elementId", elementId)
+    return this
+  }
+
+  def setField(fieldName: String, fieldValue: Any):GraphDSL ={
+    return withField(fieldName, fieldValue)
+  }
 }
