@@ -33,6 +33,10 @@ object CommandFactory{
         new EditDataSet(database, cmdScope, cmdOptions, logger)
       case EngineCommands.ProvisionElement =>
         new CreateElement(database, cmdScope, cmdOptions, logger)
+      case EngineCommands.EditElement =>
+        new EditElement(database, cmdScope, cmdOptions, logger)
+      case EngineCommands.DeleteElement =>
+        new DeleteElement(database, cmdScope, cmdOptions, logger)
     }
   }
 }

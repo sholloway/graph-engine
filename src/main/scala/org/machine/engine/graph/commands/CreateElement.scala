@@ -110,7 +110,7 @@ class CreateElement(database: GraphDatabaseService,
     logger.debug("CreateElement: Creating data set.")
     cmdOptions.addOption("element_description", elementDef.description)
     cmdOptions.addOption("creation_time", time)
-    val exclude = List("dsId", "dsName", "edId")
+    val exclude = List("dsId", "dsName", "edId", "elementId")
 
     transaction(graphDB, (tx: GraphDatabaseService) => {
       val node = tx.createNode(DynamicLabel.label(elementDef.name))

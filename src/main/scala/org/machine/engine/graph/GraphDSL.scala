@@ -138,6 +138,37 @@ import org.machine.engine.graph.nodes._
 * .end
 * }}}
 *
+* ==Working with Elements==
+* Elements exist inside of datasets. They can be created, updated and deleted.
+*
+* '''Creating an element from an element definition.'''
+* {{{
+* engine
+*   .onDataSet(dataSetId)
+*   .provision(elementDefinitionId)
+*     .withField(fieldName, fieldDescription)
+* .end
+* }}}
+*
+* '''Update an Element'''
+* {{{
+* engine
+*   .onDataSet(dataSetId)
+*   .onElement(elementId)
+*     .setField(fieldName1, fieldValue1)
+*     .setField(fieldName2, fieldValue2)
+*     .setField(fieldName3, fieldValue3)
+* .end
+* }}}
+*
+* '''Delete an Element'''
+* {{{
+* engine
+*   .onDataSet(dataSetId)
+*   .onElement(elementId)
+*   .delete
+* .end
+* }}}
 */
 trait GraphDSL{
   def inSystemSpace():GraphDSL
@@ -166,8 +197,11 @@ trait GraphDSL{
   def end():String
 
   def provision(elementDefId: String):GraphDSL
-  def withField(fieldName: String, fieldValue:Any):GraphDSL
+  def withField(fieldName: String, fieldValue: Any):GraphDSL
   def findElement(elementId: String):Element
+  def onElement(elementId: String):GraphDSL
+  def setField(fieldName: String, fieldValue: Any):GraphDSL
+
   /*
   I need to be able to create instances of element defintions in a dataset.
   in dataset 5 provision elementdef with properties blah
@@ -192,7 +226,12 @@ trait GraphDSL{
   engine
     .inDataSet(id)
     .onElement(id)
-    .updateFields(map)
+    .updateFields(fields)
+
+    engine
+      .onDataSet(id)
+      .onElement(id)
+    .delete
 
   engine
     .inDataSet(id)
@@ -200,7 +239,5 @@ trait GraphDSL{
     .to(anotherElementId)
 
 
-  def onElement(elementId: String):GraphDSL
-  def updateFields(fields: Map[String, AnyRef]):GraphDSL
     */
 }

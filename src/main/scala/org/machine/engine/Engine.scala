@@ -252,6 +252,7 @@ class Engine(dbPath:String, config: {
   def delete():GraphDSL = {
     command = command match {
       case EngineCommands.EditElementDefinition => EngineCommands.DeleteElementDefintion
+      case EngineCommands.EditElement => EngineCommands.DeleteElement
       case unknown => throw new InternalErrorException("Cannot delete when %s is selected".format(unknown.toString()))
     }
     return this
@@ -283,5 +284,15 @@ class Engine(dbPath:String, config: {
     cmdOptions.addOption("mid", elementId)
     val cmd = new FindElementById(database, scope, cmdOptions, config.logger)
     return cmd.execute()
+  }
+
+  def onElement(elementId: String):GraphDSL = {
+    command = EngineCommands.EditElement
+    cmdOptions.addOption("elementId", elementId)
+    return this
+  }
+
+  def setField(fieldName: String, fieldValue: Any):GraphDSL ={
+    return withField(fieldName, fieldValue)
   }
 }

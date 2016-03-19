@@ -56,6 +56,7 @@ class FindElementById(database: GraphDatabaseService,
 
   private def elementMapper(results: ArrayBuffer[Element],
     record: java.util.Map[java.lang.String, Object]) = {
+      logFoundRecord("FindElementById: Found Record", record)
       val specialFields = List("mid", "element_description", "creation_time", "last_modified_time")
       val labels:List[String] = elementDefintion.get("labels").get.asInstanceOf[List[String]]
       val properties:List[String] = elementDefintion.get("keys").get.asInstanceOf[List[String]]
@@ -80,6 +81,14 @@ class FindElementById(database: GraphDatabaseService,
       val element = new Element(mid, elementType, elementDescription,
         mappedFields.toMap, creationTime, lastEditTime)
       results += element
+  }
+
+  private def logFoundRecord(headerMsg: String,
+    record: java.util.Map[java.lang.String, Object]) = {
+      logger.debug(headerMsg)
+      record.keys.foreach(k => {
+        logger.debug("%s: %s".format(k, record.get(k).toString))
+      })
   }
 
   def propertyGuard(property: String, record: java.util.Map[java.lang.String, Object]):Unit = {
@@ -109,6 +118,11 @@ class FindElementById(database: GraphDatabaseService,
       elementStructureMapper)
       logger.debug("FindElementById: findElementStructure returned records:")
       logger.debug(records.toString)
+    if (records.length < 1) {
+      val elementId = fields.field[String]("mid")
+      val msg = "No element with mid: %s could be found.".format(elementId)
+      throw new InternalErrorException(msg)
+    }
     return records.toList
   }
 
