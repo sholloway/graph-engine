@@ -16,15 +16,16 @@ import org.machine.engine.graph.internal._
 /** Find an ElementDefinition in a specified graph space by ID or Name.
 */
 trait FindElementDefinition extends Neo4JQueryCommand[ElementDefinition]{
-  protected def buildScope(cmdScope:CommandScope, options:Map[String, AnyRef]):String = {
+  protected def buildScope(cmdScope: CommandScope,
+    cmdOptions: GraphCommandOptions):String = {
     val scope = cmdScope match{
       case CommandScopes.SystemSpaceScope => CommandScopes.SystemSpaceScope.scope
       case CommandScopes.UserSpaceScope => CommandScopes.UserSpaceScope.scope
       case CommandScopes.DataSetScope => {
         var str:String = null
-        if(options.contains("dsId")){
+        if(cmdOptions.contains("dsId")){
           str = "%s {mid:{dsId}}".format(CommandScopes.DataSetScope.scope)
-        }else if(options.contains("dsName")){
+        }else if(cmdOptions.contains("dsName")){
           str = "%s {name:{dsName}}".format(CommandScopes.DataSetScope.scope)
         }
         str
@@ -33,12 +34,12 @@ trait FindElementDefinition extends Neo4JQueryCommand[ElementDefinition]{
     return scope
   }
 
-  protected def getDataSetIdentifier(options: Map[String, AnyRef]):String = {
+  protected def getDataSetIdentifier(cmdOptions: GraphCommandOptions):String = {
     var dsIdentifier:String = null
-    if(options.contains("dsId")){
-      dsIdentifier = options.get("dsId").get.toString
-    }else if(options.contains("dsName")){
-      dsIdentifier = options.get("dsName").get.toString
+    if(cmdOptions.contains("dsId")){
+      dsIdentifier = cmdOptions.option[String]("dsId")
+    }else if(cmdOptions.contains("dsName")){
+      dsIdentifier = cmdOptions.option[String]("dsName")
     }
     return dsIdentifier
   }

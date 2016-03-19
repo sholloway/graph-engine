@@ -8,13 +8,24 @@ package org.machine.engine.graph.nodes
 * @param _type The PropertyDefinition's type.
 * @param _description The PropertyDefinition's description.
 */
-class PropertyDefinition(_id: String, _name: String, _type: String, _description: String){
+class PropertyDefinition(_id: String,
+  _name: String,
+  _type: String,
+  _description: String){
   def id = this._id
   def name = this._name
   def propertyType = this._type
   def description = this._description
 
   override def toString():String = {
-    return "PropertyDefinition: %s | %s | %s | %s".format(id, name, propertyType, description)
+    return "PropertyDefinition: %s | %s | %s | %s".format(id,
+      name,
+      propertyType,
+      description)
   }
+
+  def toMap:Map[String, String] = Map("mid" -> id,
+    "name" -> name,
+    "type" -> propertyType,
+    "description" -> description)
 }

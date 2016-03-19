@@ -13,10 +13,10 @@ import org.machine.engine.graph.nodes._
 import org.machine.engine.graph.labels._
 import org.machine.engine.graph.internal._
 
-class FindDataSetById(database:GraphDatabaseService,
-  cmdScope:CommandScope,
-  commandOptions:Map[String, AnyRef],
-  logger:Logger) extends Neo4JQueryCommand[DataSet]{
+class FindDataSetById(database: GraphDatabaseService,
+  cmdScope: CommandScope,
+  cmdOptions: GraphCommandOptions,
+  logger: Logger) extends Neo4JQueryCommand[DataSet]{
   import Neo4JHelper._
 
   def execute():List[DataSet] = {
@@ -31,7 +31,7 @@ class FindDataSetById(database:GraphDatabaseService,
       """.stripMargin
 
     val records = query[DataSet](database,
-      findDataSets, commandOptions, dataSetMapper)
+      findDataSets, cmdOptions.toJavaMap, dataSetMapper)
     return validateQueryResponse(records.toList)
   }
 
@@ -51,7 +51,7 @@ class FindDataSetById(database:GraphDatabaseService,
   }
 
   private def validateQueryResponse(datasets: List[DataSet]):List[DataSet] = {
-    val mid = commandOptions.get("dsId").getOrElse(throw new InternalErrorException("FindDataSetById requires that dsId be specified on commandOptions."))
+    val mid = cmdOptions.option[String]("dsId")
     if(datasets.length < 1){
       val msg = "No dataset with mid: %s could be found in %s".format(mid, cmdScope.scope)
       throw new InternalErrorException(msg);

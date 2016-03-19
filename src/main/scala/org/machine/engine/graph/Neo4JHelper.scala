@@ -4,6 +4,7 @@ import org.neo4j.graphdb._
 import scala.collection.JavaConversions._
 import scala.collection.mutable.ArrayBuffer
 import org.machine.engine.exceptions._
+import org.machine.engine.graph.commands._
 
 /** A mixin for making working with Neo4J easier.
 */
@@ -152,8 +153,8 @@ object Neo4JHelper{
   * @param required Specifies if an error should be thrown if the desired field is not found.
   * @return The mapped value as a String.
   */
-  def mapString(name:String,
-    record:java.util.Map[java.lang.String, Object],
+  def mapString(name: String,
+    record: java.util.Map[java.lang.String, Object],
     required: Boolean):String = {
     var response:String = null
     if (record.containsKey(name) && record.get(name) != null){
@@ -177,11 +178,11 @@ object Neo4JHelper{
   /** Helper function for building up a comma seperated list of parameters in a query.
   */
   def buildSetClause(prefix: String,
-    commandOptions: Map[String, AnyRef],
+    keys: List[String],
     exclude: List[String]
   ):String = {
     val clause = new StringBuilder()
-    commandOptions.keys.foreach(key => {
+    keys.foreach(key => {
       if(!exclude.contains(key)){
         clause append "%s.%s = {%s}\n".format(prefix, key, key)
       }
@@ -198,4 +199,9 @@ object Neo4JHelper{
     })
     return clause.lines.mkString(",\n")
   }
+
+  /** Helper function to calculate the current time. Measured in milliseconds
+  since January 1st 1970.
+  */
+  def time:Long = System.currentTimeMillis / 1000
 }

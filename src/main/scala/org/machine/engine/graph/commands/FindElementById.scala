@@ -15,38 +15,35 @@ import org.machine.engine.graph.nodes._
 import org.machine.engine.graph.labels._
 import org.machine.engine.graph.internal._
 
-class FindElementById(database:GraphDatabaseService,
-  cmdScope:CommandScope,
-  commandOptions:Map[String, AnyRef],
-  logger:Logger) extends Neo4JQueryCommand[Element]{
+/*
+This command deviates from the normal path of having cmdOptions:Map[String, AnyRef]
+because a field could be of type AnyVal or AnyRef. Example: Byte & List[Byte]
+*/
+class FindElementById(database: GraphDatabaseService,
+  cmdScope: CommandScope,
+  fields: GraphCommandOptions,
+  logger: Logger){
   import Neo4JHelper._
 
-  private var elementDefintion:scala.collection.immutable.Map[String, AnyRef] = null
+  private var elementDefintion:scala.collection.immutable.Map[String, List[String]] = null
 
-  /*
-  This is going to be a trick. I don't know what the keys are to query.
-  Possible solutions:
-  - Make two queries. First find all keys and labels on the node.
-    match (n {mid:{mid}}) return keys(u), labels(u)
-  */
-  def execute():List[Element] = {
+  def execute():Element = {
     logger.debug("FindElementById: Executing Command")
-    val definitions = findElementStructure(database, commandOptions)
+    val definitions = findElementStructure(database, fields)
     elementDefintion = definitions(0)
-    val elements = findElements(database, commandOptions, elementDefintion)
-    return validateElement(elements, commandOptions)
+    return findElements(database, fields, elementDefintion)
   }
 
-  private def findElements(database:GraphDatabaseService,
-    commandOptions: Map[String, AnyRef],
-    elementDefintion: scala.collection.immutable.Map[String, AnyRef]):List[Element] = {
-    val statement = buildFindElementQuery(commandOptions, elementDefintion);
-    val elements = query[Element](database, statement, commandOptions, elementMapper)
-    return elements.toList
+  private def findElements(database: GraphDatabaseService,
+    fields: GraphCommandOptions,
+    elementDefintion: scala.collection.immutable.Map[String, List[String]]):Element = {
+    val statement = buildFindElementQuery(fields, elementDefintion);
+    val elements = query[Element](database, statement, fields.toJavaMap, elementMapper)
+    return validateElement(elements.toList, fields)(0)
   }
 
-  private def validateElement(elements: List[Element], commandOptions:Map[String, AnyRef]):List[Element] = {
-    val mid = commandOptions.get("mid").getOrElse(throw new InternalErrorException("FindElementById requires that mid be specified on commandOptions."))
+  private def validateElement(elements: List[Element], fields: GraphCommandOptions):List[Element] = {
+    val mid = fields.field[String]("mid")
     if(elements.length < 1){
       val msg = "No element with mid: %s could be found.".format(mid)
       throw new InternalErrorException(msg);
@@ -57,22 +54,11 @@ class FindElementById(database:GraphDatabaseService,
     return elements
   }
 
-  /*
-  NOTE:
-  To get started, just assume that every field is a String. Eventually, this
-  is going to have to look at the corrisponding ElementDefinition and find the
-  field type and do intelligent provisioning using reflection.
-
-  I'm going to have to give this some thought.
-
-  We know there are special cases:
-  - creation_time and last_edit_time should not be Strings.
-  */
   private def elementMapper(results: ArrayBuffer[Element],
     record: java.util.Map[java.lang.String, Object]) = {
       val specialFields = List("mid", "element_description", "creation_time", "last_modified_time")
       val labels:List[String] = elementDefintion.get("labels").get.asInstanceOf[List[String]]
-      val fields:List[String] = elementDefintion.get("keys").get.asInstanceOf[List[String]]
+      val properties:List[String] = elementDefintion.get("keys").get.asInstanceOf[List[String]]
       val elementType = labels(0)
 
       //first get the known fields
@@ -82,17 +68,25 @@ class FindElementById(database:GraphDatabaseService,
       val lastEditTime = mapString("last_modified_time", record, false)
 
       //then get the unknown fields
-      val mappedFields:Map[String, AnyRef] = Map()
-      fields.foreach(field => {
-        if (!specialFields.contains(field)){
-          val temp = mapString(field, record, true)
-          mappedFields.+=(field -> temp)
+      val mappedFields:Map[String, Any] = Map()
+      properties.foreach(property => {
+        if (!specialFields.contains(property)){
+          propertyGuard(property, record)
+          val value = record.get(property)
+          mappedFields.+=(property -> value)
         }
       })
 
       val element = new Element(mid, elementType, elementDescription,
         mappedFields.toMap, creationTime, lastEditTime)
       results += element
+  }
+
+  def propertyGuard(property: String, record: java.util.Map[java.lang.String, Object]):Unit = {
+    if (!record.containsKey(property)){
+      val msg = "The required field: %s was not found in the query response.".format(property)
+      throw new InternalErrorException(msg)
+    }
   }
 
   /*
@@ -102,21 +96,24 @@ class FindElementById(database:GraphDatabaseService,
   match (n {mid:{mid}})
   match (ds)-[:contains]->(n)
   */
-  private def findElementStructure(database:GraphDatabaseService,
-    commandOptions:Map[String, AnyRef]
-  ):List[scala.collection.immutable.Map[String, AnyRef]] = {
+  private def findElementStructure(database: GraphDatabaseService,
+    fields: GraphCommandOptions
+  ):List[scala.collection.immutable.Map[String, List[String]]] = {
     val statement = """
     |match (n {mid:{mid}})
     |return keys(n) as keys, labels(n) as labels
     """.stripMargin
-
-    val records = query[scala.collection.immutable.Map[String, AnyRef]](database,
-      statement, commandOptions, elementStructureMapper)
+    val records = query[scala.collection.immutable.Map[String, List[String]]](database,
+      statement,
+      fields.toJavaMap,
+      elementStructureMapper)
+      logger.debug("FindElementById: findElementStructure returned records:")
+      logger.debug(records.toString)
     return records.toList
   }
 
-  private def buildFindElementQuery(commandOptions: Map[String, AnyRef],
-    elementDefintion: scala.collection.immutable.Map[String, AnyRef]):String = {
+  private def buildFindElementQuery(fields: GraphCommandOptions,
+    elementDefintion: scala.collection.immutable.Map[String, List[String]]):String = {
     var prefix = "e"
     val keys:List[String] = elementDefintion.get("keys").get.asInstanceOf[List[String]]
     val fetchClause = buildFetchClause(prefix, keys)
@@ -132,7 +129,7 @@ class FindElementById(database:GraphDatabaseService,
     return template
   }
 
-  private def elementStructureMapper(results: ArrayBuffer[scala.collection.immutable.Map[String, AnyRef]],
+  private def elementStructureMapper(results: ArrayBuffer[scala.collection.immutable.Map[String, List[String]]],
     record: java.util.Map[java.lang.String, Object]) = {
       val labels:List[String] = record.get("labels").asInstanceOf[java.util.List[String]].toList
       val keys:List[String] = record.get("keys").asInstanceOf[java.util.List[String]].toList

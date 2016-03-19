@@ -42,4 +42,20 @@ addCommandAlias("cov", ";clean;coverage;test;coverageReport;displayCoverage")
 initialCommands in console := """
   |import org.machine.engine.server._
 	|import org.machine.engine.client._
+	|import java.io.File;
+	|import java.io.IOException;
+	|import org.neo4j.graphdb._
+	|import org.neo4j.graphdb.factory.GraphDatabaseFactory
+	|import org.neo4j.io.fs.FileUtils
+	|import java.nio.file.{Paths, Files}
+	|import scala.collection.JavaConversions._
+	|import scala.collection.mutable.{ArrayBuffer, ListBuffer, Map}
+	|import org.machine.engine.logger._
+	|import org.machine.engine.exceptions._
+	|import org.machine.engine.graph._
+	|import org.machine.engine.graph.Neo4JHelper._
+	|import org.machine.engine.graph.commands._
+	|import org.machine.engine.graph.nodes._
+	|import org.machine.engine.graph.labels._
+	|import org.machine.engine.graph.internal._
 	""".stripMargin

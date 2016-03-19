@@ -13,26 +13,26 @@ import org.machine.engine.graph.nodes._
 import org.machine.engine.graph.labels._
 import org.machine.engine.graph.internal._
 
-class FindElementDefinitionByName(database:GraphDatabaseService,
-  cmdScope:CommandScope,
-  commandOptions:Map[String, AnyRef],
-  logger:Logger) extends FindElementDefinition{
+class FindElementDefinitionByName(database: GraphDatabaseService,
+  cmdScope: CommandScope,
+  cmdOptions: GraphCommandOptions,
+  logger: Logger) extends FindElementDefinition{
   import Neo4JHelper._
 
   def execute():List[ElementDefinition] = {
     logger.debug("FindElementDefinitionByName: Executing Command")
-    val findElement = buildQuery(cmdScope, commandOptions)
+    val findElement = buildQuery(cmdScope, cmdOptions)
     val records = query[(ElementDefinition, PropertyDefinition)](database,
       findElement,
-      commandOptions,
+      cmdOptions.toJavaMap,
       elementDefAndPropDefQueryMapper)
     val elementDefs = consolidateElementDefs(records.toList)
     return validateQueryResponse(elementDefs);
   }
 
-  protected def buildQuery(cmdScope:CommandScope, commandOptions:Map[String, AnyRef]):String = {
-    val edMatchClause = buildElementDefinitionMatchClause(commandOptions)
-    val scope = buildScope(cmdScope, commandOptions)
+  protected def buildQuery(cmdScope: CommandScope, cmdOptions: GraphCommandOptions):String = {
+    val edMatchClause = buildElementDefinitionMatchClause(cmdOptions)
+    val scope = buildScope(cmdScope, cmdOptions)
     return """
       |match (ss:scope)-[:exists_in]->(ed:element_definition ed_match)-[:composed_of]->(pd:property_definition)
       |return ed.mid as elementId,
@@ -47,40 +47,38 @@ class FindElementDefinitionByName(database:GraphDatabaseService,
         .replaceAll("ed_match", edMatchClause)
   }
 
-  protected def buildElementDefinitionMatchClause(commandOptions:Map[String, AnyRef]):String = {
+  protected def buildElementDefinitionMatchClause(cmdOptions: GraphCommandOptions):String = {
     return "{name:{name}}"
   }
 
   protected def validateQueryResponse(elementDefs: List[ElementDefinition]):List[ElementDefinition] = {
     if(elementDefs.length < 1){
-      val msg = noElementDefFoundErrorMsg()
-      throw new InternalErrorException(msg);
+      throw new InternalErrorException(noElementDefFoundErrorMsg());
     }else if(elementDefs.length > 1){
-      val msg = tooManyElementDefsFoundErrorMsg()
-      throw new InternalErrorException(msg);
+      throw new InternalErrorException(tooManyElementDefsFoundErrorMsg());
     }
     return elementDefs
   }
 
   private def noElementDefFoundErrorMsg():String = {
-    val name = commandOptions.get("name").getOrElse(throw new InternalErrorException("FindElementDefinitionByName requires that name be specified on commandOptions."))
+    val name = cmdOptions.option[String]("name")
     return cmdScope match{
       case CommandScopes.SystemSpaceScope => "No element with Name: %s could be found in %s".format(name, cmdScope.scope)
       case CommandScopes.UserSpaceScope => "No element with Name: %s could be found in %s".format(name, cmdScope.scope)
       case CommandScopes.DataSetScope => {
-        val dsIdentifier = getDataSetIdentifier(commandOptions)
+        val dsIdentifier = getDataSetIdentifier(cmdOptions)
         "No element with Name: %s could be found in dataset: %s".format(name, dsIdentifier)
       }
     }
   }
 
   private def tooManyElementDefsFoundErrorMsg():String = {
-    val name = commandOptions.get("name").getOrElse(throw new InternalErrorException("FindElementDefinitionByName requires that name be specified on commandOptions."))
+    val name = cmdOptions.option[String]("name")
     return cmdScope match{
       case CommandScopes.SystemSpaceScope => "Multiple Element Definitions where found with Name: %s in %s".format(name, cmdScope.scope)
       case CommandScopes.UserSpaceScope => "Multiple Element Definitions where found with Name: %s in %s".format(name, cmdScope.scope)
       case CommandScopes.DataSetScope => {
-        val dsIdentifier = getDataSetIdentifier(commandOptions)
+        val dsIdentifier = getDataSetIdentifier(cmdOptions)
         "Multiple Element Definitions where found with Name: %s in dataset: %s".format(name, dsIdentifier)
       }
     }

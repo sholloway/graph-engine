@@ -13,10 +13,10 @@ import org.machine.engine.graph.nodes._
 import org.machine.engine.graph.labels._
 import org.machine.engine.graph.internal._
 
-class EditDataSet(database:GraphDatabaseService,
-  cmdScope:CommandScope,
-  commandOptions:Map[String, AnyRef],
-  logger:Logger) extends Neo4JCommand{
+class EditDataSet(database: GraphDatabaseService,
+  cmdScope: CommandScope,
+  cmdOptions: GraphCommandOptions,
+  logger: Logger) extends Neo4JCommand{
   import Neo4JHelper._
 
   def execute():String = {
@@ -24,13 +24,12 @@ class EditDataSet(database:GraphDatabaseService,
     transaction(database, (graphDB:GraphDatabaseService) => {
       editDataSet(graphDB)
     })
-    val mid = commandOptions.get("dsId").getOrElse(throw new InternalErrorException("dsId required"))
-    return mid.toString
+    return cmdOptions.option[String]("dsId")
   }
 
   private def editDataSet(graphDB:GraphDatabaseService):Unit = {
     logger.debug("EditDataSet: Editing element definition.")
-    val setClause = buildSetClause("ds", commandOptions.toMap, List("mid"))
+    val setClause = buildSetClause("ds", cmdOptions.keys, List("mid"))
     val editDataSetStatement = """
     |match (us:internal_user_space)-[:contains]->(ds:internal_data_set {mid:{dsId}})
     |set setClause, ds.last_modified_time = timestamp()
@@ -39,7 +38,7 @@ class EditDataSet(database:GraphDatabaseService,
 
     run( graphDB,
       editDataSetStatement,
-      commandOptions,
+      cmdOptions.toJavaMap,
       emptyResultProcessor[DataSet])
   }
 }

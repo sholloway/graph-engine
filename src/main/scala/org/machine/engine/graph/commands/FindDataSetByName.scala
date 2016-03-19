@@ -13,10 +13,10 @@ import org.machine.engine.graph.nodes._
 import org.machine.engine.graph.labels._
 import org.machine.engine.graph.internal._
 
-class FindDataSetByName(database:GraphDatabaseService,
-  cmdScope:CommandScope,
-  commandOptions:Map[String, AnyRef],
-  logger:Logger) extends Neo4JQueryCommand[DataSet]{
+class FindDataSetByName(database: GraphDatabaseService,
+  cmdScope: CommandScope,
+  cmdOptions: GraphCommandOptions,
+  logger: Logger) extends Neo4JQueryCommand[DataSet]{
   import Neo4JHelper._
 
   def execute():List[DataSet] = {
@@ -32,7 +32,7 @@ class FindDataSetByName(database:GraphDatabaseService,
         .replaceAll("space", cmdScope.scope)
 
     val records = query[DataSet](database,
-      findDataSets, commandOptions, dataSetMapper)
+      findDataSets, cmdOptions.toJavaMap, dataSetMapper)
     return validateQueryResponse(records.toList)
   }
 
@@ -52,7 +52,7 @@ class FindDataSetByName(database:GraphDatabaseService,
   }
 
   private def validateQueryResponse(datasets: List[DataSet]):List[DataSet] = {
-    val name = commandOptions.get("name").getOrElse(throw new InternalErrorException("FindDataSetByName requires that name be specified on commandOptions."))
+    val name = cmdOptions.option[String]("name")
     if(datasets.length < 1){
       val msg = "No dataset with Name: %s could be found in %s".format(name, cmdScope.scope)
       throw new InternalErrorException(msg);

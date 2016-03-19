@@ -13,15 +13,15 @@ import org.machine.engine.graph.nodes._
 import org.machine.engine.graph.labels._
 import org.machine.engine.graph.internal._
 
-class ListAllElementDefinitions(database:GraphDatabaseService,
-  cmdScope:CommandScope,
-  commandOptions:Map[String, AnyRef],
-  logger:Logger) extends Neo4JQueryCommand[ElementDefinition]{
+class ListAllElementDefinitions(database: GraphDatabaseService,
+  cmdScope: CommandScope,
+  cmdOptions: GraphCommandOptions,
+  logger: Logger) extends Neo4JQueryCommand[ElementDefinition]{
   import Neo4JHelper._
 
   def execute():List[ElementDefinition] = {
     logger.debug("ListAllElementDefintions: Executing Command")
-    val scope = buildScope(cmdScope, commandOptions)
+    val scope = buildScope(cmdScope, cmdOptions)
     //TODO: Currently this only returns ElementDefinitions that have associated PropertyDefinitions.
     //TODO: Return creation_time & last_modified_time
     val findDefinedElements = """
@@ -37,20 +37,20 @@ class ListAllElementDefinitions(database:GraphDatabaseService,
         .replaceAll("space", scope)
 
     val records = query[(ElementDefinition, PropertyDefinition)](database,
-      findDefinedElements, commandOptions,
+      findDefinedElements, cmdOptions.toJavaMap,
       elementDefAndPropDefQueryMapper)
     return consolidateElementDefs(records.toList)
   }
 
-  protected def buildScope(cmdScope:CommandScope, options:Map[String, AnyRef]):String = {
+  protected def buildScope(cmdScope: CommandScope, cmdOptions: GraphCommandOptions):String = {
     val scope = cmdScope match{
       case CommandScopes.SystemSpaceScope => CommandScopes.SystemSpaceScope.scope
       case CommandScopes.UserSpaceScope => CommandScopes.UserSpaceScope.scope
       case CommandScopes.DataSetScope => {
         var str:String = null
-        if(options.contains("dsId")){
+        if(cmdOptions.contains("dsId")){
           str = "%s {mid:{dsId}}".format(CommandScopes.DataSetScope.scope)
-        }else if(options.contains("dsName")){
+        }else if(cmdOptions.contains("dsName")){
           str = "%s {name:{dsName}}".format(CommandScopes.DataSetScope.scope)
         }
         str

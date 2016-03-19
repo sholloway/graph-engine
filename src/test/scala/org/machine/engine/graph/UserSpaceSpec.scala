@@ -71,6 +71,7 @@ class UserSpaceSpec extends FunSpec with Matchers with EasyMockSugar with Before
   }
 
   describe("Machine Engine"){
+
     describe("User Space"){
       it("should have one and only one user space"){
         val findUserSpace = "match (us:internal_user_space) return us.mid as id, us.name as name"
@@ -250,6 +251,6 @@ class UserSpaceSpec extends FunSpec with Matchers with EasyMockSugar with Before
           }should have message expectedNameMsg
         }
       }
-    }
+    } 
   }
 }

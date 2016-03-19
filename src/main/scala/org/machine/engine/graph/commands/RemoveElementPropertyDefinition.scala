@@ -13,34 +13,37 @@ import org.machine.engine.graph.nodes._
 import org.machine.engine.graph.labels._
 import org.machine.engine.graph.internal._
 
-class RemoveElementPropertyDefinition(database:GraphDatabaseService,
-  cmdScope:CommandScope,
-  commandOptions:Map[String, AnyRef],
-  logger:Logger) extends Neo4JCommand{
+class RemoveElementPropertyDefinition(database: GraphDatabaseService,
+  cmdScope: CommandScope,
+  cmdOptions: GraphCommandOptions,
+  logger: Logger) extends Neo4JCommand{
   import Neo4JHelper._
 
   val filter = List("mid", "pname")
 
   def execute():String = {
     logger.debug("RemoveElementPropertyDefinition: Executing Command")
+    if (!cmdOptions.contains("mid")){
+      throw new InternalErrorException("mid required")
+    }
+
     transaction(database, (graphDB:GraphDatabaseService) => {
       removePropertyDefinition(graphDB)
     })
-    val mid = commandOptions.get("mid").getOrElse(throw new InternalErrorException("mid required"))
-    return mid.toString
+    return cmdOptions.option[String]("mid")
   }
 
-  private def removePropertyDefinition(graphDB:GraphDatabaseService):Unit = {
+  private def removePropertyDefinition(graphDB: GraphDatabaseService):Unit = {
     logger.debug("RemoveElementPropertyDefinition: Editing property definition.")
     val removePropertyDefinitionStatement = buildStatement()
     run( graphDB,
       removePropertyDefinitionStatement,
-      commandOptions,
+      cmdOptions.toJavaMap,
       emptyResultProcessor[PropertyDefinition])
   }
 
   private def buildStatement():String = {
-    val scope = buildScope(cmdScope, commandOptions)
+    val scope = buildScope(cmdScope, cmdOptions)
     return """
     |match (ss:space)-[:exists_in]->(ed:element_definition {mid:{mid}})-[:composed_of]->(pd:property_definition {name:{pname}})
     |detach delete pd
@@ -48,15 +51,15 @@ class RemoveElementPropertyDefinition(database:GraphDatabaseService,
        .replaceAll("space", scope)
   }
 
-  private def buildScope(datScope:CommandScope, options:Map[String, AnyRef]):String = {
+  private def buildScope(datScope: CommandScope, cmdOptions: GraphCommandOptions):String = {
     val scope = datScope match{
       case CommandScopes.SystemSpaceScope => CommandScopes.SystemSpaceScope.scope
       case CommandScopes.UserSpaceScope => CommandScopes.UserSpaceScope.scope
       case CommandScopes.DataSetScope => {
         var filter:String = null
-        if(options.contains("dsId")){
+        if(cmdOptions.contains("dsId")){
           filter = "%s {mid:{dsId}}".format(CommandScopes.DataSetScope.scope)
-        }else if(options.contains("dsName")){
+        }else if(cmdOptions.contains("dsName")){
           filter = "%s {name:{dsName}}".format(CommandScopes.DataSetScope.scope)
         }else{
           val msg = """

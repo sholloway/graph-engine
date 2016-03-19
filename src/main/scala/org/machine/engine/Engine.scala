@@ -29,10 +29,14 @@ class Engine(dbPath:String, config: {
   var userSpaceOption:Option[UserSpace] = None
   var scope:CommandScope = CommandScopes.SystemSpaceScope
   var command:EngineCommand = EngineCommands.DefineElement
-  var commandOptions:Map[String, AnyRef] = Map()
+  val cmdOptions:GraphCommandOptions = new GraphCommandOptions()
 
   def systemSpace:SystemSpace = this.systemSpaceOption.getOrElse(throw new InternalErrorException("SystemSpace has not be initialized."))
   def userSpace:UserSpace = this.userSpaceOption.getOrElse(throw new InternalErrorException("UserSpace has not be initialized."))
+
+  def setLoggerLevel(level: LoggerLevel) = {
+    config.logger.setLevel(level)
+  }
 
   setup
 
@@ -62,8 +66,6 @@ class Engine(dbPath:String, config: {
 
     if(!Files.exists(Paths.get(filePath))){
       config.logger.warn("Engine: Could not find the engine database file.")
-      // val errorMsg = "The engine database could not be found at: %s".format(filePath)
-      // throw new EngineDatabaseNotValidException(errorMsg);
       config.logger.warn("Engine: Attempting to create a new engine database file.")
     }
   }
@@ -101,25 +103,26 @@ class Engine(dbPath:String, config: {
   def createDataSet(name:String, description:String):String = {
     this.scope = CommandScopes.UserSpaceScope
     command = EngineCommands.CreateDataSet
-    commandOptions = Map[String, AnyRef](
-      "mid" -> uuid,
-      "name" -> name,
-      "description" -> description)
-    val cmd = CommandFactory.build(command, database, scope,commandOptions, config.logger)
+    cmdOptions.reset
+    cmdOptions.addOption("mid", uuid)
+    cmdOptions.addOption("name", name)
+    cmdOptions.addOption("description", description)
+    val cmd = CommandFactory.build(command, database, scope, cmdOptions, config.logger)
     return cmd.execute()
   }
 
   def datasets():List[DataSet] = {
     this.scope = CommandScopes.UserSpaceScope
-    commandOptions = Map[String, AnyRef]()
-    val cmd = new ListDataSets(database, scope, commandOptions, config.logger)
+    cmdOptions.reset
+    val cmd = new ListDataSets(database, scope, cmdOptions, config.logger)
     return cmd.execute()
   }
 
   def findDataSetByName(name:String):DataSet = {
     this.scope = CommandScopes.UserSpaceScope
-    commandOptions = Map[String, AnyRef]("name" -> name)
-    val cmd = new FindDataSetByName(database, scope, commandOptions, config.logger)
+    cmdOptions.reset
+    cmdOptions.addOption("name", name)
+    val cmd = new FindDataSetByName(database, scope, cmdOptions, config.logger)
     val elements = cmd.execute()
     return elements(0)
   }
@@ -127,21 +130,24 @@ class Engine(dbPath:String, config: {
   def onDataSet(id: String):GraphDSL = {
     scope = CommandScopes.DataSetScope
     command = EngineCommands.EditDataSet
-    commandOptions = Map[String, AnyRef]("dsId" -> id)
+    cmdOptions.reset
+    cmdOptions.addOption("dsId", id)
     return this;
   }
 
   def onDataSetByName(name: String):GraphDSL = {
     scope = CommandScopes.DataSetScope
     command = EngineCommands.EditDataSet
-    commandOptions = Map[String, AnyRef]("dsName" -> name)
+    cmdOptions.reset
+    cmdOptions.addOption("dsName", name)
     return this;
   }
 
   def findDataSetById(id: String):DataSet = {
     scope = CommandScopes.UserSpaceScope
-    commandOptions = Map[String, AnyRef]("dsId" -> id)
-    val cmd = new FindDataSetById(database, scope, commandOptions, config.logger)
+    cmdOptions.reset
+    cmdOptions.addOption("dsId", id)
+    val cmd = new FindDataSetById(database, scope, cmdOptions, config.logger)
     val elements = cmd.execute()
     return elements(0)
   }
@@ -149,55 +155,47 @@ class Engine(dbPath:String, config: {
   //Resets the command options and sets the command type to Define Element.
   def defineElement(name:String, description: String):GraphDSL = {
     config.logger.debug("Engine: Define Element")
-    if(scope == CommandScopes.DataSetScope){
-      commandOptions += ("mid" -> uuid,
-        "name" -> name,
-        "description" -> description,
-        "properties" -> new ListBuffer[Map[String, Any]]())
-    }else{
-      commandOptions = Map[String, AnyRef]("mid" -> uuid,
-        "name" -> name,
-        "description" -> description,
-        "properties" -> new ListBuffer[Map[String, Any]]())
+    if(scope != CommandScopes.DataSetScope){
+      cmdOptions.reset
     }
+    cmdOptions.addOption("mid",uuid)
+    cmdOptions.addOption("name",name)
+    cmdOptions.addOption("description",description)
+    cmdOptions.addOption("properties", new PropertyDefinitions())
     command = EngineCommands.DefineElement
     return this
   }
 
   def withProperty(name:String, ptype: String, description: String):GraphDSL = {
     config.logger.debug("Engine: With property name:%s ptype:%s".format(name, ptype))
-    val propertyDef = Map[String, Any]("mid" -> uuid,
-      "name" -> name,
-      "type" -> ptype,
-      "description" -> description)
-    val props = commandOptions("properties").asInstanceOf[ListBuffer[Map[String, Any]]]
-    props += propertyDef
+    val propertyDef = new PropertyDefinition(uuid, name, ptype, description)
+    val props = cmdOptions.option[PropertyDefinitions]("properties")
+    // val props = ("properties").asInstanceOf[ListBuffer[Map[String, Any]]]
+    props.addProperty(propertyDef)
     return this
   }
 
   def elementDefinitions():List[ElementDefinition] = {
-    val cmd = new ListAllElementDefinitions(database, scope, commandOptions, config.logger)
+    val cmd = new ListAllElementDefinitions(database, scope, cmdOptions, config.logger)
     return cmd.execute()
   }
 
   def findElementDefinitionById(id:String):ElementDefinition = {
-    if(scope == CommandScopes.DataSetScope){
-      commandOptions += ("mid" -> id)
-    }else{
-      commandOptions = Map[String, AnyRef]("mid" -> id)
+    if(scope != CommandScopes.DataSetScope){
+      cmdOptions.reset
     }
-    val cmd = new FindElementDefinitionById(database, scope, commandOptions, config.logger)
+    cmdOptions.addOption("mid", id)
+    val cmd = new FindElementDefinitionById(database, scope, cmdOptions, config.logger)
     val elements = cmd.execute()
     return elements(0)
   }
 
   def findElementDefinitionByName(name:String):ElementDefinition = {
-    if(scope == CommandScopes.DataSetScope){
-      commandOptions += ("name" -> name)
-    }else{
-      commandOptions = Map[String, AnyRef]("name" -> name)
+    if(scope != CommandScopes.DataSetScope){
+      cmdOptions.reset
     }
-    val cmd = new FindElementDefinitionByName(database, scope, commandOptions, config.logger)
+    cmdOptions.addOption("name", name)
+    val cmd = new FindElementDefinitionByName(database, scope, cmdOptions, config.logger)
     val elements = cmd.execute()
     return elements(0)
   }
@@ -208,11 +206,10 @@ class Engine(dbPath:String, config: {
   */
   def onElementDefinition(id: String):GraphDSL = {
     command = EngineCommands.EditElementDefinition
-    if(scope == CommandScopes.DataSetScope){
-      commandOptions += ("mid" -> id)
-    }else{
-      commandOptions = Map[String, AnyRef]("mid" -> id)
+    if(scope != CommandScopes.DataSetScope){
+      cmdOptions.reset
     }
+    cmdOptions.addOption("mid", id)
     return this
   }
 
@@ -220,7 +217,7 @@ class Engine(dbPath:String, config: {
     @param description: The description of the ElementDefinition.
   */
   def setDescription(description: String):GraphDSL = {
-    commandOptions.+=("description"->description)
+    cmdOptions.addOption("description", description)
     return this
   }
 
@@ -228,7 +225,7 @@ class Engine(dbPath:String, config: {
     @param name: The name of the ElementDefinition.
   */
   def setName(name:String):GraphDSL = {
-    commandOptions.+=("name"->name)
+    cmdOptions.addOption("name", name)
     return this
   }
 
@@ -236,19 +233,19 @@ class Engine(dbPath:String, config: {
     @param type: The strong type of the property.
   */
   def setType(name:String):GraphDSL = {
-    commandOptions.+=("type"->name)
+    cmdOptions.addOption("type", name)
     return this
   }
 
   def editPropertyDefinition(name:String):GraphDSL = {
     command = EngineCommands.EditElementPropertyDefinition
-    commandOptions.+=("pname"->name)
+    cmdOptions.addOption("pname", name)
     return this
   }
 
   def removePropertyDefinition(name: String):GraphDSL = {
     command = EngineCommands.RemoveElementPropertyDefinition
-    commandOptions.+=("pname"->name)
+    cmdOptions.addOption("pname",name)
     return this
   }
 
@@ -265,26 +262,26 @@ class Engine(dbPath:String, config: {
     val cmd = CommandFactory.build(command,
       database,
       scope,
-      commandOptions,
+      cmdOptions,
       config.logger)
     return cmd.execute()
   }
 
   def provision(elementDefId: String):GraphDSL = {
     command = EngineCommands.ProvisionElement
-    commandOptions.+=("edId"->elementDefId, "mid"->uuid)
+    cmdOptions.addOption("edId", elementDefId)
+    cmdOptions.addOption("mid", uuid)
     return this
   }
 
-  def withFields(fields: scala.collection.immutable.Map[String, AnyRef]):GraphDSL = {
-    commandOptions ++= fields
+  def withField(fieldName: String, fieldValue:Any):GraphDSL = {
+    cmdOptions.addField(fieldName, fieldValue)
     return this
   }
 
   def findElement(elementId: String):Element = {
-    commandOptions += ("mid" -> elementId)
-    val cmd = new FindElementById(database, scope, commandOptions, config.logger)
-    val elements = cmd.execute()
-    return elements(0)
+    cmdOptions.addOption("mid", elementId)
+    val cmd = new FindElementById(database, scope, cmdOptions, config.logger)
+    return cmd.execute()
   }
 }

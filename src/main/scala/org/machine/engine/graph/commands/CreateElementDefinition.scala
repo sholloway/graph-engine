@@ -13,24 +13,23 @@ import org.machine.engine.graph.nodes._
 import org.machine.engine.graph.labels._
 import org.machine.engine.graph.internal._
 
-class CreateElementDefintion(database:GraphDatabaseService,
-  cmdScope:CommandScope,
-  commandOptions:Map[String, AnyRef],
-  logger:Logger) extends Neo4JCommand{
+class CreateElementDefintion(database: GraphDatabaseService,
+  cmdScope: CommandScope,
+  cmdOptions: GraphCommandOptions,
+  logger: Logger) extends Neo4JCommand{
   import Neo4JHelper._
 
   def execute():String = {
     logger.debug("CreateElementDefintion: Executing Command")
-    transaction(database, (graphDB:GraphDatabaseService) => {
+    transaction(database, (graphDB: GraphDatabaseService) => {
       createElementDefinition(graphDB)
       createPropertyDefinitions(graphDB)
       registerTheElement(graphDB)
     })
-    val mid = commandOptions.get("mid").getOrElse(throw new InternalErrorException("mid required"))
-    return mid.toString
+    return cmdOptions.option[String]("mid")
   }
 
-  private def createElementDefinition(graphDB:GraphDatabaseService):Unit = {
+  private def createElementDefinition(graphDB: GraphDatabaseService):Unit = {
     logger.debug("CreateElementDefintion: Creating element definition.")
     val createElementDefinitionStatement = """
       |merge(ed:element_definition
@@ -45,11 +44,11 @@ class CreateElementDefintion(database:GraphDatabaseService,
 
     run( graphDB,
       createElementDefinitionStatement,
-      commandOptions,
+      cmdOptions.toJavaMap,
       emptyResultProcessor[ElementDefinition])
   }
 
-  private def createPropertyDefinitions(graphDB:GraphDatabaseService):Unit = {
+  private def createPropertyDefinitions(graphDB: GraphDatabaseService):Unit = {
     logger.debug("CreateElementDefintion: Creating property definitions.")
     val createPropertyStatement = """
       |merge(pd:property_definition
@@ -69,16 +68,18 @@ class CreateElementDefintion(database:GraphDatabaseService,
       |merge (ed)-[:composed_of]->(pd)
       """.stripMargin
 
-    commandOptions("properties").asInstanceOf[ListBuffer[Map[String, AnyRef]]].foreach(property => {
+    val properties = cmdOptions.option[PropertyDefinitions]("properties")
+    val mid = cmdOptions.option[String]("mid")
+    properties.toList.foreach(property => {
       run( graphDB,
         createPropertyStatement,
-        property,
+        property.toMap,
         emptyResultProcessor[ElementDefinition])
 
       run( graphDB,
         createAssoicationStatement,
-        Map("elementId" -> commandOptions("mid"),
-          "propertyId" -> property("mid")),
+        Map("elementId" -> mid,
+          "propertyId" -> property.id),
         emptyResultProcessor[ElementDefinition])
     })
   }
@@ -87,12 +88,12 @@ class CreateElementDefintion(database:GraphDatabaseService,
   The challenge: ElementDefintions can be provisioned in SystemSpace,
   UserSpace and DataSets which are a subset in UserSpace.
   */
-  private def registerTheElement(graphDB:GraphDatabaseService):Unit = {
+  private def registerTheElement(graphDB: GraphDatabaseService):Unit = {
     logger.debug("CreateElementDefintion: Associating the element definition to the system space.")
     val statement = matchRegisterStatement()
     run(graphDB,
       statement,
-      commandOptions,
+      cmdOptions.toJavaMap,
       emptyResultProcessor[ElementDefinition])
   }
 
@@ -113,7 +114,7 @@ class CreateElementDefintion(database:GraphDatabaseService,
           """.stripMargin.replaceAll("label", cmdScope.scope)
       }
       case CommandScopes.DataSetScope => {
-        val filter = buildDataSetFilter(commandOptions)
+        val filter = buildDataSetFilter(cmdOptions)
         """
         |match (ds:label) dsFilter
         |match (ed:element_definition) where ed.mid = {mid}
@@ -127,11 +128,11 @@ class CreateElementDefintion(database:GraphDatabaseService,
     return query
   }
 
-  private def buildDataSetFilter(options:Map[String, AnyRef]):String = {
+  private def buildDataSetFilter(cmdOptions: GraphCommandOptions):String = {
     var filter:String = null
-    if(options.contains("dsId")){
+    if(cmdOptions.contains("dsId")){
       filter = "where ds.mid = {dsId}"
-    }else if(options.contains("dsName")){
+    }else if(cmdOptions.contains("dsName")){
       filter = "where ds.name = {dsName}"
     }else{
       val msg = """

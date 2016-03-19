@@ -1,7 +1,6 @@
 package org.machine.engine.graph.commands
 
 import scala.collection.JavaConversions._
-import scala.collection.mutable.Map
 import org.neo4j.graphdb._
 import org.machine.engine.logger._
 
@@ -15,25 +14,25 @@ object CommandFactory{
   def build(command:EngineCommand,
     database:GraphDatabaseService,
     cmdScope:CommandScope,
-    commandOptions:Map[String, AnyRef],
+    cmdOptions:GraphCommandOptions,
     logger:Logger):Neo4JCommand = {
     return command match {
       case EngineCommands.DefineElement =>
-        new CreateElementDefintion(database, cmdScope, commandOptions, logger)
+        new CreateElementDefintion(database, cmdScope, cmdOptions, logger)
       case EngineCommands.EditElementDefinition =>
-        new EditElementDefintion(database, cmdScope, commandOptions, logger)
+        new EditElementDefintion(database, cmdScope, cmdOptions, logger)
       case EngineCommands.DeleteElementDefintion =>
-        new DeleteElementDefintion(database, cmdScope, commandOptions, logger)
+        new DeleteElementDefintion(database, cmdScope, cmdOptions, logger)
       case EngineCommands.EditElementPropertyDefinition =>
-        new EditElementPropertyDefinition(database, cmdScope, commandOptions, logger)
+        new EditElementPropertyDefinition(database, cmdScope, cmdOptions, logger)
       case EngineCommands.RemoveElementPropertyDefinition =>
-        new RemoveElementPropertyDefinition(database, cmdScope, commandOptions, logger)
+        new RemoveElementPropertyDefinition(database, cmdScope, cmdOptions, logger)
       case EngineCommands.CreateDataSet =>
-        new CreateDataSet(database, cmdScope, commandOptions, logger)
+        new CreateDataSet(database, cmdScope, cmdOptions, logger)
       case EngineCommands.EditDataSet =>
-        new EditDataSet(database, cmdScope, commandOptions, logger)
+        new EditDataSet(database, cmdScope, cmdOptions, logger)
       case EngineCommands.ProvisionElement =>
-        new CreateElement(database, cmdScope, commandOptions, logger)
+        new CreateElement(database, cmdScope, cmdOptions, logger)
     }
   }
 }

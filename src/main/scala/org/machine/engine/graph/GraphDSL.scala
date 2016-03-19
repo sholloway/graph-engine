@@ -166,7 +166,7 @@ trait GraphDSL{
   def end():String
 
   def provision(elementDefId: String):GraphDSL
-  def withFields(fields: Map[String, AnyRef]):GraphDSL
+  def withField(fieldName: String, fieldValue:Any):GraphDSL
   def findElement(elementId: String):Element
   /*
   I need to be able to create instances of element defintions in a dataset.

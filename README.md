@@ -22,7 +22,7 @@ sbt cov
 
 * Generate docs.
 ```
-sbt docs
+sbt doc
 ```
 
 

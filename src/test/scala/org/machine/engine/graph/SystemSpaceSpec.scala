@@ -1,4 +1,4 @@
-package org.machine.engine
+package org.machine.engine.graph
 
 import org.scalatest._
 import org.scalatest.mock._
@@ -13,6 +13,7 @@ import org.neo4j.io.fs.FileUtils
 import scala.collection.JavaConversions._
 import scala.collection.mutable.{ArrayBuffer, Map}
 
+import org.machine.engine._
 import org.machine.engine.graph._
 import org.machine.engine.exceptions._
 import org.machine.engine.graph.nodes._
@@ -180,7 +181,7 @@ class SystemSpaceSpec extends FunSpec
             updatedSystem.description shouldBe updatedDescription
         }
 
-        it("should update an ElementDefinition's PropertyDefintion"){
+       it("should update an ElementDefinition's PropertyDefintion"){
           engine
             .inSystemSpace()
             .defineElement("System", "A thing about a thing...")
@@ -286,7 +287,7 @@ class SystemSpaceSpec extends FunSpec
               .inSystemSpace
               .findElementDefinitionByName(archPrinciple.name)
           }should have message expectedNameMsg
-        }
+        } 
       }
     }
   }

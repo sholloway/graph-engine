@@ -13,25 +13,24 @@ import org.machine.engine.graph.nodes._
 import org.machine.engine.graph.labels._
 import org.machine.engine.graph.internal._
 
-class DeleteElementDefintion(database:GraphDatabaseService,
-  cmdScope:CommandScope,
-  commandOptions:Map[String, AnyRef],
-  logger:Logger) extends Neo4JCommand{
+class DeleteElementDefintion(database: GraphDatabaseService,
+  cmdScope: CommandScope,
+  cmdOptions: GraphCommandOptions,
+  logger: Logger) extends Neo4JCommand{
   import Neo4JHelper._
 
   def execute():String = {
     logger.debug("DeleteElementDefintion: Executing Command")
-    transaction(database, (graphDB:GraphDatabaseService) => {
+    transaction(database, (graphDB: GraphDatabaseService) => {
       deleteAssociatedPropertyDefinitions(graphDB)
       deleteElementDefinition(graphDB)
     })
-    val mid = commandOptions.get("mid").getOrElse(throw new InternalErrorException("mid required"))
-    return mid.toString
+    return cmdOptions.option[String]("mid")
   }
 
-  private def deleteAssociatedPropertyDefinitions(graphDB:GraphDatabaseService):Unit = {
+  private def deleteAssociatedPropertyDefinitions(graphDB: GraphDatabaseService):Unit = {
     logger.debug("DeleteElementDefintion: Deleting associated property definitions")
-    val scope = buildScope(cmdScope, commandOptions)
+    val scope = buildScope(cmdScope, cmdOptions)
     val statement = """
     |match (ss:space)-[:exists_in]->(ed:element_definition {mid:{mid}})-[:composed_of]->(pd:property_definition)
     |detach delete pd
@@ -40,13 +39,13 @@ class DeleteElementDefintion(database:GraphDatabaseService,
 
     run( graphDB,
       statement,
-      commandOptions,
+      cmdOptions.toJavaMap,
       emptyResultProcessor[ElementDefinition])
   }
 
-  private def deleteElementDefinition(graphDB:GraphDatabaseService):Unit = {
+  private def deleteElementDefinition(graphDB: GraphDatabaseService):Unit = {
     logger.debug("DeleteElementDefintion: Deleting element definition.")
-    val scope = buildScope(cmdScope, commandOptions)
+    val scope = buildScope(cmdScope, cmdOptions)
     val statement = """
     |match (ss:space)-[:exists_in]->(ed:element_definition {mid:{mid}})
     |detach delete ed
@@ -55,11 +54,11 @@ class DeleteElementDefintion(database:GraphDatabaseService,
 
     run( graphDB,
       statement,
-      commandOptions,
+      cmdOptions.toJavaMap,
       emptyResultProcessor[ElementDefinition])
   }
 
-  protected def buildScope(cmdScope:CommandScope, options:Map[String, AnyRef]):String = {
+  protected def buildScope(cmdScope: CommandScope, options: GraphCommandOptions):String = {
     val scope = cmdScope match{
       case CommandScopes.SystemSpaceScope => CommandScopes.SystemSpaceScope.scope
       case CommandScopes.UserSpaceScope => CommandScopes.UserSpaceScope.scope

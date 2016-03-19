@@ -13,10 +13,10 @@ import org.machine.engine.graph.nodes._
 import org.machine.engine.graph.labels._
 import org.machine.engine.graph.internal._
 
-class EditElementDefintion(database:GraphDatabaseService,
-  cmdScope:CommandScope,
-  commandOptions:Map[String, AnyRef],
-  logger:Logger) extends Neo4JCommand{
+class EditElementDefintion(database: GraphDatabaseService,
+  cmdScope: CommandScope,
+  cmdOptions: GraphCommandOptions,
+  logger: Logger) extends Neo4JCommand{
   import Neo4JHelper._
 
   def execute():String = {
@@ -24,14 +24,15 @@ class EditElementDefintion(database:GraphDatabaseService,
     transaction(database, (graphDB:GraphDatabaseService) => {
       editElementDefinition(graphDB)
     })
-    val mid = commandOptions.get("mid").getOrElse(throw new InternalErrorException("mid required"))
-    return mid.toString
+    return cmdOptions.option[String]("mid")
   }
 
   private def editElementDefinition(graphDB:GraphDatabaseService):Unit = {
     logger.debug("EditElementDefintion: Editing element definition.")
-    val setClause = buidSetClause(commandOptions)
-    val scope = buildScope(cmdScope, commandOptions)
+    val prefix = "ed"
+    val exclude = List("mid")
+    val setClause = buildSetClause(prefix, cmdOptions.keys, exclude)
+    val scope = buildScope(cmdScope, cmdOptions)
 
     val editElementDefinitionStatement = """
     |match (ss:space)-[:exists_in]->(ed:element_definition {mid:{mid}})
@@ -42,24 +43,24 @@ class EditElementDefintion(database:GraphDatabaseService,
 
     run( graphDB,
       editElementDefinitionStatement,
-      commandOptions,
+      cmdOptions.toJavaMap,
       emptyResultProcessor[ElementDefinition])
   }
 
-  private def buildScope(cmdScope:CommandScope, options:Map[String, AnyRef]):String = {
+  private def buildScope(cmdScope: CommandScope, cmdOptions: GraphCommandOptions):String = {
     val scope = cmdScope match{
       case CommandScopes.SystemSpaceScope => CommandScopes.SystemSpaceScope.scope
       case CommandScopes.UserSpaceScope => CommandScopes.UserSpaceScope.scope
       case CommandScopes.DataSetScope => {
         var filter:String = null
-        if(options.contains("dsId")){
+        if(cmdOptions.contains("dsId")){
           filter = "%s {mid:{dsId}}".format(CommandScopes.DataSetScope.scope)
-        }else if(options.contains("dsName")){
+        }else if(cmdOptions.contains("dsName")){
           filter = "%s {name:{dsName}}".format(CommandScopes.DataSetScope.scope)
         }else{
           val msg = """
           |EditElementDefintion requires that dsId or dsName is provided on
-          |commandOptions when the scope is of type CommandScopes.DataSet.
+          |cmdOptions when the scope is of type CommandScopes.DataSet.
           """.stripMargin
           throw new InternalErrorException(msg)
         }
@@ -67,15 +68,5 @@ class EditElementDefintion(database:GraphDatabaseService,
       }
     }
     return scope
-  }
-
-  private def buidSetClause(commandOptions:Map[String, AnyRef]):String = {
-    val clause = new StringBuilder()
-    commandOptions.keys.foreach(k => {
-      if(k != "mid"){
-        clause append "ed.%s = {%s}\n".format(k,k)
-      }
-    })
-    return clause.lines.mkString(", ")
   }
 }

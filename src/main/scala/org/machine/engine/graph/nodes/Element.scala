@@ -15,7 +15,7 @@ import org.machine.engine.exceptions._
 class Element(_id: String,
   _elementType: String,
   _elementDescription: String,
-  _fields: Map[String, AnyRef],
+  _fields: Map[String, Any],
   _creationTime: String,
   _lastModifiedTime: String){
   def id = this._id

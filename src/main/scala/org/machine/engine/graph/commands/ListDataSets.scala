@@ -13,12 +13,12 @@ import org.machine.engine.graph.nodes._
 import org.machine.engine.graph.labels._
 import org.machine.engine.graph.internal._
 
-class ListDataSets(database:GraphDatabaseService,
-  cmdScope:CommandScope,
-  commandOptions:Map[String, AnyRef],
-  logger:Logger) extends Neo4JQueryCommand[DataSet]{
+class ListDataSets(database: GraphDatabaseService,
+  cmdScope: CommandScope,
+  commandOptions: GraphCommandOptions,
+  logger: Logger) extends Neo4JQueryCommand[DataSet]{
   import Neo4JHelper._
-  
+
   def execute():List[DataSet] = {
     logger.debug("ListDataSets: Executing Command")
     //TODO: Currently this only returns ElementDefinitions that have associated PropertyDefinitions.

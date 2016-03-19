@@ -15,7 +15,7 @@ import org.machine.engine.graph.internal._
 
 class CreateDataSet(database:GraphDatabaseService,
   cmdScope:CommandScope,
-  commandOptions:Map[String, AnyRef],
+  cmdOptions:GraphCommandOptions,
   logger:Logger) extends Neo4JCommand{
   import Neo4JHelper._
 
@@ -25,7 +25,7 @@ class CreateDataSet(database:GraphDatabaseService,
       createDataSet(graphDB)
       registerDataSet(graphDB)
     })
-    val mid = commandOptions.get("mid").getOrElse(throw new InternalErrorException("mid required"))
+    val mid = cmdOptions.option[String]("mid")
     return mid.toString
   }
 
@@ -44,7 +44,7 @@ class CreateDataSet(database:GraphDatabaseService,
 
     run( graphDB,
       createDataSetStatement,
-      commandOptions,
+      cmdOptions.toJavaMap,
       emptyResultProcessor[DataSet])
   }
 
@@ -57,7 +57,7 @@ class CreateDataSet(database:GraphDatabaseService,
       """.stripMargin.replaceAll("label", cmdScope.scope)
       run(graphDB,
         associateToScopedSpace,
-        commandOptions,
+        cmdOptions.toJavaMap,
         emptyResultProcessor[DataSet])
   }
 }
