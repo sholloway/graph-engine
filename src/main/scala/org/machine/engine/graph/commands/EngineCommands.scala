@@ -16,4 +16,5 @@ object EngineCommands{
   case object EditElement extends EngineCommand{ val cmd = "edit_element"}
   case object DeleteElement extends EngineCommand{ val cmd = "delete_element"}
   case object AssociateElements extends EngineCommand{ val cmd = "associate_elements"}
+  case object EditAssociation extends EngineCommand{ val cmd = "edit_association"}
 }

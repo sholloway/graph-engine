@@ -318,4 +318,10 @@ class Engine(dbPath:String, config: {
     return new FindAssociationById(database,
       scope, cmdOptions, config.logger).execute()
   }
+
+  def onAssociation(annotationId: String):GraphDSL = {
+    command = EngineCommands.EditAssociation
+    cmdOptions.addOption("associationId", annotationId)
+    return this
+  }
 }

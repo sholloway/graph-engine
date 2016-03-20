@@ -32,7 +32,7 @@ class FindAssociationById(database: GraphDatabaseService,
     val statement = """
     match (x)-[association]->(y)
     where association.associationId = {associationId}
-    return type(association) as associationType, keys(association) as keys, labels(x) as start, labels(y) as end
+    return type(association) as associationType, keys(association) as keys
     """.stripMargin
     val records = query[AssociationDefinition](database,
       statement,
@@ -55,10 +55,7 @@ class FindAssociationById(database: GraphDatabaseService,
   }
 
   private def associationStructureMapper(results: ArrayBuffer[AssociationDefinition],
-    record: java.util.Map[java.lang.String, Object]) = {
-      record.keys.foreach(k =>{
-        logger.debug("%s: %s".format(k, record.get(k).toString))
-      })
+    record: java.util.Map[java.lang.String, Object]) = {      
       val label = record.get("associationType").asInstanceOf[String]
       val keys:List[String] = record.get("keys").asInstanceOf[java.util.List[String]].toList
       results += new AssociationDefinition(label, keys)
