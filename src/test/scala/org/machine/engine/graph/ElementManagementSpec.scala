@@ -46,7 +46,7 @@ class ElementManagementSpec extends FunSpec with Matchers with EasyMockSugar wit
   override def afterAll(){
     engine.shutdown()
     FileUtils.deleteRecursively(dbFile)
-  } 
+  }
 
   describe("Machine Engine"){
     describe("DataSet"){
@@ -253,12 +253,6 @@ class ElementManagementSpec extends FunSpec with Matchers with EasyMockSugar wit
               .findElement(noteId)
           }should have message expectedNameMsg
         }
-
-        it("should associate two elements")(pending)
-        it("should find outbound associations of an element")(pending)
-        it("should find inbound associations of an element")(pending)
-        it("should update properties on an association")(pending)
-        it("should remove an association between two elements")(pending)
       }
     }
   }

@@ -190,12 +190,31 @@ object Neo4JHelper{
     return clause.lines.mkString(", ")
   }
 
-  /** Helper function for building up a comma seperated list of keys in a result set.
+  /** Helper function for building up a comma seperated list of parameters in a query.
   */
-  def buildFetchClause(prefix: String, keys: List[String]):String = {
+  def buildRelationshipClause(
+    keys: List[String],
+    exclude: List[String]
+  ):String = {
     val clause = new StringBuilder()
     keys.foreach(key => {
-      clause append "%s.%s as %s\n".format(prefix, key, key)
+      if(!exclude.contains(key)){
+        clause append "%s: {%s}\n".format(key, key)
+      }
+    })
+    return clause.lines.mkString(", ")
+  }
+
+  /** Helper function for building up a comma seperated list of keys in a result set.
+  */
+  def buildFetchClause(prefix: String,
+    keys: List[String],
+    exclude: List[String]):String = {
+    val clause = new StringBuilder()
+    keys.foreach(key => {
+      if (!exclude.contains(key)){
+        clause append "%s.%s as %s\n".format(prefix, key, key)
+      }
     })
     return clause.lines.mkString(",\n")
   }
