@@ -98,14 +98,79 @@ class ElementAssociationsSpec extends FunSpec with Matchers with EasyMockSugar w
           annotation.field[String]("createdBy") should equal("A. Sterling")
         }
 
-        it ("should associate without specifying as()")(pending)
+        it ("should associate without specifying as()"){
+          val annotationId = engine
+            .onDataSet(systemsDataSetId)
+            .attach(noteId)
+            .to(systemId)
+            .withField("createdBy", "A. Sterling")
+          .end
+
+          val annotation = engine
+            .onDataSet(systemsDataSetId)
+            .findAssociation(annotationId)
+
+          annotation should have(
+            'id (annotationId),
+            'associationType ("is_associated_with")
+          )
+
+          annotation.fields should have size 1
+          annotation.field[String]("createdBy") should equal("A. Sterling")
+        }
+
+        it("should update properties on an association"){
+          val annotationId = engine
+            .onDataSet(systemsDataSetId)
+            .attach(noteId)
+            .to(systemId)
+            .as("annotates")
+            .withField("createdBy", "A. Sterling")
+          .end
+
+          engine
+            .onDataSet(systemsDataSetId)
+            .onAssociation(annotationId)
+            .setField("createdBy", "Pam")
+          .end
+
+          val association = engine
+            .onDataSet(systemsDataSetId)
+            .findAssociation(annotationId)
+
+          association.field[String]("createdBy") should equal("Pam")
+        }
+
+        it("should remove an association between two elements"){
+          val annotationId = engine
+            .onDataSet(systemsDataSetId)
+            .attach(noteId)
+            .to(systemId)
+            .as("annotates")
+            .withField("createdBy", "Cherl")
+          .end
+
+          engine
+            .onDataSet(systemsDataSetId)
+            .onAssociation(annotationId)
+            .delete
+          .end
+
+          val expectedMsg = "No association with associationId: %s could be found.".format(annotationId)
+          the [InternalErrorException] thrownBy{
+            engine
+              .inUserSpace
+              .findAssociation(annotationId)
+          }should have message expectedMsg
+        }
+
+        it ("should remove a property on a relationship")(pending)
+
+        //Should this find nodes or relationships?
+        //Probably need both.
         it("should find outbound associations of an element")(pending)
         it("should find inbound associations of an element")(pending)
-        it("should update properties on an association")(pending)
 
-        //match annotation type, with a property. If no prop is specified,
-        //then remove all matching associations.
-        it("should remove an association between two elements")(pending)
       }
     }
   }

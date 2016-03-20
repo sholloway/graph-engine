@@ -253,6 +253,7 @@ class Engine(dbPath:String, config: {
     command = command match {
       case EngineCommands.EditElementDefinition => EngineCommands.DeleteElementDefintion
       case EngineCommands.EditElement => EngineCommands.DeleteElement
+      case EngineCommands.EditAssociation => EngineCommands.DeleteAssociation
       case unknown => throw new InternalErrorException("Cannot delete when %s is selected".format(unknown.toString()))
     }
     return this
@@ -317,5 +318,11 @@ class Engine(dbPath:String, config: {
     cmdOptions.addOption("associationId", associationId)
     return new FindAssociationById(database,
       scope, cmdOptions, config.logger).execute()
+  }
+
+  def onAssociation(annotationId: String):GraphDSL = {
+    command = EngineCommands.EditAssociation
+    cmdOptions.addOption("associationId", annotationId)
+    return this
   }
 }

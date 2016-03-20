@@ -253,6 +253,8 @@ class ElementManagementSpec extends FunSpec with Matchers with EasyMockSugar wit
               .findElement(noteId)
           }should have message expectedNameMsg
         }
+
+        it("should remove a field on an Element")(pending)
       }
     }
   }
