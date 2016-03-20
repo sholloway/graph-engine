@@ -41,6 +41,8 @@ object CommandFactory{
         new AssociateElements(database, cmdScope, cmdOptions, logger)
       case EngineCommands.EditAssociation =>
         new EditAssociation(database, cmdScope, cmdOptions, logger)
+      case EngineCommands.DeleteAssociation =>
+        new DeleteAssociation(database, cmdScope, cmdOptions, logger)
     }
   }
 }

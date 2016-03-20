@@ -119,7 +119,7 @@ class ElementAssociationsSpec extends FunSpec with Matchers with EasyMockSugar w
           annotation.field[String]("createdBy") should equal("A. Sterling")
         }
 
-        it("should update properties on an association"){        
+        it("should update properties on an association"){
           val annotationId = engine
             .onDataSet(systemsDataSetId)
             .attach(noteId)
@@ -141,7 +141,30 @@ class ElementAssociationsSpec extends FunSpec with Matchers with EasyMockSugar w
           association.field[String]("createdBy") should equal("Pam")
         }
 
-        it("should remove an association between two elements")(pending)
+        it("should remove an association between two elements"){
+          val annotationId = engine
+            .onDataSet(systemsDataSetId)
+            .attach(noteId)
+            .to(systemId)
+            .as("annotates")
+            .withField("createdBy", "Cherl")
+          .end
+
+          engine
+            .onDataSet(systemsDataSetId)
+            .onAssociation(annotationId)
+            .delete
+          .end
+
+          val expectedMsg = "No association with associationId: %s could be found.".format(annotationId)
+          the [InternalErrorException] thrownBy{
+            engine
+              .inUserSpace
+              .findAssociation(annotationId)
+          }should have message expectedMsg
+        }
+
+        it ("should remove a property on a relationship")(pending)
 
         //Should this find nodes or relationships?
         //Probably need both.
