@@ -98,7 +98,27 @@ class ElementAssociationsSpec extends FunSpec with Matchers with EasyMockSugar w
           annotation.field[String]("createdBy") should equal("A. Sterling")
         }
 
-        it ("should associate without specifying as()")(pending)
+        it ("should associate without specifying as()"){
+          val annotationId = engine
+            .onDataSet(systemsDataSetId)
+            .attach(noteId)
+            .to(systemId)
+            .withField("createdBy", "A. Sterling")
+          .end
+
+          val annotation = engine
+            .onDataSet(systemsDataSetId)
+            .findAssociation(annotationId)
+
+          annotation should have(
+            'id (annotationId),
+            'associationType ("is_associated_with")
+          )
+
+          annotation.fields should have size 1
+          annotation.field[String]("createdBy") should equal("A. Sterling")
+        }
+
         it("should find outbound associations of an element")(pending)
         it("should find inbound associations of an element")(pending)
         it("should update properties on an association")(pending)
