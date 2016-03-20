@@ -282,8 +282,8 @@ class Engine(dbPath:String, config: {
 
   def findElement(elementId: String):Element = {
     cmdOptions.addOption("mid", elementId)
-    val cmd = new FindElementById(database, scope, cmdOptions, config.logger)
-    return cmd.execute()
+    return new FindElementById(database,
+      scope, cmdOptions, config.logger).execute()
   }
 
   def onElement(elementId: String):GraphDSL = {
@@ -294,5 +294,28 @@ class Engine(dbPath:String, config: {
 
   def setField(fieldName: String, fieldValue: Any):GraphDSL ={
     return withField(fieldName, fieldValue)
+  }
+
+  def attach(startingElementId: String):GraphDSL = {
+    command = EngineCommands.AssociateElements
+    cmdOptions.addOption("startingElementId", startingElementId)
+    cmdOptions.addOption("associationId", uuid)
+    return this
+  }
+
+  def to(endingElementId: String):GraphDSL = {
+    cmdOptions.addOption("endingElementId", endingElementId)
+    return this
+  }
+
+  def as(associationName: String):GraphDSL = {
+    cmdOptions.addOption("associationName", associationName)
+    return this
+  }
+
+  def findAssociation(associationId: String):Association = {
+    cmdOptions.addOption("associationId", associationId)
+    return new FindAssociationById(database,
+      scope, cmdOptions, config.logger).execute()
   }
 }

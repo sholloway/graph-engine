@@ -202,42 +202,8 @@ trait GraphDSL{
   def onElement(elementId: String):GraphDSL
   def setField(fieldName: String, fieldValue: Any):GraphDSL
 
-  /*
-  I need to be able to create instances of element defintions in a dataset.
-  in dataset 5 provision elementdef with properties blah
-  engine
-    .inDataSet(id)
-    .provision(elementDefinitionId)
-    .withFields(fields)
-  .end
-
-  engine
-    .inDataSet(id)
-    .findElement(id)
-
-  engine
-    .inDataSet(id)
-    .onElement(id)
-    .setField(name, value)
-    .setField(name, value)
-    .setField(name, value)
-  .end
-
-  engine
-    .inDataSet(id)
-    .onElement(id)
-    .updateFields(fields)
-
-    engine
-      .onDataSet(id)
-      .onElement(id)
-    .delete
-
-  engine
-    .inDataSet(id)
-    .attach(elementId)
-    .to(anotherElementId)
-
-
-    */
+  def attach(startingElementId: String):GraphDSL
+  def to(endingElementId: String):GraphDSL
+  def as(associationName: String):GraphDSL
+  def findAssociation(associationId: String):Association
 }

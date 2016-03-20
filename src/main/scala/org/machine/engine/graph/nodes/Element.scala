@@ -9,7 +9,7 @@ import org.machine.engine.exceptions._
 * @param _elementType The type of element defintion the element is.
 * @param _elementDescription The definition that is derived from the related ElementDefinition.
 * @param _fields The data values associated with the element.
-* @param _createTime When the element was created.
+* @param _creationTime When the element was created.
 * @param _lastModifiedTime When the element was last edited.
 */
 class Element(_id: String,

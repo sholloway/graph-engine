@@ -130,7 +130,7 @@ class FindElementById(database: GraphDatabaseService,
     elementDefintion: scala.collection.immutable.Map[String, List[String]]):String = {
     var prefix = "e"
     val keys:List[String] = elementDefintion.get("keys").get.asInstanceOf[List[String]]
-    val fetchClause = buildFetchClause(prefix, keys)
+    val fetchClause = buildFetchClause(prefix, keys, List.empty[String])
     val labels:List[String] = elementDefintion.get("labels").get.asInstanceOf[List[String]]
     val template = """
     |match (e:label {mid:{mid}})
