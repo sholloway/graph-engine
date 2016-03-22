@@ -161,6 +161,17 @@ import org.machine.engine.graph.nodes._
 * .end
 * }}}
 *
+* '''Remove an Element's fieldName3'''
+* {{{
+* engine
+*   .onDataSet(dataSetId)
+*   .onElement(elementId)
+*     .removeField(fieldName1, fieldValue1)
+*     .removeField(fieldName2, fieldValue2)
+*     .removeField(fieldName3, fieldValue3)
+* .end
+* }}}
+*
 * '''Delete an Element'''
 * {{{
 * engine
@@ -169,6 +180,57 @@ import org.machine.engine.graph.nodes._
 *   .delete
 * .end
 * }}}
+*
+* ==Working with Associations==
+* Elements can be associated with each other. Associations can have properties
+* assigned to them and managed just like elements.
+*
+* '''Creating an Association'''
+* {{{
+* val associationId = engine
+*   .onDataSet(dataSetId)
+*   .attach(startingElementId)
+*   .to(endingElementId)
+*   .as(associationType)
+*   .withField(fieldName, fieldValue)
+* .end
+* }}}
+*
+* '''Find an Association'''
+* {{{
+* val association = engine
+*   .onDataSet(dataSetId)
+*   .findAssociation(associationId)
+* }}}
+*
+* '''Update or Add Fields to an Association'''
+* {{{
+* engine
+*   .onDataSet(dataSetId)
+*   .onAssociation(associationId)
+*   .setField(fieldName, fieldValue)
+* .end
+* }}}
+*
+* '''Remove Fields from an Association'''
+* {{{
+* engine
+*   .onDataSet(dataSetId)
+*   .onAssociation(associationId)
+*   .removeField(fieldName, fieldValue)
+*   .removeField(fieldName, fieldValue)
+* .end
+* }}}
+*
+* '''Remove an Association'''
+* {{{
+* engine
+*   .onDataSet(dataSetId)
+*   .onAssociation(associationId)
+*   .delete
+* .end
+* }}}
+*
 */
 trait GraphDSL{
   def inSystemSpace():GraphDSL
