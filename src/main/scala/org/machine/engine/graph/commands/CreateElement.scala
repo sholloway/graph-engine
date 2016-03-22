@@ -130,7 +130,7 @@ class CreateElement(database: GraphDatabaseService,
     val associateToDataSet = """
       |match (e:label) where e.mid = {mid}
       |match (ds:internal_data_set) where ds.mid = {dsId}
-      |merge (ds)-[:contains]->(e)
+      |create (ds)-[:contains]->(e)
       """.stripMargin.replaceAll("label", elementDef.name)
       run(graphDB,
         associateToDataSet,

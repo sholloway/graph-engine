@@ -254,7 +254,34 @@ class ElementManagementSpec extends FunSpec with Matchers with EasyMockSugar wit
           }should have message expectedNameMsg
         }
 
-        it("should remove a field on an Element")(pending)
+        it("should remove a field on an Element"){          
+          val noteId = engine
+            .onDataSet(notesDataSetId)
+            .provision(noteElementDefininitionId)
+            .withField("title", "Poorly thought out note")
+            .withField("description", "A note not long for this world.")
+            .withField("body", "Thibbbbit")
+            .withField("bad_field", 456)
+            .withField("another_bad_field", false)
+          .end
+
+          engine
+            .onDataSet(notesDataSetId)
+            .findElement(noteId)
+            .fields should have size 5
+
+          engine
+            .onDataSet(notesDataSetId)
+            .onElement(noteId)
+            .removeField("bad_field")
+            .removeField("another_bad_field")
+          .end
+
+          engine
+            .onDataSet(notesDataSetId)
+            .findElement(noteId)
+            .fields should have size 3
+        }
       }
     }
   }
