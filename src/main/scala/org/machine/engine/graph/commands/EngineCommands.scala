@@ -22,4 +22,5 @@ object EngineCommands{
   case object AssociateElements extends EngineCommand{ val cmd = "associate_elements"}
   case object EditAssociation extends EngineCommand{ val cmd = "edit_association"}
   case object DeleteAssociation extends EngineCommand{ val cmd = "delete_association"}
+  case object RemoveAssociationField extends EngineCommand{ val cmd = "remove_association_field"}
 }
