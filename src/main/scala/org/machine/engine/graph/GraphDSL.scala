@@ -207,4 +207,6 @@ trait GraphDSL{
   def as(associationName: String):GraphDSL
   def findAssociation(associationId: String):Association
   def onAssociation(annotationId: String):GraphDSL
+
+  def removeField(fieldName: String):GraphDSL
 }

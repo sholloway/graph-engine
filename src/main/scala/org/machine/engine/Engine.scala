@@ -325,4 +325,16 @@ class Engine(dbPath:String, config: {
     cmdOptions.addOption("associationId", annotationId)
     return this
   }
+
+  def removeField(fieldName: String):GraphDSL={
+    cmdOptions.addOption(fieldName, fieldName)
+    command = command match {
+      case EngineCommands.EditElement => EngineCommands.RemoveElementField
+      case EngineCommands.RemoveElementField => EngineCommands.RemoveElementField
+      case EngineCommands.EditAssociation => EngineCommands.RemoveAssociationField
+      case EngineCommands.RemoveAssociationField => EngineCommands.RemoveAssociationField
+      case unknown => throw new InternalErrorException("Cannot remove fields when %s is selected".format(unknown.toString()))
+    }
+    return this
+  }
 }

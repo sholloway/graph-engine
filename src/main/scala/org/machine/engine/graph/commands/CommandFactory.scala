@@ -23,26 +23,34 @@ object CommandFactory{
         new EditElementDefintion(database, cmdScope, cmdOptions, logger)
       case EngineCommands.DeleteElementDefintion =>
         new DeleteElementDefintion(database, cmdScope, cmdOptions, logger)
+
       case EngineCommands.EditElementPropertyDefinition =>
         new EditElementPropertyDefinition(database, cmdScope, cmdOptions, logger)
       case EngineCommands.RemoveElementPropertyDefinition =>
         new RemoveElementPropertyDefinition(database, cmdScope, cmdOptions, logger)
+
       case EngineCommands.CreateDataSet =>
         new CreateDataSet(database, cmdScope, cmdOptions, logger)
       case EngineCommands.EditDataSet =>
         new EditDataSet(database, cmdScope, cmdOptions, logger)
+
       case EngineCommands.ProvisionElement =>
         new CreateElement(database, cmdScope, cmdOptions, logger)
       case EngineCommands.EditElement =>
         new EditElement(database, cmdScope, cmdOptions, logger)
       case EngineCommands.DeleteElement =>
         new DeleteElement(database, cmdScope, cmdOptions, logger)
+      case EngineCommands.RemoveElementField =>
+        new RemoveElementField(database, cmdScope, cmdOptions, logger)
+
       case EngineCommands.AssociateElements =>
         new AssociateElements(database, cmdScope, cmdOptions, logger)
       case EngineCommands.EditAssociation =>
         new EditAssociation(database, cmdScope, cmdOptions, logger)
       case EngineCommands.DeleteAssociation =>
         new DeleteAssociation(database, cmdScope, cmdOptions, logger)
+      case EngineCommands.RemoveAssociationField =>
+        new RemoveAssociationField(database, cmdScope, cmdOptions, logger)
     }
   }
 }

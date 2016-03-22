@@ -219,6 +219,19 @@ object Neo4JHelper{
     return clause.lines.mkString(",\n")
   }
 
+  def buildRemoveClause(prefix: String,
+    keys: List[String],
+    exclude: List[String]
+  ):String = {
+    val clause = new StringBuilder()
+    keys.foreach(key => {
+      if(!exclude.contains(key)){
+        clause append "%s.%s\n".format(prefix, key)
+      }
+    })
+    return clause.lines.mkString(", ")
+  }
+
   /** Helper function to calculate the current time. Measured in milliseconds
   since January 1st 1970.
   */

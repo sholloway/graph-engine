@@ -164,7 +164,45 @@ class ElementAssociationsSpec extends FunSpec with Matchers with EasyMockSugar w
           }should have message expectedMsg
         }
 
-        it ("should remove a property on a relationship")(pending)
+        it ("should remove a property on a relationship"){          
+          val annotationId = engine
+            .onDataSet(systemsDataSetId)
+            .attach(noteId)
+            .to(systemId)
+            .as("annotates")
+            .withField("createdBy", "Neo")
+            .withField("meta", "There is no spoon.")
+            .withField("amazement", "Wow...")
+          .end
+
+          engine
+            .inUserSpace
+            .findAssociation(annotationId)
+            .fields should have size 3
+
+          engine
+            .onDataSet(systemsDataSetId)
+            .onAssociation(annotationId)
+            .removeField("meta")
+          .end
+
+          engine
+            .inUserSpace
+            .findAssociation(annotationId)
+            .fields should have size 2
+
+          engine
+            .onDataSet(systemsDataSetId)
+            .onAssociation(annotationId)
+            .removeField("createdBy")
+            .removeField("amazement")
+          .end
+
+          engine
+            .inUserSpace
+            .findAssociation(annotationId)
+            .fields should have size 0
+        }
 
         //Should this find nodes or relationships?
         //Probably need both.
