@@ -55,7 +55,7 @@ class FindAssociationById(database: GraphDatabaseService,
   }
 
   private def associationStructureMapper(results: ArrayBuffer[AssociationDefinition],
-    record: java.util.Map[java.lang.String, Object]) = {      
+    record: java.util.Map[java.lang.String, Object]) = {
       val label = record.get("associationType").asInstanceOf[String]
       val keys:List[String] = record.get("keys").asInstanceOf[java.util.List[String]].toList
       results += new AssociationDefinition(label, keys)
@@ -78,7 +78,7 @@ class FindAssociationById(database: GraphDatabaseService,
     val fetchClause = buildFetchClause(prefix, associationDefinition.keys, exclude)
     val statement = """
     match (x)-[association {associationId:{associationId}}]->(y)
-    return type(association) as associationType, fetchClause
+    return x.mid as startingElementId, y.mid as endingElementId, type(association) as associationType, fetchClause
     """.stripMargin
       .replaceAll("fetchClause", fetchClause)
     return statement
@@ -87,13 +87,15 @@ class FindAssociationById(database: GraphDatabaseService,
   private def associationMapper(
     results: ArrayBuffer[Association],
     record: java.util.Map[java.lang.String, Object]):Unit = {
+    val startingElementId = mapString("startingElementId", record, true)
+    val endingElementId = mapString("endingElementId", record, true)
     val associationType = mapString("associationType", record, true)
     val associationId:String = mapString("associationId", record, true)
     val associationTime:String = mapString("association_time", record, true)
     val lastModifiedTime:String = mapString("last_modified_time", record, false)
     val fields: Map[String, Any] = Map.empty[String, Any]
-    val exclude = List("associationType", "associationId", "dsId",
-      "association_time", "last_modified_time")
+    val exclude = List("startingElementId", "endingElementId", "associationType",
+      "associationId", "dsId", "association_time", "last_modified_time")
     record.keys.foreach(key => {
       if(!exclude.contains(key)){
         val value: Any = record.get(key)
@@ -113,7 +115,7 @@ class FindAssociationById(database: GraphDatabaseService,
       }
     })
     results += new Association(associationId, associationType, fields.toMap,
-      associationTime, lastModifiedTime)
+      startingElementId, endingElementId, associationTime, lastModifiedTime)
   }
 
   private def cast[T:Manifest](x: T):T = x.asInstanceOf[T]

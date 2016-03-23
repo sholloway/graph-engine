@@ -91,7 +91,9 @@ class ElementAssociationsSpec extends FunSpec with Matchers with EasyMockSugar w
 
           annotation should have(
             'id (annotationId),
-            'associationType ("annotates")
+            'associationType ("annotates"),
+            'startingElementId (noteId),
+            'endingElementId (systemId)
           )
 
           annotation.fields should have size 1
@@ -164,7 +166,7 @@ class ElementAssociationsSpec extends FunSpec with Matchers with EasyMockSugar w
           }should have message expectedMsg
         }
 
-        it ("should remove a property on a relationship"){          
+        it ("should remove a property on a relationship"){
           val annotationId = engine
             .onDataSet(systemsDataSetId)
             .attach(noteId)

@@ -231,6 +231,38 @@ import org.machine.engine.graph.nodes._
 * .end
 * }}}
 *
+* ==Working with Datasets==
+* Datasets are subgraphs of the overall system database. They represent groupings
+* of graph nodes related to some domain. Datasets can be exported and imported
+* for backups and collaboration.
+* '''Find all elements in a dataset.'''
+*
+* '''Find all outbound associations on an Element.'''
+* Elements can be associated with other elements in the same dataset. Associations
+* are directional edges in the graph. Since they are directional, the are considered
+* inbound and outbound. Outbound associations can be found like below.
+* {{{
+* val associations = engine
+*   .onDataSet(datasetId)
+*   .onElement(elementId)
+*   .findOutboundAssociations()
+* }}}
+*
+* '''Find all inbound associations on an Element.'''
+* {{{
+* val associations = engine
+*   .onDataSet(datasetId)
+*   .onElement(elementId)
+*   .findInboundAssociations()
+* }}}
+*
+* '''Find Outbound Associated Elements'''
+* {{{
+* val children:List[Element] = engine
+*   .onDataSet(datasetId)
+*   .onElement(elementId)
+*   .findDownstreamElements()
+* }}}
 */
 trait GraphDSL{
   def inSystemSpace():GraphDSL
