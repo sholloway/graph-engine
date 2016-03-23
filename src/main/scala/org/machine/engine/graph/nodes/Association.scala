@@ -14,11 +14,15 @@ import org.machine.engine.exceptions._
 class Association(_id: String,
   _associationType: String,
   _fields: Map[String, Any],
+  _startingElementId: String,
+  _endingElementId: String,
   _creationTime: String,
   _lastModifiedTime: String){
   def id = this._id
   def associationType = this._associationType
   def fields = this._fields
+  def startingElementId = this._startingElementId
+  def endingElementId = this._endingElementId
   def creationTime = this._creationTime
   def lastModifiedTime = this._lastModifiedTime
 

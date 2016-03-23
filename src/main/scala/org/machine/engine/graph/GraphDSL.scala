@@ -161,6 +161,17 @@ import org.machine.engine.graph.nodes._
 * .end
 * }}}
 *
+* '''Remove an Element's fieldName3'''
+* {{{
+* engine
+*   .onDataSet(dataSetId)
+*   .onElement(elementId)
+*     .removeField(fieldName1, fieldValue1)
+*     .removeField(fieldName2, fieldValue2)
+*     .removeField(fieldName3, fieldValue3)
+* .end
+* }}}
+*
 * '''Delete an Element'''
 * {{{
 * engine
@@ -168,6 +179,89 @@ import org.machine.engine.graph.nodes._
 *   .onElement(elementId)
 *   .delete
 * .end
+* }}}
+*
+* ==Working with Associations==
+* Elements can be associated with each other. Associations can have properties
+* assigned to them and managed just like elements.
+*
+* '''Creating an Association'''
+* {{{
+* val associationId = engine
+*   .onDataSet(dataSetId)
+*   .attach(startingElementId)
+*   .to(endingElementId)
+*   .as(associationType)
+*   .withField(fieldName, fieldValue)
+* .end
+* }}}
+*
+* '''Find an Association'''
+* {{{
+* val association = engine
+*   .onDataSet(dataSetId)
+*   .findAssociation(associationId)
+* }}}
+*
+* '''Update or Add Fields to an Association'''
+* {{{
+* engine
+*   .onDataSet(dataSetId)
+*   .onAssociation(associationId)
+*   .setField(fieldName, fieldValue)
+* .end
+* }}}
+*
+* '''Remove Fields from an Association'''
+* {{{
+* engine
+*   .onDataSet(dataSetId)
+*   .onAssociation(associationId)
+*   .removeField(fieldName, fieldValue)
+*   .removeField(fieldName, fieldValue)
+* .end
+* }}}
+*
+* '''Remove an Association'''
+* {{{
+* engine
+*   .onDataSet(dataSetId)
+*   .onAssociation(associationId)
+*   .delete
+* .end
+* }}}
+*
+* ==Working with Datasets==
+* Datasets are subgraphs of the overall system database. They represent groupings
+* of graph nodes related to some domain. Datasets can be exported and imported
+* for backups and collaboration.
+* '''Find all elements in a dataset.'''
+*
+* '''Find all outbound associations on an Element.'''
+* Elements can be associated with other elements in the same dataset. Associations
+* are directional edges in the graph. Since they are directional, the are considered
+* inbound and outbound. Outbound associations can be found like below.
+* {{{
+* val associations = engine
+*   .onDataSet(datasetId)
+*   .onElement(elementId)
+*   .findOutboundAssociations()
+* }}}
+*
+* '''Find all inbound associations on an Element.'''
+* {{{
+* val associations = engine
+*   .onDataSet(datasetId)
+*   .onElement(elementId)
+*   .findInboundAssociations()
+* }}}
+*
+* '''Find Outbound Associated Elements'''
+* {{{
+* val children:List[Element] = engine
+*   .onDataSet(datasetId)
+*   .onElement(elementId)
+*   .findDownstreamElements()
 * }}}
 */
 trait GraphDSL{
