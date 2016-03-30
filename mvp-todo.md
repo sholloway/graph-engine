@@ -36,3 +36,4 @@ The list of general tasks that must be completed for version 0.1.0 to be conside
 * [ ] Add @throws to functions that throw exceptions.
 * [ ] Refactor FindAssociationById to work like FindOutboundAssociationsByElementId
 * [ ] Refactor FindElement commands to work like FindOutboundAssociationsByElementId
+* [ ] Add GraphDSL.removeOutboundAssociations() for a given element.

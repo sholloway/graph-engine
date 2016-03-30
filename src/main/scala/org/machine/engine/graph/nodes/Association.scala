@@ -20,7 +20,7 @@ class Association(val id: String,
   val lastModifiedTime: String){
 
   override def toString():String = {
-    return s"Element: $id $associationType"
+    return s"Association: $id $associationType"
   }
 
   /** Convience method for working with the element's fields.

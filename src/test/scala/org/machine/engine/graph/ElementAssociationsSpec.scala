@@ -244,17 +244,6 @@ class ElementAssociationsSpec extends FunSpec with Matchers with EasyMockSugar w
             .fields should have size 0
         }
 
-        /*
-        Considerations:
-        1. Associations cannnot be guarunteed to be the same (homogenous) for an element.
-        2. findOutboundAssociations() should not return the system associations.
-          - example: ds:internal_data_set -[:contains]->(e)
-        3. Associations should be ordered by association name, then association_time.
-        4. The query should be constrained to a dataset.
-
-        Next Steps:
-        - The FindOutboundAssociationByElementId has not been written yet. Only copied.
-        */
         it("should find outbound associations of an element"){
           val annotationId = engine
             .onDataSet(systemsDataSetId)
@@ -313,7 +302,13 @@ class ElementAssociationsSpec extends FunSpec with Matchers with EasyMockSugar w
           outBoundAssociations(1).field[String]("note") should equal("Existing integration shall be replaced next year.")
         }
 
-        ignore("should find inbound associations of an element"){
+        it("should find inbound associations of an element"){
+          //need to clear the existing connections or create a new node.
+          engine
+            .onDataSet(systemsDataSetId)
+            .onElement(systemId)
+            .removeInboundAssociations
+
           val annotationId = engine
             .onDataSet(systemsDataSetId)
             .attach(noteId)
@@ -334,6 +329,23 @@ class ElementAssociationsSpec extends FunSpec with Matchers with EasyMockSugar w
             .onDataSet(systemsDataSetId)
             .onElement(systemId)
             .findInboundAssociations()
+
+          inboundAssociations.foreach(Console.println(_))
+          inboundAssociations should have length 2
+
+          inboundAssociations(0) should have(
+            'id (annotationId),
+            'associationType ("annotates"),
+            'startingElementId (noteId),
+            'endingElementId (systemId)
+          )
+
+          inboundAssociations(1) should have(
+            'id (contactId),
+            'associationType ("is_a_contact_for"),
+            'startingElementId (workerId),
+            'endingElementId (systemId)
+          )
         }
 
         it("should find upstream (parents) elements")(pending)
