@@ -337,4 +337,21 @@ class Engine(dbPath:String, config: {
     }
     return this
   }
+
+  def findOutboundAssociations():List[Association] = {
+    return new FindOutboundAssociationsByElementId(database,
+      scope, cmdOptions, config.logger).execute()
+  }
+
+  def findInboundAssociations():List[Association] = {
+    throw new NotImplementedException("Engine.findInboundAssociations is not implemented yet.")
+  }
+
+  def findDownStreamElements():List[Element] = {
+    throw new NotImplementedException("Engine.findInboundAssociations is not implemented yet.")
+  }
+
+  def findUpStreamElements():List[Element] = {
+    throw new NotImplementedException("Engine.findInboundAssociations is not implemented yet.")
+  }
 }

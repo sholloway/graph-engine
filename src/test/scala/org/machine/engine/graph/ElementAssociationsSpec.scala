@@ -31,27 +31,44 @@ class ElementAssociationsSpec extends FunSpec with Matchers with EasyMockSugar w
   var systemElementDefinitionId:String = null
   var systemId:String = null
   var noteId:String = null
+  var workerElementDefinitionId:String = null
+  var bizCapElementDefId:String = null
+  var workerId:String = null
+  var erpId:String = null
+  var bizCapId:String = null
 
   override def beforeAll(){
     FileUtils.deleteRecursively(dbFile)
     engine = new Engine(dbPath, engineOptions)
     systemsDataSetId = engine.createDataSet("System Under Review", "System that need to be reviewed.")
-    noteElementDefininitionId =
-      engine
-        .onDataSet(systemsDataSetId)
-        .defineElement("note", "short piece of text")
-          .withProperty("title", "String", "The title of the note.")
-          .withProperty("description", "String", "An optional description of the note.")
-          .withProperty("body", "String", "The body of the note.")
-      .end
+    noteElementDefininitionId = engine
+      .onDataSet(systemsDataSetId)
+      .defineElement("note", "short piece of text")
+        .withProperty("title", "String", "The title of the note.")
+        .withProperty("description", "String", "An optional description of the note.")
+        .withProperty("body", "String", "The body of the note.")
+    .end
 
-    systemElementDefinitionId =
-      engine
-        .onDataSet(systemsDataSetId)
-        .defineElement("system", "A set of interacting or interdependent components forming an integrated whole.")
-          .withProperty("name", "String", "The name of the system.")
-          .withProperty("description", "String", "An optional description of the system.")
-      .end
+    systemElementDefinitionId = engine
+      .onDataSet(systemsDataSetId)
+      .defineElement("system", "A set of interacting or interdependent components forming an integrated whole.")
+        .withProperty("name", "String", "The name of the system.")
+        .withProperty("description", "String", "An optional description of the system.")
+    .end
+
+    workerElementDefinitionId = engine
+      .onDataSet(systemsDataSetId)
+      .defineElement("worker", "An employee or contractor who works for a company.")
+        .withProperty("first_name", "String", "The primary name of the person.")
+        .withProperty("last_name", "String", "The family name of the person.")
+    .end
+
+    bizCapElementDefId = engine
+      .onDataSet(systemsDataSetId)
+      .defineElement("business_capability", "The expression or the articulation of the capacity, materials and expertise an organization needs in order to perform core functions.")
+      .withProperty("name", "String", "The name of the capability.")
+      .withProperty("description", "String", "The description of the capability.")
+    .end
 
     systemId = engine
       .onDataSet(systemsDataSetId)
@@ -60,11 +77,32 @@ class ElementAssociationsSpec extends FunSpec with Matchers with EasyMockSugar w
         .withField("description", "Publishes stuff.")
     .end
 
+    erpId = engine
+      .onDataSet(systemsDataSetId)
+      .provision(systemElementDefinitionId)
+        .withField("name", "ERP System")
+        .withField("description", "Manages OTC, Accounts...")
+    .end
+
     noteId = engine
       .onDataSet(systemsDataSetId)
       .provision(noteElementDefininitionId)
         .withField("title", "Quick Note")
         .withField("body", "Talk to Chuck about what is being published.")
+    .end
+
+    workerId = engine
+      .onDataSet(systemsDataSetId)
+      .provision(workerElementDefinitionId)
+      .withField("first_name", "Jon")
+      .withField("last_name", "Snow")
+    .end
+
+    bizCapId = engine
+      .onDataSet(systemsDataSetId)
+      .provision(bizCapElementDefId)
+      .withField("name", "Publishing")
+      .withField("description", "Publishing things for people.")
     .end
   }
 
@@ -206,11 +244,100 @@ class ElementAssociationsSpec extends FunSpec with Matchers with EasyMockSugar w
             .fields should have size 0
         }
 
-        //Should this find nodes or relationships?
-        //Probably need both.
-        it("should find outbound associations of an element")(pending)
-        it("should find inbound associations of an element")(pending)
+        /*
+        Considerations:
+        1. Associations cannnot be guarunteed to be the same (homogenous) for an element.
+        2. findOutboundAssociations() should not return the system associations.
+          - example: ds:internal_data_set -[:contains]->(e)
+        3. Associations should be ordered by association name, then association_time.
+        4. The query should be constrained to a dataset.
 
+        Next Steps:
+        - The FindOutboundAssociationByElementId has not been written yet. Only copied.
+        */
+        it("should find outbound associations of an element"){
+          val annotationId = engine
+            .onDataSet(systemsDataSetId)
+            .attach(noteId)
+            .to(systemId)
+            .as("annotates")
+            .withField("createdBy", "J. Snow")
+          .end
+
+          val contactId = engine
+            .onDataSet(systemsDataSetId)
+            .attach(workerId)
+            .to(systemId)
+            .as("is_a_contact_for")
+            .withField("primaryContact", true)
+          .end
+
+          val capId = engine
+            .onDataSet(systemsDataSetId)
+            .attach(systemId)
+            .to(bizCapId)
+            .as("enables")
+            .withField("identifiedBy", "Jon Snow")
+          .end
+
+          val integrationId = engine
+            .onDataSet(systemsDataSetId)
+            .attach(systemId)
+            .to(erpId)
+            .as("is_integrated_with")
+            .withField("note", "Existing integration shall be replaced next year.")
+          .end
+
+          val outBoundAssociations:List[Association] = engine
+            .onDataSet(systemsDataSetId)
+            .onElement(systemId)
+            .findOutboundAssociations()
+
+          outBoundAssociations should have length 2
+          outBoundAssociations(0) should have(
+            'id (capId),
+            'associationType ("enables"),
+            'startingElementId (systemId),
+            'endingElementId (bizCapId)
+          )
+
+          outBoundAssociations(0).field[String]("identifiedBy") should equal("Jon Snow")
+
+          outBoundAssociations(1) should have(
+            'id (integrationId),
+            'associationType ("is_integrated_with"),
+            'startingElementId (systemId),
+            'endingElementId (erpId)
+          )
+
+          outBoundAssociations(1).field[String]("note") should equal("Existing integration shall be replaced next year.")
+        }
+
+        ignore("should find inbound associations of an element"){
+          val annotationId = engine
+            .onDataSet(systemsDataSetId)
+            .attach(noteId)
+            .to(systemId)
+            .as("annotates")
+            .withField("createdBy", "J. Snow")
+          .end
+
+          val contactId = engine
+            .onDataSet(systemsDataSetId)
+            .attach(workerId)
+            .to(systemId)
+            .as("is_a_contact_for")
+            .withField("primaryContact", true)
+          .end
+
+          val inboundAssociations:List[Association] = engine
+            .onDataSet(systemsDataSetId)
+            .onElement(systemId)
+            .findInboundAssociations()
+        }
+
+        it("should find upstream (parents) elements")(pending)
+        it("should find downstream (children) elements")(pending)
       }
     }
   }
