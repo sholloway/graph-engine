@@ -344,7 +344,8 @@ class Engine(dbPath:String, config: {
   }
 
   def findInboundAssociations():List[Association] = {
-    throw new NotImplementedException("Engine.findInboundAssociations is not implemented yet.")
+    return new FindInboundAssociationsByElementId(database,
+      scope, cmdOptions, config.logger).execute()
   }
 
   def findDownStreamElements():List[Element] = {
@@ -353,5 +354,15 @@ class Engine(dbPath:String, config: {
 
   def findUpStreamElements():List[Element] = {
     throw new NotImplementedException("Engine.findInboundAssociations is not implemented yet.")
+  }
+
+  def removeInboundAssociations():List[Association] = {
+    val existingInboundAssociations = new FindInboundAssociationsByElementId(database,
+      scope, cmdOptions, config.logger).execute()
+    val ids = ArrayBuffer.empty[String]
+    existingInboundAssociations.foreach(a => ids += a.id)
+    new RemoveInboundAssociations(database,
+      scope, cmdOptions, ids.toList, config.logger).execute()
+    return existingInboundAssociations
   }
 }

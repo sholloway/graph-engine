@@ -15,21 +15,21 @@ import org.machine.engine.graph.nodes._
 import org.machine.engine.graph.labels._
 import org.machine.engine.graph.internal._
 
-class FindOutboundAssociationsByElementId(database: GraphDatabaseService,
+class FindInboundAssociationsByElementId(database: GraphDatabaseService,
   cmdScope: CommandScope,
   cmdOptions: GraphCommandOptions,
   logger: Logger){
   import Neo4JHelper._
-
   def execute():List[Association] = {
-    logger.debug("FindOutboundAssociationsByElementId: Executing Command")
-    return findAssociations(database, cmdOptions)
+    logger.debug("FindInboundAssociationsByElementId: Executing Command")
+    val associations = findAssociations(database, cmdOptions)
+    return filterAssociations(associations)
   }
 
   private def findAssociations(database: GraphDatabaseService, cmdOptions: GraphCommandOptions):List[Association] = {
     val statement = """
     |match (start)-[association]->(end)
-    |where start.mid={elementId}
+    |where end.mid={elementId}
     |return start.mid as startingElementId,
     |   end.mid as endingElementId,
     |   type(association) as associationType,
@@ -86,5 +86,11 @@ class FindOutboundAssociationsByElementId(database: GraphDatabaseService,
 
     results += new Association(associationId, associationType, fields.toMap,
       startingElementId,endingElementId,associationTime,lastModifiedTime)
+  }
+
+  /** Remove the (dataset)-[:contains]->(element) association.
+  */
+  private def filterAssociations(associations:List[Association]):List[Association] = {
+    return associations.filterNot(a => a.associationType == "contains")
   }
 }
