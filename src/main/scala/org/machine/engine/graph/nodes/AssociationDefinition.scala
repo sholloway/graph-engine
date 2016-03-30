@@ -5,15 +5,13 @@ import org.machine.engine.exceptions._
 /** The definition of an association between two elements in a dataset.
 *
 * @constructor Creates a new association definition.
-* @param _associationType The association's type.
-* @param _keys The names of the data values associated with the association.
+* @param associationType The association's type.
+* @param keys The names of the data values associated with the association.
 */
-class AssociationDefinition(_associationType: String,
-  _keys: List[String]){
-  def associationType = this._associationType
-  def keys = this._keys
+class AssociationDefinition(val associationType: String,
+  val keys: List[String]){
 
   override def toString():String = {
-    "AssociationDefinition: %s".format(associationType)
+    return s"AssociationDefinition: $associationType"
   }
 }

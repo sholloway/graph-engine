@@ -13,9 +13,10 @@ import org.machine.engine.graph.nodes._
 * intended for user component definition. Datasets are graphs created in the
 * scope of the user space.
 *
-* The graph is composed of ElementDefinitions and Elements. An ElementDefinition
+* The graph is composed of ElementDefinitions, Elements and Associations. An ElementDefinition
 * is a definition of an element that can be provisioned. An Element is an instance
-* of an ElementDefinition.
+* of an ElementDefinition and a node in the graph. Associations are the edges between the Element nodes.
+* Data can be attached and managed on both Elements and Associations.
 *
 * ==System Space Usage==
 * '''Defining an ElementDefinition'''
@@ -138,6 +139,13 @@ import org.machine.engine.graph.nodes._
 * .end
 * }}}
 *
+* ==Working with Datasets==
+* Datasets are subgraphs of the overall system database. They represent groupings
+* of graph nodes related to some domain. Datasets can be exported and imported
+* for backups and collaboration.
+*
+* '''Find all elements in a dataset.'''
+*
 * ==Working with Elements==
 * Elements exist inside of datasets. They can be created, updated and deleted.
 *
@@ -161,7 +169,7 @@ import org.machine.engine.graph.nodes._
 * .end
 * }}}
 *
-* '''Remove an Element's fieldName3'''
+* '''Remove an Element's field'''
 * {{{
 * engine
 *   .onDataSet(dataSetId)
@@ -192,6 +200,17 @@ import org.machine.engine.graph.nodes._
 *   .attach(startingElementId)
 *   .to(endingElementId)
 *   .as(associationType)
+*   .withField(fieldName, fieldValue)
+* .end
+* }}}
+*
+* The as(associationType) is an optional clause. If it is not specified then the
+* default association type of "is_associated_with" will be used.
+* {{{
+* val associationId = engine
+*   .onDataSet(dataSetId)
+*   .attach(startingElementId)
+*   .to(endingElementId)
 *   .withField(fieldName, fieldValue)
 * .end
 * }}}
@@ -231,12 +250,6 @@ import org.machine.engine.graph.nodes._
 * .end
 * }}}
 *
-* ==Working with Datasets==
-* Datasets are subgraphs of the overall system database. They represent groupings
-* of graph nodes related to some domain. Datasets can be exported and imported
-* for backups and collaboration.
-* '''Find all elements in a dataset.'''
-*
 * '''Find all outbound associations on an Element.'''
 * Elements can be associated with other elements in the same dataset. Associations
 * are directional edges in the graph. Since they are directional, the are considered
@@ -261,7 +274,15 @@ import org.machine.engine.graph.nodes._
 * val children:List[Element] = engine
 *   .onDataSet(datasetId)
 *   .onElement(elementId)
-*   .findDownstreamElements()
+*   .findDownStreamElements()
+* }}}
+*
+* '''Find Inbound Associated Elements'''
+* {{{
+* val children:List[Element] = engine
+*   .onDataSet(datasetId)
+*   .onElement(elementId)
+*   .findUpStreamElements()
 * }}}
 */
 trait GraphDSL{
@@ -301,6 +322,9 @@ trait GraphDSL{
   def as(associationName: String):GraphDSL
   def findAssociation(associationId: String):Association
   def onAssociation(annotationId: String):GraphDSL
-
   def removeField(fieldName: String):GraphDSL
+  def findOutboundAssociations():List[Association]
+  def findInboundAssociations():List[Association]
+  def findDownStreamElements():List[Element]
+  def findUpStreamElements():List[Element]
 }

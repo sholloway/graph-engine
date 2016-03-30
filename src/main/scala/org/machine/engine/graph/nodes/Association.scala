@@ -5,29 +5,22 @@ import org.machine.engine.exceptions._
 /** An immutable association between two elements in a dataset.
 *
 * @constructor Creates a new association.
-* @param _id The association's unique identifier.
-* @param _associationType The association's type.
-* @param _fields The data values associated with the association.
-* @param _creationTime When the association was created.
-* @param _lastModifiedTime When the association was last edited.
+* @param id The association's unique identifier.
+* @param associationType The association's type.
+* @param fields The data values associated with the association.
+* @param creationTime When the association was created.
+* @param lastModifiedTime When the association was last edited.
 */
-class Association(_id: String,
-  _associationType: String,
-  _fields: Map[String, Any],
-  _startingElementId: String,
-  _endingElementId: String,
-  _creationTime: String,
-  _lastModifiedTime: String){
-  def id = this._id
-  def associationType = this._associationType
-  def fields = this._fields
-  def startingElementId = this._startingElementId
-  def endingElementId = this._endingElementId
-  def creationTime = this._creationTime
-  def lastModifiedTime = this._lastModifiedTime
+class Association(val id: String,
+  val associationType: String,
+  val fields: Map[String, Any],
+  val startingElementId: String,
+  val endingElementId: String,
+  val creationTime: String,
+  val lastModifiedTime: String){
 
   override def toString():String = {
-    "Element: %s %s".format(id, associationType)
+    return s"Element: $id $associationType"
   }
 
   /** Convience method for working with the element's fields.

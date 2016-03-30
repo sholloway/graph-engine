@@ -5,15 +5,12 @@ import scala.collection.mutable.ArrayBuffer
 /** The collection of ElementDefinitions the user defines.
 *
 * @constructor Creates a new UserSpace.
-* @param _id The UserSpace unique identifier.
-* @param _name The UserSpace name.
+* @param id The UserSpace unique identifier.
+* @param name The UserSpace name.
 */
-class UserSpace(_id: String, _name: String){
-  def id = this._id
-  def name = this._name
-
+class UserSpace(val id: String, val name: String){
   override def toString():String = {
-    return "%s: %s".format(name, id)
+    return s"$name: $id"
   }
 }
 
