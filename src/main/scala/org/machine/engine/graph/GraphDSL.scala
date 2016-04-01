@@ -327,5 +327,7 @@ trait GraphDSL{
   def findInboundAssociations():List[Association]
   def findDownStreamElements():List[Element]
   def findUpStreamElements():List[Element]
+
   def removeInboundAssociations():List[Association]
+  def removeOutboundAssociations():List[Association]
 }

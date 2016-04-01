@@ -385,7 +385,43 @@ class ElementAssociationsSpec extends FunSpec with Matchers with EasyMockSugar w
           )
         }
 
-        it("should find downstream (children) elements")(pending)
+        it("should find downstream (children) elements"){
+          engine
+            .onDataSet(systemsDataSetId)
+            .onElement(systemId)
+            .removeOutboundAssociations
+
+          val capId = engine
+            .onDataSet(systemsDataSetId)
+            .attach(systemId)
+            .to(bizCapId)
+            .as("enables")
+            .withField("identifiedBy", "Jon Snow")
+          .end
+
+          val integrationId = engine
+            .onDataSet(systemsDataSetId)
+            .attach(systemId)
+            .to(erpId)
+            .as("is_integrated_with")
+            .withField("note", "Existing integration shall be replaced next year.")
+          .end
+
+          val downstreamElements:List[Element] = engine
+            .onDataSet(systemsDataSetId)
+            .onElement(systemId)
+            .findDownStreamElements
+
+          downstreamElements should have length 2
+
+          downstreamElements(0) should have(
+            'id (bizCapId)
+          )
+
+          downstreamElements(1) should have(
+            'id (erpId)
+          )
+        }
       }
     }
   }
