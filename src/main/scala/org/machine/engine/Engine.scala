@@ -353,7 +353,8 @@ class Engine(dbPath:String, config: {
   }
 
   def findUpStreamElements():List[Element] = {
-    throw new NotImplementedException("Engine.findInboundAssociations is not implemented yet.")
+    return new FindUpStreamElementsByElementId(database,
+      scope, cmdOptions, config.logger).execute()
   }
 
   def removeInboundAssociations():List[Association] = {

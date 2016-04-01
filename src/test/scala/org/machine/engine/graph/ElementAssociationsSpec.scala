@@ -330,7 +330,6 @@ class ElementAssociationsSpec extends FunSpec with Matchers with EasyMockSugar w
             .onElement(systemId)
             .findInboundAssociations()
 
-          inboundAssociations.foreach(Console.println(_))
           inboundAssociations should have length 2
 
           inboundAssociations(0) should have(
@@ -348,7 +347,44 @@ class ElementAssociationsSpec extends FunSpec with Matchers with EasyMockSugar w
           )
         }
 
-        it("should find upstream (parents) elements")(pending)
+        it("should find upstream (parents) elements"){
+          engine
+            .onDataSet(systemsDataSetId)
+            .onElement(systemId)
+            .removeInboundAssociations
+
+          val annotationId = engine
+            .onDataSet(systemsDataSetId)
+            .attach(noteId)
+            .to(systemId)
+            .as("annotates")
+            .withField("createdBy", "J. Snow")
+          .end
+
+          val contactId = engine
+            .onDataSet(systemsDataSetId)
+            .attach(workerId)
+            .to(systemId)
+            .as("is_a_contact_for")
+            .withField("primaryContact", true)
+          .end
+
+          val upstreamElements:List[Element] = engine
+            .onDataSet(systemsDataSetId)
+            .onElement(systemId)
+            .findUpStreamElements
+
+          upstreamElements should have length 2
+
+          upstreamElements(0) should have(
+            'id (noteId)
+          )
+
+          upstreamElements(1) should have(
+            'id (workerId)
+          )
+        }
+
         it("should find downstream (children) elements")(pending)
       }
     }
