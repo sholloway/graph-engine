@@ -35,7 +35,7 @@ class Engine(dbPath:String, config: {
   def userSpace:UserSpace = this.userSpaceOption.getOrElse(throw new InternalErrorException("UserSpace has not be initialized."))
 
   def setLoggerLevel(level: LoggerLevel) = {
-    config.logger.setLevel(level)
+    config.logger.level = level
   }
 
   setup

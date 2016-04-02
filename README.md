@@ -26,7 +26,7 @@ sbt doc
 ```
 
 
-## Resources
+## Related Resources
 * [Scala Cheatsheet](http://docs.scala-lang.org/cheatsheets/index.html)
 * [sbt commands](http://www.scala-sbt.org/0.13/docs/Command-Line-Reference.html)
 * [ZeroMQ Node](https://github.com/JustinTulloss/zeromq.node)
@@ -35,3 +35,4 @@ sbt doc
 * [Scala Quick Reference](http://www.tutorialspoint.com/scala/index.htm)
 * [Scala Doc](http://docs.scala-lang.org/style/scaladoc.html)
 * [Scala Code Coverage](https://github.com/scoverage/sbt-scoverage)
+* [Google Protocol Buffers](https://developers.google.com/protocol-buffers/)

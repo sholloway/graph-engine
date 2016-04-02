@@ -5,7 +5,7 @@ package org.machine.inbound;
 
 // type = "double" | "float" | "int32" | "int64" | "uint32" | "uint64"
 //      | "sint32" | "sint64" | "fixed32" | "fixed64" | "sfixed32" | "sfixed64"
-      //| "bool" | "string" | "bytes" | messageType | enumType
+//      | "bool" | "string" | "bytes" | messageType | enumType
 message Message{
   //Get the name in JS: https://github.com/dcodeIO/protobuf.js/issues/349
   enum ActionType{
@@ -16,8 +16,8 @@ message Message{
     RETRIEVE = 2;
     UPDATE = 3;
     DELETE = 4;
-    UNDO = 5;
-    REDO = 6;
+    UNDO = 5; //Don't know if I'll do this...
+    REDO = 6; //Don't know if I'll do this...
     SHUTDOWN = 7;
   }
 
@@ -53,6 +53,12 @@ message Message{
     VERBOSE = 2; //Enables More Verbose Logging?
   }
 
+  message User{}
+  message DataSet{}
+  message Element{}
+  message ElementDefinition{}
+  message PropertyDefinition{}
+
   required uint32 schemaVersion = 1;
   required ActionType action = 2;
   required ScopeType scope = 3;
@@ -60,5 +66,8 @@ message Message{
 
   //Message specific payload.
   //This strategy will require two serialzing steps and two deserializing steps.
+  //This would get build into a GraphCommandOptions object.
   optional string payload = 5;
+
+  required User user = 6; // Every user space, must map to a user.
 }
