@@ -2,29 +2,22 @@
 - - -
 A marriage of 0MQ, Google Protocol Buffers, embedded Neo4J, Scala and Akka.
 
-Status: Under active development. Not stable.
+Status: Under active development working towards version 0.1.0. Not stable. Do not use.
 
 ## Getting Started
-* See available tasks
+### Dependencies
+* Install protocol buffer compiler
 ```
-sbt tasks
-```
-
-* Run tests.
-```
-sbt test
+brew install protobuf
 ```
 
-* Generate code coverage report.
-```
-sbt cov
-```
-
-* Generate docs.
-```
-sbt doc
-```
-
+### SBT Tasks
+| Name  | Description                                                                                                                |
+|-------|----------------------------------------------------------------------------------------------------------------------------|
+| tasks | Displays the list of available sbt tasks.                                                                                  |
+| test  | Compiles the project and runs the tests.                                                                                   |
+| cov   | Compiles the project, runs the tests, generates the code coverage metric and then opens the report in the default browser. |
+| doc   | Generates the Scaladoc site.                                                                                               |
 
 ## Related Resources
 * [Scala Cheatsheet](http://docs.scala-lang.org/cheatsheets/index.html)

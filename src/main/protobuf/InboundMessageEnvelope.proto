@@ -1,0 +1,92 @@
+// VERSION 1
+syntax = "proto2";
+
+package org.machine.inbound;
+
+// type = "double" | "float" | "int32" | "int64" | "uint32" | "uint64"
+//      | "sint32" | "sint64" | "fixed32" | "fixed64" | "sfixed32" | "sfixed64"
+//      | "bool" | "string" | "bytes" | messageType | enumType
+message Message{
+  //Get the name in JS: https://github.com/dcodeIO/protobuf.js/issues/349
+  enum ActionType{
+    //First enum is the default, so future proofing for future enums.
+    //http://androiddevblog.com/protocol-buffers-pitfall-adding-enum-values/
+    UNKNOWN_ACTION = 0;
+    CREATE = 1;
+    RETRIEVE = 2;
+    UPDATE = 3;
+    DELETE = 4;
+    UNDO = 5; //Don't know if I'll do this...
+    REDO = 6; //Don't know if I'll do this...
+    SHUTDOWN = 7;
+  }
+
+  enum ScopeType{
+    UNKNOWN_SCOPE = 0;
+    SCOPE_SYSTEM_SPACE = 1;
+    SCOPE_USER_SPACE = 2;
+    SCOPE_DATA_SET = 3;
+  }
+
+  enum EntityType{
+    UNKNOWN_ENTITY = 0;
+    DATA_SET = 1;
+    ELEMENT_DEFINITION = 2;
+    ELEMENT = 3;
+    ASSOCIATION = 4;
+  }
+
+  enum ProcessType{
+    UNKNOWN_PROCESS = 0;
+    NORMAL = 1;
+    VERBOSE = 2; //Enables More Verbose Logging?
+  }
+
+  message User{
+    optional string id = 1;
+  }
+
+  message DataSet{
+    optional string id = 1;
+    optional string name = 2;
+    optional string description = 3;
+  }
+
+  message Element{
+    optional string id = 1;
+    optional string element_type = 2;
+    optional string description = 3;
+    repeated Field fields = 4;
+  }
+
+  message Field{
+    optional string name = 1;
+    optional string field_type = 2; //Java primitive types
+    optional string value = 3; //Pass as string vs byte vs Any.
+  }
+
+  message ElementDefinition{
+    optional string id = 1;
+    optional string name = 2;
+    optional string description = 3;
+    repeated PropertyDefinition properties = 4;
+  }
+
+  message PropertyDefinition{
+    optional string id = 1;
+    optional string name = 2;
+    optional string property_definition_type = 3;
+    optional string description = 4;
+  }
+
+  optional uint32 schemaVersion = 1;
+  optional ActionType action = 2;
+  optional ScopeType scope = 3;
+  optional EntityType entityType = 4;
+  optional User user = 5; // Every user space, must map to a user.
+
+  oneof payload{
+    ElementDefinition definition = 6;
+    Element element = 7;
+  }
+}

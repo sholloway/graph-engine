@@ -1,16 +1,18 @@
 lazy val projectSettings = Seq(
 	name := "machine-engine",
-	version := "0.0.1",
+	version := "0.1.0",
 	scalaVersion := "2.11.7"
 )
 
 import sbtassembly.AssemblyPlugin._
-
 lazy val sbtAssemblySettings = Seq(
 	mainClass in assembly := Some("org.machine.engine.Main"),
 	assemblyOption in assembly := (assemblyOption in assembly).value.copy(prependShellScript = Some(defaultShellScript)),
 	assemblyJarName in assembly := s"${name.value}"
 )
+
+import sbtprotobuf.{ProtobufPlugin=>PB}
+PB.protobufSettings
 
 resolvers += "Typesafe Repository" at "http://repo.typesafe.com/typesafe/releases/"
 libraryDependencies += "com.eed3si9n" % "sbt-assembly" % "0.14.1" from "http://dl.bintray.com/sbt/sbt-plugin-releases/com.eed3si9n/sbt-assembly/scala_2.10/sbt_0.13/0.14.1/jars/sbt-assembly.jar"
@@ -27,7 +29,7 @@ libraryDependencies ++= Seq(
 	 "com.typesafe.akka" %% "akka-actor" % "2.3.9",
 	 "org.zeromq" % "jeromq" % "0.3.5",
    //http://mvnrepository.com/artifact/com.google.protobuf/protobuf-java
-   "com.google.protobuf" % "protobuf-java" % "3.0.0-beta-1",
+  //  "com.google.protobuf" % "protobuf-java" % "3.0.0-beta-1",
 	 "org.neo4j" % "neo4j" % "2.3.2"
 )
 
@@ -38,6 +40,9 @@ displayCoverage := {
 }
 
 addCommandAlias("cov", ";clean;coverage;test;coverageReport;displayCoverage")
+
+//possibly simplify dependency on protobuf.
+//protoc --proto_path=src/main/protobuf --java_out=tmp/gen src/main/protobuf/InboundMessageEnvelope.proto
 
 initialCommands in console := """
   |import org.machine.engine.server._
