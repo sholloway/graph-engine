@@ -39,6 +39,10 @@ The list of general tasks that must be completed for version 0.1.0 to be conside
 * [ ] Leverage https://www.scalacheck.org/ for testing the API.
 * [ ] Re-write the README.md to use a table for the sbt tasks.
 * [ ] Consider using https://github.com/os72/protoc-jar or something similar to remove protoc dependency.
+* [ ] Upgrade Akka version to 2.4.3
+* [ ] Update diagrams to show concurrency. (ActorSystem, ActorRef, EventBus...)
+* [ ] Have the logger write to files.
+* [ ] Replace my Logger stub with SL4FJ. http://www.slf4j.org/manual.html
 
 ## Notes
 On startup:
