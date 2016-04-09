@@ -26,9 +26,11 @@ lazy val root = (project in file(".")).
 libraryDependencies ++= Seq(
 	"org.scalatest" % "scalatest_2.11" % "2.2.4" % Test,
 	"org.easymock" % "easymock" % "3.3.1" % Test,
-	//  "com.typesafe.akka" %% "akka-actor" % "2.3.9",
 	 "com.typesafe.akka" %% "akka-actor" % "2.4.3",
 	 "com.typesafe.akka" %% "akka-testkit" % "2.4.3" % Test,
+	 "com.typesafe.akka" %% "akka-slf4j" % "2.4.3",
+	 "ch.qos.logback" % "logback-classic" % "1.1.7",
+	 "com.typesafe" % "config" % "1.3.0",
 	 "org.zeromq" % "jeromq" % "0.3.5",
    //http://mvnrepository.com/artifact/com.google.protobuf/protobuf-java
   //  "com.google.protobuf" % "protobuf-java" % "3.0.0-beta-1",
