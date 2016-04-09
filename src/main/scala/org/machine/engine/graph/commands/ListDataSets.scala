@@ -1,11 +1,12 @@
 package org.machine.engine.graph.commands
 
+import com.typesafe.scalalogging._
 import org.neo4j.graphdb._
 
 import scala.collection.JavaConversions._
 import scala.collection.mutable.{ArrayBuffer, ListBuffer, Map}
 
-import org.machine.engine.logger._
+
 import org.machine.engine.exceptions._
 import org.machine.engine.graph._
 import org.machine.engine.graph.commands._
@@ -15,8 +16,7 @@ import org.machine.engine.graph.internal._
 
 class ListDataSets(database: GraphDatabaseService,
   cmdScope: CommandScope,
-  commandOptions: GraphCommandOptions,
-  logger: Logger) extends Neo4JQueryCommand[DataSet]{
+  commandOptions: GraphCommandOptions) extends Neo4JQueryCommand[DataSet] with LazyLogging{
   import Neo4JHelper._
 
   def execute():List[DataSet] = {

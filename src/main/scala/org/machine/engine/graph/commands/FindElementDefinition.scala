@@ -5,7 +5,7 @@ import org.neo4j.graphdb._
 import scala.collection.JavaConversions._
 import scala.collection.mutable.{ArrayBuffer, ListBuffer, Map}
 
-import org.machine.engine.logger._
+
 import org.machine.engine.exceptions._
 import org.machine.engine.graph._
 import org.machine.engine.graph.commands._

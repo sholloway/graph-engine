@@ -16,26 +16,23 @@ import scala.collection.mutable.{ArrayBuffer, Map}
 import org.machine.engine.graph._
 import org.machine.engine.exceptions._
 import org.machine.engine.graph.nodes._
-import org.machine.engine.logger._
+
 
 class DataSetSpec extends FunSpec with Matchers with EasyMockSugar with BeforeAndAfterAll{
   import Neo4JHelper._
   val dbPath = "target/DataSetSpec.graph"
   val dbFile = new File(dbPath)
   var engine:Engine = null
-  var engineOptions = new {
-    val logger = new Logger(LoggerLevels.ERROR)
-  }
 
   override def beforeAll(){
     FileUtils.deleteRecursively(dbFile)
-    engine = new Engine(dbPath, engineOptions)
+    engine = new Engine(dbPath)
   }
 
   override def afterAll(){
     engine.shutdown()
     FileUtils.deleteRecursively(dbFile)
-  }  
+  }
 
   describe("Machine Engine"){
     describe("DataSet"){

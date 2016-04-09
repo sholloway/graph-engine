@@ -1,5 +1,6 @@
 package org.machine.engine.graph.commands
 
+import com.typesafe.scalalogging._
 import org.neo4j.graphdb._
 
 import scala.collection.JavaConversions._
@@ -7,7 +8,7 @@ import scala.collection.JavaConverters._
 
 import scala.collection.mutable.{ArrayBuffer, ListBuffer, Map}
 
-import org.machine.engine.logger._
+
 import org.machine.engine.exceptions._
 import org.machine.engine.graph._
 import org.machine.engine.graph.commands._
@@ -21,8 +22,7 @@ because a field could be of type AnyVal or AnyRef. Example: Byte & List[Byte]
 */
 class FindElementById(database: GraphDatabaseService,
   cmdScope: CommandScope,
-  fields: GraphCommandOptions,
-  logger: Logger){
+  fields: GraphCommandOptions) extends LazyLogging{
   import Neo4JHelper._
 
   private var elementDefintion:scala.collection.immutable.Map[String, List[String]] = null

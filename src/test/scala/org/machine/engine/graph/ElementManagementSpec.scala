@@ -16,22 +16,19 @@ import scala.collection.mutable.{ArrayBuffer, Map}
 import org.machine.engine.graph._
 import org.machine.engine.exceptions._
 import org.machine.engine.graph.nodes._
-import org.machine.engine.logger._
+
 
 class ElementManagementSpec extends FunSpec with Matchers with EasyMockSugar with BeforeAndAfterAll{
   import Neo4JHelper._
   val dbPath = "target/ElementManagementSpec.graph"
   val dbFile = new File(dbPath)
   var engine:Engine = null
-  var engineOptions = new {
-    val logger = new Logger(LoggerLevels.ERROR)
-  }
   var notesDataSetId:String = null
   var noteElementDefininitionId:String = null
 
   override def beforeAll(){
     FileUtils.deleteRecursively(dbFile)
-    engine = new Engine(dbPath, engineOptions)
+    engine = new Engine(dbPath)
     notesDataSetId = engine.createDataSet("notes", "My collection of notes.")
     noteElementDefininitionId =
       engine
@@ -254,7 +251,7 @@ class ElementManagementSpec extends FunSpec with Matchers with EasyMockSugar wit
           }should have message expectedNameMsg
         }
 
-        it("should remove a field on an Element"){          
+        it("should remove a field on an Element"){
           val noteId = engine
             .onDataSet(notesDataSetId)
             .provision(noteElementDefininitionId)

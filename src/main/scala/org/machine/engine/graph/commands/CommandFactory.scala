@@ -2,7 +2,7 @@ package org.machine.engine.graph.commands
 
 import scala.collection.JavaConversions._
 import org.neo4j.graphdb._
-import org.machine.engine.logger._
+
 
 /*
 TODO:
@@ -14,43 +14,27 @@ object CommandFactory{
   def build(command:EngineCommand,
     database:GraphDatabaseService,
     cmdScope:CommandScope,
-    cmdOptions:GraphCommandOptions,
-    logger:Logger):Neo4JCommand = {
+    cmdOptions:GraphCommandOptions):Neo4JCommand = {
     return command match {
-      case EngineCommands.DefineElement =>
-        new CreateElementDefintion(database, cmdScope, cmdOptions, logger)
-      case EngineCommands.EditElementDefinition =>
-        new EditElementDefintion(database, cmdScope, cmdOptions, logger)
-      case EngineCommands.DeleteElementDefintion =>
-        new DeleteElementDefintion(database, cmdScope, cmdOptions, logger)
+      case EngineCommands.DefineElement => new CreateElementDefintion(database, cmdScope, cmdOptions)
+      case EngineCommands.EditElementDefinition => new EditElementDefintion(database, cmdScope, cmdOptions)
+      case EngineCommands.DeleteElementDefintion => new DeleteElementDefintion(database, cmdScope, cmdOptions)
 
-      case EngineCommands.EditElementPropertyDefinition =>
-        new EditElementPropertyDefinition(database, cmdScope, cmdOptions, logger)
-      case EngineCommands.RemoveElementPropertyDefinition =>
-        new RemoveElementPropertyDefinition(database, cmdScope, cmdOptions, logger)
+      case EngineCommands.EditElementPropertyDefinition => new EditElementPropertyDefinition(database, cmdScope, cmdOptions)
+      case EngineCommands.RemoveElementPropertyDefinition =>new RemoveElementPropertyDefinition(database, cmdScope, cmdOptions)
 
-      case EngineCommands.CreateDataSet =>
-        new CreateDataSet(database, cmdScope, cmdOptions, logger)
-      case EngineCommands.EditDataSet =>
-        new EditDataSet(database, cmdScope, cmdOptions, logger)
+      case EngineCommands.CreateDataSet => new CreateDataSet(database, cmdScope, cmdOptions)
+      case EngineCommands.EditDataSet => new EditDataSet(database, cmdScope, cmdOptions)
 
-      case EngineCommands.ProvisionElement =>
-        new CreateElement(database, cmdScope, cmdOptions, logger)
-      case EngineCommands.EditElement =>
-        new EditElement(database, cmdScope, cmdOptions, logger)
-      case EngineCommands.DeleteElement =>
-        new DeleteElement(database, cmdScope, cmdOptions, logger)
-      case EngineCommands.RemoveElementField =>
-        new RemoveElementField(database, cmdScope, cmdOptions, logger)
+      case EngineCommands.ProvisionElement => new CreateElement(database, cmdScope, cmdOptions)
+      case EngineCommands.EditElement => new EditElement(database, cmdScope, cmdOptions)
+      case EngineCommands.DeleteElement => new DeleteElement(database, cmdScope, cmdOptions)
+      case EngineCommands.RemoveElementField => new RemoveElementField(database, cmdScope, cmdOptions)
 
-      case EngineCommands.AssociateElements =>
-        new AssociateElements(database, cmdScope, cmdOptions, logger)
-      case EngineCommands.EditAssociation =>
-        new EditAssociation(database, cmdScope, cmdOptions, logger)
-      case EngineCommands.DeleteAssociation =>
-        new DeleteAssociation(database, cmdScope, cmdOptions, logger)
-      case EngineCommands.RemoveAssociationField =>
-        new RemoveAssociationField(database, cmdScope, cmdOptions, logger)
+      case EngineCommands.AssociateElements => new AssociateElements(database, cmdScope, cmdOptions)
+      case EngineCommands.EditAssociation => new EditAssociation(database, cmdScope, cmdOptions)
+      case EngineCommands.DeleteAssociation => new DeleteAssociation(database, cmdScope, cmdOptions)
+      case EngineCommands.RemoveAssociationField => new RemoveAssociationField(database, cmdScope, cmdOptions)
     }
   }
 }

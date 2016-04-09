@@ -35,6 +35,7 @@ libraryDependencies ++= Seq(
 	 "com.typesafe.akka" %% "akka-actor" % "2.4.3",
 	 "com.typesafe.akka" %% "akka-testkit" % "2.4.3" % Test,
 	 "com.typesafe.akka" %% "akka-slf4j" % "2.4.3",
+	 "com.typesafe.scala-logging" %% "scala-logging" % "3.1.0",
 	 "ch.qos.logback" % "logback-classic" % "1.1.7",
 	 "com.typesafe" % "config" % "1.3.0",
 	 "org.zeromq" % "jeromq" % "0.3.5",
@@ -65,7 +66,6 @@ initialCommands in console := """
 	|import java.nio.file.{Paths, Files}
 	|import scala.collection.JavaConversions._
 	|import scala.collection.mutable.{ArrayBuffer, ListBuffer, Map}
-	|import org.machine.engine.logger._
 	|import org.machine.engine.exceptions._
 	|import org.machine.engine.graph._
 	|import org.machine.engine.graph.Neo4JHelper._

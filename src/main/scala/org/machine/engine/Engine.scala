@@ -2,16 +2,19 @@ package org.machine.engine
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.{Paths, Files}
+
 import org.neo4j.graphdb._
 import org.neo4j.graphdb.factory.GraphDatabaseFactory
 import org.neo4j.io.fs.FileUtils
-import java.nio.file.{Paths, Files}
 
-import scala.language.reflectiveCalls
+// import scala.language.reflectiveCalls
 import scala.collection.JavaConversions._
 import scala.collection.mutable.{ArrayBuffer, ListBuffer, Map}
 
-import org.machine.engine.logger._
+import com.typesafe.scalalogging._
+
+
 import org.machine.engine.exceptions._
 import org.machine.engine.graph._
 import org.machine.engine.graph.commands._
@@ -19,9 +22,7 @@ import org.machine.engine.graph.nodes._
 import org.machine.engine.graph.labels._
 import org.machine.engine.graph.internal._
 
-class Engine(dbPath:String, config: {
-  val logger: Logger
-}) extends GraphDSL{
+class Engine(dbPath:String) extends GraphDSL with LazyLogging{
   import Neo4JHelper._
   import SystemSpaceManager._
   import UserSpaceManager._
@@ -36,22 +37,18 @@ class Engine(dbPath:String, config: {
   def systemSpace:SystemSpace = this.systemSpaceOption.getOrElse(throw new InternalErrorException("SystemSpace has not be initialized."))
   def userSpace:UserSpace = this.userSpaceOption.getOrElse(throw new InternalErrorException("UserSpace has not be initialized."))
 
-  def setLoggerLevel(level: LoggerLevel) = {
-    config.logger.level = level
-  }
-
   setup
 
   private def setup(){
-    config.logger.debug("Engine: Setting Up")
+    logger.debug("Engine: Setting Up")
     verifyFile(dbPath)
     initializeDatabase(dbPath)
-    setSystemSpace(verifySystemSpace(database, config.logger))
-    setUserSpace(verifyUserSpace(database, config.logger))
+    setSystemSpace(verifySystemSpace(database))
+    setUserSpace(verifyUserSpace(database))
   }
 
   def shutdown(){
-    config.logger.debug("Engine: Shutting Down")
+    logger.debug("Engine: Shutting Down")
     //TODO: Register the Neo4J shutdown with the JVM shutdown like in the example.
     database.shutdown()
   }
@@ -61,19 +58,19 @@ class Engine(dbPath:String, config: {
   }
 
   private def verifyFile(filePath:String) = {
-    config.logger.debug("Engine: Verifying File")
+    logger.debug("Engine: Verifying File")
     if(!filePath.endsWith("graph")){
-      config.logger.warn("The engine database file should have the 'graph' suffix.")
+      logger.warn("The engine database file should have the 'graph' suffix.")
     }
 
     if(!Files.exists(Paths.get(filePath))){
-      config.logger.warn("Engine: Could not find the engine database file.")
-      config.logger.warn("Engine: Attempting to create a new engine database file.")
+      logger.warn("Engine: Could not find the engine database file.")
+      logger.warn("Engine: Attempting to create a new engine database file.")
     }
   }
 
   private def initializeDatabase(dbPath: String) = {
-    config.logger.debug("Engine: Initializing Database")
+    logger.debug("Engine: Initializing Database")
     val dbFile = new File(dbPath)
     val graphDBFactory = new GraphDatabaseFactory()
     val graphDB = graphDBFactory.newEmbeddedDatabase(dbFile)
@@ -91,13 +88,13 @@ class Engine(dbPath:String, config: {
   }
 
   def inSystemSpace():GraphDSL = {
-    config.logger.debug("Engine: Set command scope to system space.")
+    logger.debug("Engine: Set command scope to system space.")
     this.scope = CommandScopes.SystemSpaceScope
     return this
   }
 
   def inUserSpace():GraphDSL = {
-    config.logger.debug("Engine: Set command scope to user space.")
+    logger.debug("Engine: Set command scope to user space.")
     this.scope = CommandScopes.UserSpaceScope
     return this
   }
@@ -109,14 +106,14 @@ class Engine(dbPath:String, config: {
     cmdOptions.addOption("mid", uuid)
     cmdOptions.addOption("name", name)
     cmdOptions.addOption("description", description)
-    val cmd = CommandFactory.build(command, database, scope, cmdOptions, config.logger)
+    val cmd = CommandFactory.build(command, database, scope, cmdOptions)
     return cmd.execute()
   }
 
   def datasets():List[DataSet] = {
     this.scope = CommandScopes.UserSpaceScope
     cmdOptions.reset
-    val cmd = new ListDataSets(database, scope, cmdOptions, config.logger)
+    val cmd = new ListDataSets(database, scope, cmdOptions)
     return cmd.execute()
   }
 
@@ -124,7 +121,7 @@ class Engine(dbPath:String, config: {
     this.scope = CommandScopes.UserSpaceScope
     cmdOptions.reset
     cmdOptions.addOption("name", name)
-    val cmd = new FindDataSetByName(database, scope, cmdOptions, config.logger)
+    val cmd = new FindDataSetByName(database, scope, cmdOptions)
     val elements = cmd.execute()
     return elements(0)
   }
@@ -149,14 +146,14 @@ class Engine(dbPath:String, config: {
     scope = CommandScopes.UserSpaceScope
     cmdOptions.reset
     cmdOptions.addOption("dsId", id)
-    val cmd = new FindDataSetById(database, scope, cmdOptions, config.logger)
+    val cmd = new FindDataSetById(database, scope, cmdOptions)
     val elements = cmd.execute()
     return elements(0)
   }
 
   //Resets the command options and sets the command type to Define Element.
   def defineElement(name:String, description: String):GraphDSL = {
-    config.logger.debug("Engine: Define Element")
+    logger.debug("Engine: Define Element")
     if(scope != CommandScopes.DataSetScope){
       cmdOptions.reset
     }
@@ -169,16 +166,15 @@ class Engine(dbPath:String, config: {
   }
 
   def withProperty(name:String, ptype: String, description: String):GraphDSL = {
-    config.logger.debug("Engine: With property name:%s ptype:%s".format(name, ptype))
+    logger.debug("Engine: With property name:%s ptype:%s".format(name, ptype))
     val propertyDef = new PropertyDefinition(uuid, name, ptype, description)
     val props = cmdOptions.option[PropertyDefinitions]("properties")
-    // val props = ("properties").asInstanceOf[ListBuffer[Map[String, Any]]]
     props.addProperty(propertyDef)
     return this
   }
 
   def elementDefinitions():List[ElementDefinition] = {
-    val cmd = new ListAllElementDefinitions(database, scope, cmdOptions, config.logger)
+    val cmd = new ListAllElementDefinitions(database, scope, cmdOptions)
     return cmd.execute()
   }
 
@@ -187,7 +183,7 @@ class Engine(dbPath:String, config: {
       cmdOptions.reset
     }
     cmdOptions.addOption("mid", id)
-    val cmd = new FindElementDefinitionById(database, scope, cmdOptions, config.logger)
+    val cmd = new FindElementDefinitionById(database, scope, cmdOptions)
     val elements = cmd.execute()
     return elements(0)
   }
@@ -197,7 +193,7 @@ class Engine(dbPath:String, config: {
       cmdOptions.reset
     }
     cmdOptions.addOption("name", name)
-    val cmd = new FindElementDefinitionByName(database, scope, cmdOptions, config.logger)
+    val cmd = new FindElementDefinitionByName(database, scope, cmdOptions)
     val elements = cmd.execute()
     return elements(0)
   }
@@ -262,12 +258,11 @@ class Engine(dbPath:String, config: {
   }
   /** Executes the built up command. */
   def end():String = {
-    config.logger.debug("Engine: Attempt to execute command.")
+    logger.debug("Engine: Attempt to execute command.")
     val cmd = CommandFactory.build(command,
       database,
       scope,
-      cmdOptions,
-      config.logger)
+      cmdOptions)
     return cmd.execute()
   }
 
@@ -285,8 +280,7 @@ class Engine(dbPath:String, config: {
 
   def findElement(elementId: String):Element = {
     cmdOptions.addOption("mid", elementId)
-    return new FindElementById(database,
-      scope, cmdOptions, config.logger).execute()
+    return new FindElementById(database, scope, cmdOptions).execute()
   }
 
   def onElement(elementId: String):GraphDSL = {
@@ -318,8 +312,7 @@ class Engine(dbPath:String, config: {
 
   def findAssociation(associationId: String):Association = {
     cmdOptions.addOption("associationId", associationId)
-    return new FindAssociationById(database,
-      scope, cmdOptions, config.logger).execute()
+    return new FindAssociationById(database, scope, cmdOptions).execute()
   }
 
   def onAssociation(annotationId: String):GraphDSL = {
@@ -341,42 +334,34 @@ class Engine(dbPath:String, config: {
   }
 
   def findOutboundAssociations():List[Association] = {
-    return new FindOutboundAssociationsByElementId(database,
-      scope, cmdOptions, config.logger).execute()
+    return new FindOutboundAssociationsByElementId(database, scope, cmdOptions).execute()
   }
 
   def findInboundAssociations():List[Association] = {
-    return new FindInboundAssociationsByElementId(database,
-      scope, cmdOptions, config.logger).execute()
+    return new FindInboundAssociationsByElementId(database, scope, cmdOptions).execute()
   }
 
   def findDownStreamElements():List[Element] = {
-    return new FindDownStreamElementsByElementId(database,
-      scope, cmdOptions, config.logger).execute()
+    return new FindDownStreamElementsByElementId(database, scope, cmdOptions).execute()
   }
 
   def findUpStreamElements():List[Element] = {
-    return new FindUpStreamElementsByElementId(database,
-      scope, cmdOptions, config.logger).execute()
+    return new FindUpStreamElementsByElementId(database, scope, cmdOptions).execute()
   }
 
   def removeInboundAssociations():List[Association] = {
-    val existingInboundAssociations = new FindInboundAssociationsByElementId(database,
-      scope, cmdOptions, config.logger).execute()
+    val existingInboundAssociations = new FindInboundAssociationsByElementId(database, scope, cmdOptions).execute()
     val ids = ArrayBuffer.empty[String]
     existingInboundAssociations.foreach(a => ids += a.id)
-    new RemoveInboundAssociations(database,
-      scope, cmdOptions, ids.toList, config.logger).execute()
+    new RemoveInboundAssociations(database, scope, cmdOptions, ids.toList).execute()
     return existingInboundAssociations
   }
 
   def removeOutboundAssociations():List[Association] = {
-    val existingOutboundAssociations = new FindOutboundAssociationsByElementId(database,
-      scope, cmdOptions, config.logger).execute()
+    val existingOutboundAssociations = new FindOutboundAssociationsByElementId(database, scope, cmdOptions).execute()
     val ids = ArrayBuffer.empty[String]
     existingOutboundAssociations.foreach(a => ids += a.id)
-    new RemoveOutboundAssociations(database,
-      scope, cmdOptions, ids.toList, config.logger).execute()
+    new RemoveOutboundAssociations(database, scope, cmdOptions, ids.toList).execute()
     return existingOutboundAssociations
   }
 }

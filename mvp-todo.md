@@ -43,6 +43,7 @@ The list of general tasks that must be completed for version 0.1.0 to be conside
 * [ ] Update diagrams to show concurrency. (ActorSystem, ActorRef, EventBus...)
 * [ ] Have the logger write to files.
 * [ ] Replace my Logger stub with SL4FJ. http://www.slf4j.org/manual.html
+* [ ] Register the Neo4J shutdown with the JVM shutdown like in the example.
 
 ## Notes
 On startup:
