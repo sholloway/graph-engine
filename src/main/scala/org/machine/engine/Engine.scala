@@ -6,6 +6,8 @@ import org.neo4j.graphdb._
 import org.neo4j.graphdb.factory.GraphDatabaseFactory
 import org.neo4j.io.fs.FileUtils
 import java.nio.file.{Paths, Files}
+
+import scala.language.reflectiveCalls
 import scala.collection.JavaConversions._
 import scala.collection.mutable.{ArrayBuffer, ListBuffer, Map}
 

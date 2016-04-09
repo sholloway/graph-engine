@@ -4,6 +4,12 @@ lazy val projectSettings = Seq(
 	scalaVersion := "2.11.7"
 )
 
+scalacOptions ++= Seq("" +
+  "-unchecked",
+  "-feature",
+  "-deprecation",
+  "-encoding", "UTF-8")
+
 import sbtassembly.AssemblyPlugin._
 lazy val sbtAssemblySettings = Seq(
 	mainClass in assembly := Some("org.machine.engine.Main"),
