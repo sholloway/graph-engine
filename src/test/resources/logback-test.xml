@@ -5,7 +5,11 @@
       <pattern>%d{HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n</pattern>
     </encoder>
   </appender>
-  <root level="debug">
+
+  <!-- Set the log level for all classes in the package org.machine.engine -->
+  <logger name="org.machine.engine" level="ERROR" />
+
+  <root level="DEBUG">
     <appender-ref ref="STDOUT" />
   </root>
 </configuration>
