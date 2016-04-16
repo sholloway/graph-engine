@@ -1,12 +1,12 @@
 // VERSION 1
 syntax = "proto2";
 
-package org.machine.inbound;
+package org.machine.engine.messages;
 
 // type = "double" | "float" | "int32" | "int64" | "uint32" | "uint64"
 //      | "sint32" | "sint64" | "fixed32" | "fixed64" | "sfixed32" | "sfixed64"
 //      | "bool" | "string" | "bytes" | messageType | enumType
-message Message{
+message RequestMessage{
   //Get the name in JS: https://github.com/dcodeIO/protobuf.js/issues/349
   enum ActionType{
     //First enum is the default, so future proofing for future enums.
@@ -16,9 +16,7 @@ message Message{
     RETRIEVE = 2;
     UPDATE = 3;
     DELETE = 4;
-    UNDO = 5; //Don't know if I'll do this...
-    REDO = 6; //Don't know if I'll do this...
-    SHUTDOWN = 7;
+    SHUTDOWN = 5;
   }
 
   enum ScopeType{
@@ -44,6 +42,8 @@ message Message{
 
   message User{
     optional string id = 1;
+    optional string firstName = 2;
+    optional string lastName = 3;
   }
 
   message DataSet{
@@ -79,14 +79,24 @@ message Message{
     optional string description = 4;
   }
 
-  optional uint32 schemaVersion = 1;
-  optional ActionType action = 2;
-  optional ScopeType scope = 3;
-  optional EntityType entityType = 4;
-  optional User user = 5; // Every user space, must map to a user.
+  message Association{
+    optional string id = 1;
+    optional string associationType = 2; //The Label on the association. If omitted then the label "is_associated_with" is applied.
+    repeated Field fields = 3;
+    optional string startingElementId = 4;
+    optional string endingElementId = 5;
+  }
+
+  optional ActionType action = 1;
+  optional ScopeType scope = 2;
+  optional EntityType entityType = 3;
+  optional User user = 4; // Every user space, must map to a user.
 
   oneof payload{
-    ElementDefinition definition = 6;
+    string id = 5; //Used when ActionType = RETRIEVE
+    Association association = 6;
     Element element = 7;
+    ElementDefinition elementDefinition = 8;
+    DataSet dataset = 9;
   }
 }

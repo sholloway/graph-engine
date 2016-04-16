@@ -22,7 +22,7 @@ The list of general tasks that must be completed for version 0.1.0 to be conside
 * [ ] Add data indexes to Element mid & name.
 * [ ] Add data indexes to ElementDefinition mid & name.
 * [ ] Add data indexes to Association associationId.
-* [ ] Code Coverage above 80%.
+* [X] Code Coverage above 80%.
 * [ ] Travis.CI integration.
 * [ ] Scaladoc documentation for all classes.
 * [ ] Run code/tests on multiple computers.
@@ -30,20 +30,27 @@ The list of general tasks that must be completed for version 0.1.0 to be conside
 * [ ] External review of DSL.
 * [ ] Leverage sbt assembly to create an executable self contained jar.
 * [ ] Host scaladocs. Potentially leverage sbt plugin: sbt-ghpages
-* [ ] Remove all warnings
+* [X] Remove all warnings
 * [ ] Refactor GraphDSL.withProperty to use a case Class or enum for ptype.
 * [ ] Add @throws to functions that throw exceptions.
 * [ ] Refactor FindAssociationById to work like FindOutboundAssociationsByElementId
 * [ ] Refactor FindElement commands to work like FindOutboundAssociationsByElementId
 * [X] Add GraphDSL.removeOutboundAssociations() for a given element.
 * [ ] Leverage https://www.scalacheck.org/ for testing the API.
-* [ ] Re-write the README.md to use a table for the sbt tasks.
+* [X] Re-write the README.md to use a table for the sbt tasks.
 * [ ] Consider using https://github.com/os72/protoc-jar or something similar to remove protoc dependency.
-* [ ] Upgrade Akka version to 2.4.3
+* [X] Upgrade Akka version to 2.4.3
 * [ ] Update diagrams to show concurrency. (ActorSystem, ActorRef, EventBus...)
-* [ ] Have the logger write to files.
-* [ ] Replace my Logger stub with SL4FJ. http://www.slf4j.org/manual.html
+* [X] Have the logger write to files.
+* [X] Replace my Logger stub with SL4FJ. http://www.slf4j.org/manual.html
 * [ ] Register the Neo4J shutdown with the JVM shutdown like in the example.
+* [ ] Define outbound protocol contract.
+* [X] Change the protobuf package to be org.machine.engine.messages
+* [ ] Put creationTime & lastModifiedTime on ElementDefintion.
+* [ ] Add the concept of a User to the data model. This will require the DSL change.
+      Look at how BitTorrent Sync manages users? What do they exchange to enable replication?
+      Also consider BlockChain. The idea of a Ledger might be a fit for how the graph evolves
+      between collaborators. 
 
 ## Notes
 On startup:

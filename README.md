@@ -16,6 +16,7 @@ brew install protobuf
 |-------|----------------------------------------------------------------------------------------------------------------------------|
 | tasks | Displays the list of available sbt tasks.                                                                                  |
 | test  | Compiles the project and runs the tests.                                                                                   |
+| test:test-only *TestClassName  | Only runs a specific test.                                                                        |
 | cov   | Compiles the project, runs the tests, generates the code coverage metric and then opens the report in the default browser. |
 | doc   | Generates the Scaladoc site.                                                                                               |
 
@@ -29,3 +30,5 @@ brew install protobuf
 * [Scala Doc](http://docs.scala-lang.org/style/scaladoc.html)
 * [Scala Code Coverage](https://github.com/scoverage/sbt-scoverage)
 * [Google Protocol Buffers](https://developers.google.com/protocol-buffers/)
+* [TypeSafe Configuration](https://github.com/typesafehub/config)
+* [I Am Done](https://github.com/imdone/imdone-core#metadata)
