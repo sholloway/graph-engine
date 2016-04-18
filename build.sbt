@@ -8,7 +8,8 @@ scalacOptions ++= Seq("" +
   "-unchecked",
   "-feature",
   "-deprecation",
-  "-encoding", "UTF-8")
+  "-encoding", "UTF-8",
+	"-language","postfixOps")
 
 import sbtassembly.AssemblyPlugin._
 lazy val sbtAssemblySettings = Seq(

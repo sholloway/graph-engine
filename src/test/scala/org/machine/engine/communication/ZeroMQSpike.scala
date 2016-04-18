@@ -9,7 +9,6 @@ import akka.actor.{Actor, Props}
 import akka.pattern.gracefulStop
 import scala.concurrent.{Await, Future}
 import scala.concurrent.duration._
-import scala.language.postfixOps
 
 import org.zeromq.ZMQ
 import org.zeromq.ZMQ.{Context, Socket}
@@ -25,18 +24,31 @@ class ZeroMQSpike extends TestKit(ActorSystem("ZeroMQSpec")) with ImplicitSender
 
   describe("0MQ Communication"){
     /*
-    Get the test working with just sending ping/pong messages, then Refactor
-    to use protobuf.
+    Steps:
+    1. Get the test working with just sending ping/pong messages.
+    2. Fix timing error with shutting down the actor.
+    3. Refactor to use protobuf.
     */
     it ("should do stuff"){
-      val listener = system.actorOf(Props[InboundListenerActor])
-      listener ! "start"
-      listener ! "listen"
+      val listener = system.actorOf(Props[ImprovedInboundListenerActor])
+      //how do we know that the listener is now up and running?
+
+      listener ! CheckForMessages
       Client.connect
-      val msgResponse = Client.sendMsg("Hi")
-      msgResponse should equal("pong")
+      Client.sendMsg("Message 1") should equal("pong")
+      Client.sendMsg("Message 2") should equal("pong")
+      Client.sendMsg("Message 3") should equal("pong")
+      Client.sendMsg("Message 4") should equal("pong")
+      Client.sendMsg("Message 5") should equal("pong")
+
+      Thread.sleep(1000)
+
+      Client.sendMsg("Message 6") should equal("pong")
+      Client.sendMsg("Message 7") should equal("pong")
+      Client.sendMsg("Message 8") should equal("pong")
+
       try {
-        val stopped: Future[Boolean] = gracefulStop(listener, 5 seconds, "stop")
+        val stopped: Future[Boolean] = gracefulStop(listener, 5 seconds, ShutDown)
         Await.result(stopped, 6 seconds)
         // the actor has been stopped
       } catch {
