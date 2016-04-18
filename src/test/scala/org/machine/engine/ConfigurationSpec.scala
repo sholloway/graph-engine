@@ -7,6 +7,6 @@ import com.typesafe.config._
 class ConfigurationSpec extends FunSpec with Matchers{
   it ("should load application.conf"){
      val config = ConfigFactory.load() //should load application.conf
-     config.getString("foo.bar") should equal("blah")
+     config.getString("engine.communication.inbound.transport") should equal("tcp")
   }
 }

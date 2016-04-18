@@ -61,7 +61,7 @@ class ZeroMQSpike extends TestKit(ActorSystem("ZeroMQSpec")) with ImplicitSender
 object Client{
   var context: Context = null
   var socket: Socket = null
-  val port:Int = 5150 //TODO: this needs to be in the configuration file and not hard coded.
+  val port:Int = 5150
   val transport:String = "tcp"
   val host = "localhost"
 
