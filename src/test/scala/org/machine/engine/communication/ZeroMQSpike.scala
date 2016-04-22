@@ -5,7 +5,7 @@ import org.scalatest.mock._
 
 import akka.actor.ActorSystem
 import akka.testkit.{ TestActors, TestKit, ImplicitSender }
-import akka.actor.{Actor, Props}
+import akka.actor.{Actor, Props, PoisonPill}
 import akka.pattern.gracefulStop
 import scala.concurrent.{Await, Future}
 import scala.concurrent.duration._
@@ -29,8 +29,9 @@ class ZeroMQSpike extends TestKit(ActorSystem("ZeroMQSpec")) with ImplicitSender
     2. Fix timing error with shutting down the actor.
     3. Refactor to use protobuf.
     */
-    it ("should do stuff"){
-      val listener = system.actorOf(Props[ImprovedInboundListenerActor])
+    ignore("should do stuff"){
+      val listener = system.actorOf(Props[ImprovedInboundListenerActor], "inboundChannelListener")
+      // val listener = system.actorOf(Props[InboundListenerActor], "inboundChannelListener")
       //how do we know that the listener is now up and running?
 
       listener ! CheckForMessages
@@ -52,17 +53,23 @@ class ZeroMQSpike extends TestKit(ActorSystem("ZeroMQSpec")) with ImplicitSender
         Await.result(stopped, 6 seconds)
         // the actor has been stopped
       } catch {
-        case e: akka.pattern.AskTimeoutException => fail("the actor wasn't stopped within 5 seconds")
+        case e: akka.pattern.AskTimeoutException => {
+          listener ! PoisonPill
+          fail("the actor wasn't stopped within 5 seconds")
+        }
       }
     }
   }
 }
 
+import com.typesafe.config._
 object Client{
   var context: Context = null
   var socket: Socket = null
-  val port:Int = 5150
-  val transport:String = "tcp"
+  val config = ConfigFactory.load()
+
+  val port:Int = config.getInt("engine.communication.inbound.port")
+  val transport:String = config.getString("engine.communication.inbound.transport")
   val host = "localhost"
 
   def connect: Unit = {
@@ -73,8 +80,8 @@ object Client{
   }
 
   def sendMsg(msg: String):String = {
-    Console.println("Client.sendMsg")
-    if (socket == null){ // TODO: I would like to verify that the connection is established.
+    // Console.println("Client.sendMsg")
+    if (socket == null){ // #TODO:30 I would like to verify that the connection is established.
       connect
     }
 

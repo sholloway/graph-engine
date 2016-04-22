@@ -21,8 +21,8 @@ class ListDataSets(database: GraphDatabaseService,
 
   def execute():List[DataSet] = {
     logger.debug("ListDataSets: Executing Command")
-    //TODO: Currently this only returns ElementDefinitions that have associated PropertyDefinitions.
-    //TODO: Return creation_time & last_modified_time
+    //#TODO:20 Currently this only returns ElementDefinitions that have associated PropertyDefinitions.
+    //#TODO:90 Return creation_time & last_modified_time
     val findDataSets = """
       |match (ss:space)-[:contains]->(ds:internal_data_set)
       |return ds.mid as id,

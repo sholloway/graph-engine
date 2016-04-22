@@ -22,8 +22,8 @@ class ListAllElementDefinitions(database: GraphDatabaseService,
   def execute():List[ElementDefinition] = {
     logger.debug("ListAllElementDefintions: Executing Command")
     val scope = buildScope(cmdScope, cmdOptions)
-    //TODO: Currently this only returns ElementDefinitions that have associated PropertyDefinitions.
-    //TODO: Return creation_time & last_modified_time
+    //#TODO:10 Currently this only returns ElementDefinitions that have associated PropertyDefinitions.
+    //#TODO:80 Return creation_time & last_modified_time
     val findDefinedElements = """
       |match (ss:space)-[:exists_in]->(ed:element_definition)-[:composed_of]->(pd:property_definition)
       |return ed.mid as elementId,

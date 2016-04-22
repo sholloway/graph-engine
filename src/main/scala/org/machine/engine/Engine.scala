@@ -49,7 +49,7 @@ class Engine(dbPath:String) extends GraphDSL with LazyLogging{
 
   def shutdown(){
     logger.debug("Engine: Shutting Down")
-    //TODO: Register the Neo4J shutdown with the JVM shutdown like in the example.
+    //#TODO:70 Register the Neo4J shutdown with the JVM shutdown like in the example.
     database.shutdown()
   }
 
