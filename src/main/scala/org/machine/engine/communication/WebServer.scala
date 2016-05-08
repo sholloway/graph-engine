@@ -47,6 +47,8 @@ Next Steps:
 Current Resources
 http://www.smartjava.org/content/create-reactive-websocket-server-akka-streams
 http://www.smartjava.org/content/backpressure-action-websockets-and-akka-streams
+https://stackoverflow.com/questions/36242183/how-to-implement-a-simple-tcp-protocol-using-akka-streams
+https://stackoverflow.com/questions/35120082/how-to-get-started-with-akka-streams
 
 ##Cheatsheet###################################################################
 Stream
