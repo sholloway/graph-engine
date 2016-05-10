@@ -9,7 +9,7 @@ import akka.testkit.{ TestActors, TestKit, ImplicitSender }
 
 import scala.concurrent.{ExecutionContext, Future}
 import akka.stream.{ActorMaterializer, FlowShape, Inlet, Outlet, SourceShape}
-import akka.stream.scaladsl.{Flow, GraphDSL, Keep, Merge, RunnableGraph, Source, Sink}
+import akka.stream.scaladsl.{Flow, GraphDSL, Keep, Merge, MergePreferred, RunnableGraph, Source, Sink}
 
 import org.machine.engine.graph.Neo4JHelper
 
@@ -112,12 +112,16 @@ class AkkaStreamSpike extends TestKit(ActorSystem("AkkaStreamSpike")) with Impli
 
       val graph = GraphDSL.create(){ implicit builder: GraphDSL.Builder[akka.NotUsed] =>
         import GraphDSL.Implicits._
-        val anotherSource = Source(List(17,22,1772, 234, 19))
-        val merge = builder.add(Merge[Int](2)) //MergePreferred
-        val enrich:FlowShape[Int, Enrichment]= builder.add(Flow.fromFunction(process))
+        val anotherSource                     = Source(List(17,22,1772, 234, 19))
+        // val merge                             = builder.add(Merge[Int](2)) //MergePreferred
+        val merge                             = builder.add(MergePreferred[Int](1)) //MergePreferred
+        val enrich:FlowShape[Int, Enrichment] = builder.add(Flow.fromFunction(process))
 
-        anotherSource ~> merge.in(1)
+        // anotherSource ~> merge.in(1) //for Merge
+        anotherSource ~> merge.preferred //for MergePreferred
                          merge ~> enrich
+
+      //  anotherSource ~> merge ~> enrich
 
         FlowShape(merge.in(0), enrich.out)
       }.named("partialGraph")
@@ -130,7 +134,7 @@ class AkkaStreamSpike extends TestKit(ActorSystem("AkkaStreamSpike")) with Impli
       result.onSuccess{
         case r => {
           r should have length(14)
-          //r.foreach(i => Console.println(i))
+          // r.foreach(i => Console.println(i))
         }
       }
     }
