@@ -27,12 +27,12 @@ class CoreFlowSpec extends TestKit(ActorSystem("CoreFlowSpec")) with ImplicitSen
       implicit val materializer = ActorMaterializer()
       implicit val ec: ExecutionContext = scala.concurrent.ExecutionContext.Implicits.global
 
-      val clientSource = Source(requests().toList) //Source.fromIterable?
-      val sink = Sink.seq[CoreFlow.CmdResponse]
-      val runnable: RunnableGraph[Future[Seq[CoreFlow.CmdResponse]]] =
+      val clientSource = Source(requests().toList)
+      val sink = Sink.seq[CoreFlow.EngineMessage]
+      val runnable: RunnableGraph[Future[Seq[CoreFlow.EngineMessage]]] =
         clientSource.via(CoreFlow.flow).toMat(sink)(Keep.right)
 
-      val result: Future[Seq[CoreFlow.CmdResponse]] = runnable.run()
+      val result: Future[Seq[CoreFlow.EngineMessage]] = runnable.run()
 
       result.onSuccess{
         case r => {
@@ -42,8 +42,9 @@ class CoreFlowSpec extends TestKit(ActorSystem("CoreFlowSpec")) with ImplicitSen
       }
     }
 
-    def requests():Seq[CoreFlow.CmdRequest] = {
-      Vector(CoreFlow.CmdRequest("A"), CoreFlow.CmdRequest("B"))
+    def requests():Seq[CoreFlow.ClientMessageBase] = {
+      Vector(new CoreFlow.ClientMessageBase("A"),
+        new CoreFlow.ClientMessageBase("B"))
     }
   }
 }
