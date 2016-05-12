@@ -37,7 +37,7 @@ class CoreFlowSpec extends TestKit(ActorSystem("CoreFlowSpec")) with ImplicitSen
       result.onSuccess{
         case r => {
           r should have length(2)
-          r.foreach(i => Console.println(i))
+          // r.foreach(i => Console.println(i))
         }
       }
     }

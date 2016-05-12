@@ -6,7 +6,7 @@ import akka.actor.ActorSystem
 
 import scala.concurrent.{ExecutionContext, Future}
 import akka.stream.{ActorMaterializer, FlowShape, Inlet, Outlet, SourceShape}
-import akka.stream.scaladsl.{Flow, GraphDSL, Keep, Merge, MergePreferred, RunnableGraph, Source, Sink}
+import akka.stream.scaladsl.{Broadcast, Flow, GraphDSL, Keep, Merge, MergePreferred, RunnableGraph, Source, Sink}
 
 import org.machine.engine.graph.Neo4JHelper
 
@@ -14,14 +14,16 @@ object CoreFlow{
   def flow:Flow[ClientMessage, EngineMessage, NotUsed] = {
     val graph = GraphDSL.create(){ implicit builder: GraphDSL.Builder[NotUsed] =>
       import GraphDSL.Implicits._
-      val addUUID = builder.add(Flow.fromFunction[ClientMessage, EngineCapsule](enrichWithUUID))
-      // val broadcastUUID     = builder.add(Broadcast[EngineCapsule](2))
-      // val log               = builder.add(Flow[EngineCapsule].map[Int](x => {println(x); x}))
-      val capsuleToResponse     = builder.add(Flow.fromFunction[EngineCapsule, EngineMessage](transfromCapToMsg))
+      val addUUID           = builder.add(Flow.fromFunction[ClientMessage, EngineCapsule](enrichWithUUID))
+      val broadcastUUID     = builder.add(Broadcast[EngineCapsule](2))
+      val deserialize       = builder.add(Flow.fromFunction[EngineCapsule, EngineCapsule](deserializeRequest))
+      val logCapsule        = builder.add(Flow[EngineCapsule].map[EngineCapsule](c => {println(c); c}))
+      val capsuleToResponse = builder.add(Flow.fromFunction[EngineCapsule, EngineMessage](transfromCapToMsg))
       val responseMerge     = builder.add(Merge[EngineMessage](1))
+      val deadend           = builder.add(Sink.ignore)
 
-      addUUID ~> capsuleToResponse ~> responseMerge
-      // requestEnrichment ~> broadcastUUID ~> reqToResponse ~> responseMerge
+                 broadcastUUID ~> deserialize~> logCapsule ~> deadend
+      addUUID ~> broadcastUUID ~> capsuleToResponse ~> responseMerge
 
       FlowShape(addUUID.in, responseMerge.out)
     }.named("core-flow")
@@ -39,12 +41,22 @@ object CoreFlow{
     )
   }
 
-  private def transfromCapToMsg(request: EngineCapsule):EngineMessage = {
+  private def transfromCapToMsg(capsule: EngineCapsule):EngineMessage = {
     return new EngineMessageBase(
-      request.id,
-      request.status.name,
-      request.message.payload /*NOTE: This is just for the moment.*/
+      capsule.id,
+      capsule.status.name,
+      capsule.message.payload /*NOTE: This is just for the moment.*/
     )
+  }
+
+  private def deserializeRequest(capsule:EngineCapsule):EngineCapsule = {
+    /*Note:
+    This will be responsible for deserialzing the client's message.
+    That means conversion based JSON or Protobuf.
+    For right now, just pass the original text message.
+    */
+    val deserializedMsg = capsule.message.payload
+    return capsule.enrich("deserializedMsg", deserializedMsg, Some("deserializeRequest"))
   }
 
   /**
@@ -74,7 +86,7 @@ object CoreFlow{
     /**
     Returns a deep copy of the capsule with a new attributed added.
     */
-    def enrich(key: String, value:Any):EngineCapsule
+    def enrich(key: String, value:Any, audit: Option[String] = None):EngineCapsule
 
     /**
     The associated attributes on the capsule.
@@ -102,6 +114,27 @@ object CoreFlow{
     type IV UUID.
     */
     def id: String
+
+    override def toString:String = {
+      var msg: String = null.asInstanceOf[String]
+      if (status == EngineCapsuleStatuses.Error){
+        msg = s"""
+        |ID: $id Status: $status
+        |Error Message
+        |${errorMessage.getOrElse("")}
+        """.stripMargin
+      }else{
+        var itr = 0
+        msg = s"""
+        |ID: $id Status: $status
+        |Audit Trail:
+        |${auditTrail.map(i => {itr+=1; s"$itr: "+i;}).mkString(" ")}
+        |Attributes:
+        |${attributes.keys.mkString(" ")}
+        """.stripMargin
+      }
+      return msg
+    }
   }
 
   /**
@@ -149,10 +182,12 @@ object CoreFlow{
     val message: ClientMessage,
     val id: String
   ) extends EngineCapsule{
-    def enrich(key: String, value:Any):EngineCapsule = {
+    def enrich(key: String, value:Any, audit: Option[String] = None):EngineCapsule = {
       val newAtts = attributes.+(key -> value)
+      val mutableAudit = auditTrail.toBuffer
+      audit.foreach(stop => mutableAudit += stop)
       return new EngineCapsuleBase(
-        auditTrail,
+        mutableAudit.toSeq,
         newAtts,
         status,
         errorMessage,
