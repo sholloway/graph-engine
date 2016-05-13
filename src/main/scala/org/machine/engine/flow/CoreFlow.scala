@@ -5,25 +5,53 @@ import akka.actor.ActorSystem
 // import akka.actor.{Actor, Props}
 
 import scala.concurrent.{ExecutionContext, Future}
+import scala.util.Random
+
 import akka.stream.{ActorMaterializer, FlowShape, Inlet, Outlet, SourceShape}
-import akka.stream.scaladsl.{Broadcast, Flow, GraphDSL, Keep, Merge, MergePreferred, RunnableGraph, Source, Sink}
+import akka.stream.scaladsl.{Broadcast, Flow, GraphDSL, Keep, Merge, MergePreferred, Partition, RunnableGraph, Source, Sink}
 
 import org.machine.engine.graph.Neo4JHelper
 
 object CoreFlow{
   def flow:Flow[ClientMessage, EngineMessage, NotUsed] = {
-    val graph = GraphDSL.create(){ implicit builder: GraphDSL.Builder[NotUsed] =>
+    val graph = GraphDSL.create(){ implicit b: GraphDSL.Builder[NotUsed] =>
       import GraphDSL.Implicits._
-      val addUUID           = builder.add(Flow.fromFunction[ClientMessage, EngineCapsule](enrichWithUUID))
-      val broadcastUUID     = builder.add(Broadcast[EngineCapsule](2))
-      val deserialize       = builder.add(Flow.fromFunction[EngineCapsule, EngineCapsule](deserializeRequest))
-      val logCapsule        = builder.add(Flow[EngineCapsule].map[EngineCapsule](c => {println(c); c}))
-      val capsuleToResponse = builder.add(Flow.fromFunction[EngineCapsule, EngineMessage](transfromCapToMsg))
-      val responseMerge     = builder.add(Merge[EngineMessage](1))
-      val deadend           = builder.add(Sink.ignore)
+      import scala.util.Random
+      implicit val rng = new Random(123)
+      val addUUID              = b.add(Flow.fromFunction[ClientMessage, EngineCapsule](enrichWithUUID))
+      val broadcastUUID        = b.add(Broadcast[EngineCapsule](2))
+      val deserialize          = b.add(Flow.fromFunction[EngineCapsule, EngineCapsule](deserializeRequest))
+      val logOks               = b.add(Flow[EngineCapsule].map[EngineCapsule](c => {println(c); c}))
+      val logErrors            = b.add(Flow[EngineCapsule].map[EngineCapsule](c => {println(c); c}))
+      val validateClientMsgMap = b.add(Flow.fromFunction[EngineCapsule, EngineCapsule](validateClientMsg))
+      val partitionByStatus    = b.add(Partition[EngineCapsule](2, capsule => partByStatus(capsule)))
+      val errAndUUIDMerge      = b.add(Merge[EngineCapsule](2))
+      val capsuleToResponse    = b.add(Flow.fromFunction[EngineCapsule, EngineMessage](transfromCapToMsg))
+      val responseMerge        = b.add(Merge[EngineMessage](1))
+      val deadend              = b.add(Sink.ignore)
 
-                 broadcastUUID ~> deserialize~> logCapsule ~> deadend
-      addUUID ~> broadcastUUID ~> capsuleToResponse ~> responseMerge
+      /*
+      Things that occure in parallel need to have the async function called on them.
+      The things after broadcast for example...
+      http://doc.akka.io/docs/akka/2.4.4/scala/stream/stream-parallelism.html
+
+      Branching Thoughts:
+      - Use Flow.unzipWith
+      - Use Partition Stage
+        https://github.com/akka/akka/blob/78b88c419d26caf62e4a91bc1d4f2837a12c543a/akka-stream-tests/src/test/scala/akka/stream/scaladsl/GraphPartitionSpec.scala
+        With this approach, the graph will need to be:
+        validate ~> partition ~> A
+                    partition ~> B
+      - Use combination of broadcast and mutially exclusive filters.
+        https://groups.google.com/forum/#!topic/akka-user/b4xL1iU9QHU
+      */
+
+      addUUID ~> broadcastUUID.in
+                 broadcastUUID.out(0) ~> deserialize ~> validateClientMsgMap ~> partitionByStatus.in
+                                                                                partitionByStatus.out(0) ~> logOks ~> deadend //OK Messages
+                                                                                partitionByStatus.out(1) ~> logErrors ~> errAndUUIDMerge.in(0) //Errors
+                 broadcastUUID.out(1) ~>                                                                    errAndUUIDMerge.in(1)
+                                                                                                            errAndUUIDMerge.out ~> capsuleToResponse ~> responseMerge
 
       FlowShape(addUUID.in, responseMerge.out)
     }.named("core-flow")
@@ -49,14 +77,30 @@ object CoreFlow{
     )
   }
 
-  private def deserializeRequest(capsule:EngineCapsule):EngineCapsule = {
-    /*Note:
-    This will be responsible for deserialzing the client's message.
-    That means conversion based JSON or Protobuf.
-    For right now, just pass the original text message.
-    */
+  /*Note:
+  This will be responsible for deserialzing the client's message.
+  That means conversion based JSON or Protobuf.
+  For right now, just pass the original text message.
+  */
+  private def deserializeRequest(capsule: EngineCapsule):EngineCapsule = {
     val deserializedMsg = capsule.message.payload
     return capsule.enrich("deserializedMsg", deserializedMsg, Some("deserializeRequest"))
+  }
+
+  /*
+  For now just randomly fail a message.
+  Expects implicit rng = new Random(...)
+  */
+  private def validateClientMsg(capsule: EngineCapsule)(implicit rng:Random):EngineCapsule = {
+    val newStatus = if (rng.nextBoolean) EngineCapsuleStatuses.Ok else EngineCapsuleStatuses.Error
+    return capsule.setStatus(newStatus)
+  }
+
+  private def partByStatus(capsule: EngineCapsule):Int = {
+    return capsule.status match {
+      case EngineCapsuleStatuses.Ok => 0
+      case EngineCapsuleStatuses.Error => 1
+    }
   }
 
   /**
@@ -97,6 +141,11 @@ object CoreFlow{
     The current status of the capsule.
     */
     def status: EngineCapsuleStatus
+
+    /**
+    Return a deep copy of the capsule with the status set to the new value.
+    */
+    def setStatus(newStatus: EngineCapsuleStatus):EngineCapsule
 
     /**
     Optional associated error message. Only relevent if
@@ -201,6 +250,17 @@ object CoreFlow{
         stops,
         attributes,
         status,
+        errorMessage,
+        message,
+        id
+      )
+    }
+
+    def setStatus(newStatus: EngineCapsuleStatus):EngineCapsule = {
+      return new EngineCapsuleBase(
+        auditTrail,
+        attributes,
+        newStatus,
         errorMessage,
         message,
         id

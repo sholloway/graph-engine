@@ -36,7 +36,7 @@ class CoreFlowSpec extends TestKit(ActorSystem("CoreFlowSpec")) with ImplicitSen
 
       result.onSuccess{
         case r => {
-          r should have length(2)
+          r.length should be > 11
           // r.foreach(i => Console.println(i))
         }
       }
@@ -44,7 +44,17 @@ class CoreFlowSpec extends TestKit(ActorSystem("CoreFlowSpec")) with ImplicitSen
 
     def requests():Seq[CoreFlow.ClientMessageBase] = {
       Vector(new CoreFlow.ClientMessageBase("A"),
-        new CoreFlow.ClientMessageBase("B"))
+        new CoreFlow.ClientMessageBase("B"),
+        new CoreFlow.ClientMessageBase("C"),
+        new CoreFlow.ClientMessageBase("D"),
+        new CoreFlow.ClientMessageBase("E"),
+        new CoreFlow.ClientMessageBase("F"),
+        new CoreFlow.ClientMessageBase("G"),
+        new CoreFlow.ClientMessageBase("H"),
+        new CoreFlow.ClientMessageBase("I"),
+        new CoreFlow.ClientMessageBase("J"),
+        new CoreFlow.ClientMessageBase("K")
+      )
     }
   }
 }
