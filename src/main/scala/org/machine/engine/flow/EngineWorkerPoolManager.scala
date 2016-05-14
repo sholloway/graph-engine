@@ -4,7 +4,8 @@ object EngineWorkerPoolManager{
   def execute(capsule: EngineCapsule):EngineMessage ={
     return new EngineMessageBase(
       capsule.id,
-      EngineCapsuleStatuses.Processed.name,
+      EngineCapsuleStatuses.Ok.name,
+      EngineMessageTypes.CmdResult.name,
       capsule.message.payload /*NOTE: This is just for the moment.*/
     )
   }

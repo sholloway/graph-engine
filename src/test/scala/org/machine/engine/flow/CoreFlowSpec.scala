@@ -23,6 +23,11 @@ class CoreFlowSpec extends TestKit(ActorSystem("CoreFlowSpec")) with ImplicitSen
   }
 
   describe("Core Engine Flow"){
+
+    /*
+    TODO: Change status to be Ok, Error
+    TODO: Add response type Receipt, Processed
+    */
     it("should respond to all requests with a UUID"){
       implicit val materializer = ActorMaterializer()
       implicit val ec: ExecutionContext = scala.concurrent.ExecutionContext.Implicits.global
@@ -36,10 +41,14 @@ class CoreFlowSpec extends TestKit(ActorSystem("CoreFlowSpec")) with ImplicitSen
 
       result.onSuccess{
         case r => {
-          val results        = r.groupBy(_.status)
-          val receiptsCount  = results("Ok").length
-          val processedCount = results("Processed").length
-          val errorCount     = results("Error").length
+          val statusResults        = r.groupBy(_.status) //Ok & Error
+          val receiptsAndProcessed = statusResults("Ok").groupBy(_.messageType) //Receipt & CmdResult
+
+          val receiptsCount  = receiptsAndProcessed("Receipt").length
+          receiptsCount should equal(11)
+
+          val processedCount = receiptsAndProcessed("CmdResult").length
+          val errorCount     = statusResults("Error").length
           receiptsCount should equal(processedCount+errorCount)
         }
       }
