@@ -36,8 +36,11 @@ class CoreFlowSpec extends TestKit(ActorSystem("CoreFlowSpec")) with ImplicitSen
 
       result.onSuccess{
         case r => {
-          r.length should be > 11
-          // r.foreach(i => Console.println(i))
+          val results        = r.groupBy(_.status)
+          val receiptsCount  = results("Ok").length
+          val processedCount = results("Processed").length
+          val errorCount     = results("Error").length
+          receiptsCount should equal(processedCount+errorCount)
         }
       }
     }

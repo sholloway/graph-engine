@@ -21,39 +21,32 @@ object CoreFlow{
       val addUUID              = b.add(Flow.fromFunction[ClientMessage, EngineCapsule](enrichWithUUID))
       val broadcastUUID        = b.add(Broadcast[EngineCapsule](2))
       val deserialize          = b.add(Flow.fromFunction[EngineCapsule, EngineCapsule](deserializeRequest))
-      val logOks               = b.add(Flow[EngineCapsule].map[EngineCapsule](c => {println(c); c}))
-      val logErrors            = b.add(Flow[EngineCapsule].map[EngineCapsule](c => {println(c); c}))
+      // val logOks               = b.add(Flow[EngineCapsule].map[EngineCapsule](c => {println(c); c}))
+      // val logErrors            = b.add(Flow[EngineCapsule].map[EngineCapsule](c => {println(c); c}))
       val validateClientMsgMap = b.add(Flow.fromFunction[EngineCapsule, EngineCapsule](validateClientMsg))
       val partitionByStatus    = b.add(Partition[EngineCapsule](2, capsule => partByStatus(capsule)))
-      val errAndUUIDMerge      = b.add(Merge[EngineCapsule](2))
+      val errAndReceiptMerge   = b.add(Merge[EngineCapsule](2))
       val capsuleToResponse    = b.add(Flow.fromFunction[EngineCapsule, EngineMessage](transfromCapToMsg))
-      val responseMerge        = b.add(Merge[EngineMessage](1))
-      val deadend              = b.add(Sink.ignore)
+
+      val executeCmd           = b.add(Flow.fromFunction[EngineCapsule, EngineMessage](executeCmdPoolFlow))
+
+      val engineMsgMerge       = b.add(Merge[EngineMessage](2))
+      // val deadend              = b.add(Sink.ignore)
 
       /*
       Things that occure in parallel need to have the async function called on them.
       The things after broadcast for example...
       http://doc.akka.io/docs/akka/2.4.4/scala/stream/stream-parallelism.html
-
-      Branching Thoughts:
-      - Use Flow.unzipWith
-      - Use Partition Stage
-        https://github.com/akka/akka/blob/78b88c419d26caf62e4a91bc1d4f2837a12c543a/akka-stream-tests/src/test/scala/akka/stream/scaladsl/GraphPartitionSpec.scala
-        With this approach, the graph will need to be:
-        validate ~> partition ~> A
-                    partition ~> B
-      - Use combination of broadcast and mutially exclusive filters.
-        https://groups.google.com/forum/#!topic/akka-user/b4xL1iU9QHU
       */
 
       addUUID ~> broadcastUUID.in
                  broadcastUUID.out(0) ~> deserialize ~> validateClientMsgMap ~> partitionByStatus.in
-                                                                                partitionByStatus.out(0) ~> logOks ~> deadend //OK Messages
-                                                                                partitionByStatus.out(1) ~> logErrors ~> errAndUUIDMerge.in(0) //Errors
-                 broadcastUUID.out(1) ~>                                                                    errAndUUIDMerge.in(1)
-                                                                                                            errAndUUIDMerge.out ~> capsuleToResponse ~> responseMerge
+                                                                                partitionByStatus.out(0) ~> executeCmd ~> engineMsgMerge.in(0)
+                                                                                partitionByStatus.out(1) ~> errAndReceiptMerge.in(0)
+                 broadcastUUID.out(1) ~>                                                                    errAndReceiptMerge.in(1)
+                                                                                                            errAndReceiptMerge.out ~> capsuleToResponse ~> engineMsgMerge.in(1)
 
-      FlowShape(addUUID.in, responseMerge.out)
+      FlowShape(addUUID.in, engineMsgMerge.out)
     }.named("core-flow")
     return Flow.fromGraph(graph);
   }
@@ -100,7 +93,16 @@ object CoreFlow{
     return capsule.status match {
       case EngineCapsuleStatuses.Ok => 0
       case EngineCapsuleStatuses.Error => 1
+      case _ => 1
     }
+  }
+
+  private def executeCmdPoolFlow(capsule: EngineCapsule):EngineMessage ={
+    return new EngineMessageBase(
+      capsule.id,
+      EngineCapsuleStatuses.Processed.name,
+      capsule.message.payload /*NOTE: This is just for the moment.*/
+    )
   }
 
   /**
@@ -218,6 +220,7 @@ object CoreFlow{
   object EngineCapsuleStatuses{
       case object Ok extends EngineCapsuleStatus{ val name = "Ok"}
       case object Error extends EngineCapsuleStatus{ val name = "Error"}
+      case object Processed extends EngineCapsuleStatus{ val name = "Processed"}
   }
 
   /**
