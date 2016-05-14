@@ -17,10 +17,11 @@ object WebSocketFlow{
       val partitionByMsgType = b.add(Partition[Message](2, msg => partition(msg)))
 
       val msgToClientMsg    = b.add(Flow.fromFunction[Message, ClientMessage](transform))
-      val clientMsgToEngMsg = b.add(Flow.fromFunction[ClientMessage, EngineMessage](transform2))
+      // val clientMsgToEngMsg = b.add(Flow.fromFunction[ClientMessage, EngineMessage](transform2))
+      val coreFlow          = b.add(CoreFlow.flow)
       val engMsgToTxtMsg    = b.add(Flow.fromFunction[EngineMessage, Message](transform3))
 
-      partitionByMsgType.out(0) ~> msgToClientMsg ~> clientMsgToEngMsg ~> engMsgToTxtMsg
+      partitionByMsgType.out(0) ~> msgToClientMsg ~> coreFlow ~> engMsgToTxtMsg
       partitionByMsgType.out(1) ~> deadend
 
       FlowShape(partitionByMsgType.in, engMsgToTxtMsg.out)
