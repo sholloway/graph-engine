@@ -4,12 +4,15 @@ import akka.actor.ActorSystem
 import akka.http.scaladsl.Http
 import akka.http.scaladsl.model.HttpMethods._
 import akka.http.scaladsl.model._
-import akka.http.scaladsl.model.ws.{Message,BinaryMessage, TextMessage, UpgradeToWebSocket}
+// import akka.http.javadsl.model.ws.{Message, BinaryMessage, TextMessage, UpgradeToWebSocket}
+import akka.http.scaladsl.model.ws.{Message, BinaryMessage, TextMessage, UpgradeToWebSocket}
 import akka.stream.{ActorMaterializer, Graph, FlowShape}
 import akka.stream.scaladsl.{Flow, Sink, Source}
 
 import scala.io.StdIn
 import scala.collection.JavaConversions._
+
+import org.machine.engine.flow.{WebSocketFlow}
 
 /*
 TODO:
@@ -169,7 +172,13 @@ class WebServer {
 
     val relativePath = req.uri.toRelative.toString
     relativePath match {
-      case "/ws" => upgradeReqHeader.handleMessages(inboundStreamGraph(), topLevelProtocolOption)
+      /*
+      NOTE: <ight need to pivot design to leverage
+      def handleMessagesWithSinkSource(inSink: Graph[SinkShape[Message], Any],
+        outSource: Graph[SourceShape[Message], Any], subprotocol: Option[String] = None): HttpResponse
+      */
+      // case "/ws" => upgradeReqHeader.handleMessages(inboundStreamGraph(), topLevelProtocolOption)
+      case "/ws" => upgradeReqHeader.handleMessages(WebSocketFlow.flow, topLevelProtocolOption)
       case "/ws/ping" => upgradeReqHeader.handleMessages(echo, topLevelProtocolOption)
     }
 
@@ -215,6 +224,10 @@ class WebServer {
         }
       }
    }
+
+  // private def inboundStreamGraph(): Graph[FlowShape[Message, Message], Any] = {
+  //   WebSocketFlow.flow
+  // }
 
    //Simply return the message received.
    private def echo:Graph[FlowShape[Message, Message], Any] = Flow[Message]

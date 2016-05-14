@@ -14,7 +14,6 @@ object CoreFlow{
   def flow:Flow[ClientMessage, EngineMessage, NotUsed] = {
     val graph = GraphDSL.create(){ implicit b: GraphDSL.Builder[NotUsed] =>
       import GraphDSL.Implicits._
-      import scala.util.Random
       implicit val rng = new Random(123)
 
       // val logOks               = b.add(Flow[EngineCapsule].map[EngineCapsule](c => {println(c); c}))

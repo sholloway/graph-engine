@@ -5,13 +5,10 @@ import org.scalatest.mock._
 
 import akka.actor.ActorSystem
 import akka.testkit.{ TestActors, TestKit, ImplicitSender }
-// import akka.actor.{Actor, Props}
 
 import scala.concurrent.{ExecutionContext, Future}
 import akka.stream.{ActorMaterializer, FlowShape, Inlet, Outlet, SourceShape}
 import akka.stream.scaladsl.{Flow, GraphDSL, Keep, Merge, MergePreferred, RunnableGraph, Source, Sink}
-
-import org.machine.engine.graph.Neo4JHelper
 
 class CoreFlowSpec extends TestKit(ActorSystem("CoreFlowSpec")) with ImplicitSender
   with FunSpecLike with Matchers with BeforeAndAfterAll{
