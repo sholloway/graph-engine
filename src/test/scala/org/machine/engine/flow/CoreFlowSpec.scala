@@ -28,11 +28,11 @@ class CoreFlowSpec extends TestKit(ActorSystem("CoreFlowSpec")) with ImplicitSen
       implicit val ec: ExecutionContext = scala.concurrent.ExecutionContext.Implicits.global
 
       val clientSource = Source(requests().toList)
-      val sink = Sink.seq[CoreFlow.EngineMessage]
-      val runnable: RunnableGraph[Future[Seq[CoreFlow.EngineMessage]]] =
+      val sink = Sink.seq[EngineMessage]
+      val runnable: RunnableGraph[Future[Seq[EngineMessage]]] =
         clientSource.via(CoreFlow.flow).toMat(sink)(Keep.right)
 
-      val result: Future[Seq[CoreFlow.EngineMessage]] = runnable.run()
+      val result: Future[Seq[EngineMessage]] = runnable.run()
 
       result.onSuccess{
         case r => {
@@ -45,18 +45,18 @@ class CoreFlowSpec extends TestKit(ActorSystem("CoreFlowSpec")) with ImplicitSen
       }
     }
 
-    def requests():Seq[CoreFlow.ClientMessageBase] = {
-      Vector(new CoreFlow.ClientMessageBase("A"),
-        new CoreFlow.ClientMessageBase("B"),
-        new CoreFlow.ClientMessageBase("C"),
-        new CoreFlow.ClientMessageBase("D"),
-        new CoreFlow.ClientMessageBase("E"),
-        new CoreFlow.ClientMessageBase("F"),
-        new CoreFlow.ClientMessageBase("G"),
-        new CoreFlow.ClientMessageBase("H"),
-        new CoreFlow.ClientMessageBase("I"),
-        new CoreFlow.ClientMessageBase("J"),
-        new CoreFlow.ClientMessageBase("K")
+    def requests():Seq[ClientMessageBase] = {
+      Vector(new ClientMessageBase("A"),
+        new ClientMessageBase("B"),
+        new ClientMessageBase("C"),
+        new ClientMessageBase("D"),
+        new ClientMessageBase("E"),
+        new ClientMessageBase("F"),
+        new ClientMessageBase("G"),
+        new ClientMessageBase("H"),
+        new ClientMessageBase("I"),
+        new ClientMessageBase("J"),
+        new ClientMessageBase("K")
       )
     }
   }
