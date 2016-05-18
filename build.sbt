@@ -22,6 +22,7 @@ import sbtprotobuf.{ProtobufPlugin=>PB}
 PB.protobufSettings
 
 resolvers += "Typesafe Repository" at "http://repo.typesafe.com/typesafe/releases/"
+resolvers += Resolver.bintrayRepo("commercetools", "maven") //For sphere-json
 libraryDependencies += "com.eed3si9n" % "sbt-assembly" % "0.14.1" from "http://dl.bintray.com/sbt/sbt-plugin-releases/com.eed3si9n/sbt-assembly/scala_2.10/sbt_0.13/0.14.1/jars/sbt-assembly.jar"
 
 //Load everything and set project settings
@@ -42,7 +43,9 @@ libraryDependencies ++= Seq(
 	 "ch.qos.logback" % "logback-classic" % "1.1.7",
 	 "com.typesafe" % "config" % "1.3.0",
 	 "org.zeromq" % "jeromq" % "0.3.5",
-	 "org.neo4j" % "neo4j" % "2.3.2"
+	 "org.neo4j" % "neo4j" % "2.3.3",
+	 "org.neo4j" % "neo4j-slf4j" % "2.3.3",
+	 "net.liftweb" %% "lift-json" % "3.0-RC3"
 )
 
 lazy val displayCoverage = taskKey[Unit]("blah...")

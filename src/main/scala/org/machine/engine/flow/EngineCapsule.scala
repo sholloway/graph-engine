@@ -57,6 +57,7 @@ trait EngineCapsule{
     var msg: String = null.asInstanceOf[String]
     if (status == EngineCapsuleStatuses.Error){
       msg = s"""
+      |EngineCapsule
       |ID: $id Status: $status
       |Error Message
       |${errorMessage.getOrElse("")}
@@ -64,13 +65,75 @@ trait EngineCapsule{
     }else{
       var itr = 0
       msg = s"""
+      |EngineCapsule
       |ID: $id Status: $status
       |Audit Trail:
       |${auditTrail.map(i => {itr+=1; s"$itr: "+i;}).mkString(" ")}
       |Attributes:
-      |${attributes.keys.mkString(" ")}
+      |${attributes.mkString("\n")}
       """.stripMargin
     }
     return msg
+  }
+}
+
+/**
+Base implimentation of the EngineCapsule trait.
+*/
+class EngineCapsuleBase(
+  val auditTrail: Seq[String],
+  val attributes: Map[String, Any],
+  val status: EngineCapsuleStatus,
+  val errorMessage: Option[String],
+  val message: ClientMessage,
+  val id: String
+) extends EngineCapsule{
+  def enrich(key: String, value:Any, audit: Option[String] = None):EngineCapsule = {
+    val newAtts = attributes.+(key -> value)
+    val mutableAudit = auditTrail.toBuffer
+    audit.foreach(stop => mutableAudit += stop)
+    return new EngineCapsuleBase(
+      mutableAudit.toSeq,
+      newAtts,
+      status,
+      errorMessage,
+      message,
+      id)
+  }
+
+  def record(stop: String):EngineCapsule = {
+    val stops = auditTrail:+(stop)
+    return new EngineCapsuleBase(
+      stops,
+      attributes,
+      status,
+      errorMessage,
+      message,
+      id
+    )
+  }
+
+  def setStatus(newStatus: EngineCapsuleStatus):EngineCapsule = {
+    return new EngineCapsuleBase(
+      auditTrail,
+      attributes,
+      newStatus,
+      errorMessage,
+      message,
+      id
+    )
+  }
+}
+
+object EngineCapsule{
+  def apply(msg: ClientMessage, identifier: String):EngineCapsule = {
+    new EngineCapsuleBase(
+      auditTrail = Seq.empty[String],
+      attributes = Map.empty[String, Any],
+      status = EngineCapsuleStatuses.Ok,
+      errorMessage = None,
+      message = msg,
+      id = identifier
+    )
   }
 }

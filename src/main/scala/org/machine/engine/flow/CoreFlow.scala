@@ -27,6 +27,11 @@ object CoreFlow{
       val partitionByStatus    = b.add(Partition[EngineCapsule](2, capsule => PartitionEngineCapsuleByStatus.partition(capsule)))
       val errAndReceiptMerge   = b.add(Merge[EngineCapsule](2))
       val capsuleToResponse    = b.add(Flow.fromFunction[EngineCapsule, EngineMessage](TransformEngineCapsuleToEngineMessage.transfrom))
+
+      /*
+      NOTE: executeCmd will be replaced with a custom balanced worker pool.
+      The workers shall be instances of the flow: GraphCmdWorkerFlow
+      */
       val executeCmd           = b.add(Flow.fromFunction[EngineCapsule, EngineMessage](EngineWorkerPoolManager.execute))
       val engineMsgMerge       = b.add(Merge[EngineMessage](2))
 

@@ -12,8 +12,8 @@ import org.neo4j.io.fs.FileUtils
 import scala.collection.JavaConversions._
 import scala.collection.mutable.{ArrayBuffer, ListBuffer, Map}
 
+import com.typesafe.config._
 import com.typesafe.scalalogging._
-
 
 import org.machine.engine.exceptions._
 import org.machine.engine.graph._
@@ -21,6 +21,21 @@ import org.machine.engine.graph.commands._
 import org.machine.engine.graph.nodes._
 import org.machine.engine.graph.labels._
 import org.machine.engine.graph.internal._
+
+object Engine{
+  /*
+  FIXME Remove test specific databases.
+  There should only be one running database. The database path should be
+  in the config file.
+  */
+  def apply(dbPath:String):Engine = {
+    new Engine(dbPath)
+  }
+
+  private val config = ConfigFactory.load()
+  private val engine = new Engine(config.getString("engine.graphdb.path"))
+  def getInstance: Engine = engine
+}
 
 class Engine(dbPath:String) extends GraphDSL with LazyLogging{
   import Neo4JHelper._
@@ -69,10 +84,20 @@ class Engine(dbPath:String) extends GraphDSL with LazyLogging{
     }
   }
 
+  /*
+  TODO: Configure DB
+  https://stackoverflow.com/questions/13087054/neo4j-log-level-in-embedded-mode
+  Remove Init code from the Engine class. Rather create an Engine object that
+  in it's apply method intialized the database and keeps a reference to the
+  GraphDatabaseService instance. Use the singleton pattern. There should only
+  be one running instance of the GraphDatabaseService.
+  */
   private def initializeDatabase(dbPath: String) = {
     logger.debug("Engine: Initializing Database")
     val dbFile = new File(dbPath)
     val graphDBFactory = new GraphDatabaseFactory()
+    import org.neo4j.logging.slf4j.Slf4jLogProvider
+    graphDBFactory.setUserLogProvider(new Slf4jLogProvider())
     val graphDB = graphDBFactory.newEmbeddedDatabase(dbFile)
     graphDBOption = Some(graphDB)
   }
