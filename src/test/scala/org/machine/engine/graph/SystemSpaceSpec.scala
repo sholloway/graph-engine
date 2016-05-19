@@ -24,13 +24,12 @@ class SystemSpaceSpec extends FunSpec
   with EasyMockSugar
   with BeforeAndAfterAll{
   import Neo4JHelper._
-  val dbPath = "target/SystemSpaceSpec.graph"
-  val dbFile = new File(dbPath)
+  val dbFile = new File(Engine.databasePath)
   var engine:Engine = null
 
   override def beforeAll(){
     FileUtils.deleteRecursively(dbFile)
-    engine = new Engine(dbPath)
+    engine = Engine.getInstance
   }
 
   override def afterAll(){
