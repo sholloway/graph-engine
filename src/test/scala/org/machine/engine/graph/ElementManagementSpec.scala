@@ -20,15 +20,14 @@ import org.machine.engine.graph.nodes._
 
 class ElementManagementSpec extends FunSpec with Matchers with EasyMockSugar with BeforeAndAfterAll{
   import Neo4JHelper._
-  val dbPath = "target/ElementManagementSpec.graph"
-  val dbFile = new File(dbPath)
+  val dbFile = new File(Engine.databasePath)
   var engine:Engine = null
   var notesDataSetId:String = null
   var noteElementDefininitionId:String = null
 
   override def beforeAll(){
     FileUtils.deleteRecursively(dbFile)
-    engine = new Engine(dbPath)
+    engine = Engine.getInstance
     notesDataSetId = engine.createDataSet("notes", "My collection of notes.")
     noteElementDefininitionId =
       engine
