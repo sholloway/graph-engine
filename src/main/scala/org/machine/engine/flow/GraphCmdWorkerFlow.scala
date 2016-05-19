@@ -55,10 +55,6 @@ object GraphCmdWorkerFlow{
       seperate db paths per test spec.
   - Use an implicit parameter.
   - Pass the configuration around in memory.
-
-  FIXME: Cannot actually start the database here.
-  I would guess it's a file lock issue. There is probably connetion pooling
-  I can take advantage of.
   */
   import org.machine.engine.Engine
   import com.typesafe.config._

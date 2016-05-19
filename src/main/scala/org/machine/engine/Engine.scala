@@ -27,6 +27,8 @@ object Engine{
   FIXME Remove test specific databases.
   There should only be one running database. The database path should be
   in the config file.
+
+  TODO: Remove Engine(dbPath)
   */
   def apply(dbPath:String):Engine = {
     new Engine(dbPath)
