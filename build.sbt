@@ -21,6 +21,9 @@ lazy val sbtAssemblySettings = Seq(
 import sbtprotobuf.{ProtobufPlugin=>PB}
 PB.protobufSettings
 
+//Tests must be run sequentially due to neo4j interaction.
+parallelExecution in Test := false
+
 resolvers += "Typesafe Repository" at "http://repo.typesafe.com/typesafe/releases/"
 resolvers += Resolver.bintrayRepo("commercetools", "maven") //For sphere-json
 libraryDependencies += "com.eed3si9n" % "sbt-assembly" % "0.14.1" from "http://dl.bintray.com/sbt/sbt-plugin-releases/com.eed3si9n/sbt-assembly/scala_2.10/sbt_0.13/0.14.1/jars/sbt-assembly.jar"

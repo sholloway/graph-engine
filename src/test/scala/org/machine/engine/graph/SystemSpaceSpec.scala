@@ -28,12 +28,13 @@ class SystemSpaceSpec extends FunSpec
   var engine:Engine = null
 
   override def beforeAll(){
+    Engine.shutdown
     FileUtils.deleteRecursively(dbFile)
     engine = Engine.getInstance
   }
 
   override def afterAll(){
-    engine.shutdown()
+    Engine.shutdown
     FileUtils.deleteRecursively(dbFile)
   }
 

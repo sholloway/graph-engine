@@ -23,17 +23,6 @@ import org.machine.engine.graph.labels._
 import org.machine.engine.graph.internal._
 
 object Engine{
-  /*
-  FIXME Remove test specific databases.
-  There should only be one running database. The database path should be
-  in the config file.
-
-  TODO: Remove Engine(dbPath)
-  */
-  def apply(dbPath:String):Engine = {
-    new Engine(dbPath)
-  }
-
   private val config = ConfigFactory.load()
   private val dbPath = config.getString("engine.graphdb.path")
   private var engine:Option[Engine] = None
@@ -45,10 +34,18 @@ object Engine{
     engine.get
   }
 
+  /*
+  TODO Remove shutdown method to force singleton use.
+  */
+  def shutdown = {
+    engine.foreach(_.shutdown())
+    engine = None
+  }
+
   def databasePath = dbPath
 }
 
-class Engine(dbPath:String) extends GraphDSL with LazyLogging{
+class Engine private (dbPath:String) extends GraphDSL with LazyLogging{
   import Neo4JHelper._
   import SystemSpaceManager._
   import UserSpaceManager._

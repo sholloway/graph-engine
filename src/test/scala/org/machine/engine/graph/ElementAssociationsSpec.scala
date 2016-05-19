@@ -1,4 +1,4 @@
-package org.machine.engine
+package org.machine.engine.graph
 
 import org.scalatest._
 import org.scalatest.mock._
@@ -13,6 +13,7 @@ import org.neo4j.io.fs.FileUtils
 import scala.collection.JavaConversions._
 import scala.collection.mutable.{ArrayBuffer, Map}
 
+import org.machine.engine.Engine
 import org.machine.engine.graph._
 import org.machine.engine.exceptions._
 import org.machine.engine.graph.nodes._
@@ -34,6 +35,7 @@ class ElementAssociationsSpec extends FunSpec with Matchers with EasyMockSugar w
   var bizCapId:String = null
 
   override def beforeAll(){
+    Engine.shutdown
     FileUtils.deleteRecursively(dbFile)
     engine = Engine.getInstance
     systemsDataSetId = engine.createDataSet("System Under Review", "System that need to be reviewed.")
@@ -103,7 +105,7 @@ class ElementAssociationsSpec extends FunSpec with Matchers with EasyMockSugar w
   }
 
   override def afterAll(){
-    engine.shutdown()
+    Engine.shutdown
     FileUtils.deleteRecursively(dbFile)
   }
 

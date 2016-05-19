@@ -26,7 +26,7 @@ class WebSocketFlowSpec extends TestKit(ActorSystem("WebSocketFlowSpec")) with I
     As soon as I can send a message through the flow, attempt to wire it up
     to the actual WS server.
     */
-    it("should do stuff"){
+    ignore("should do stuff"){
       implicit val materializer = ActorMaterializer()
       implicit val ec: ExecutionContext = scala.concurrent.ExecutionContext.Implicits.global
 

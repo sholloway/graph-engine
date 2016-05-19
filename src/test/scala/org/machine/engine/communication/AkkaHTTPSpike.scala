@@ -23,7 +23,7 @@ class AkkaHTTPSpike extends TestKit(ActorSystem("AkkaHTTPSpike")) with ImplicitS
   as part of the CI build.
   */
   describe("Recieving HTTP & WebSocket Requests"){
-    it("should event on an incoming message"){
+    ignore("should event on an incoming message"){
       val server = new WebServer()
       server.start()
     }
