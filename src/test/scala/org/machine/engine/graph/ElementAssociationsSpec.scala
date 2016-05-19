@@ -20,8 +20,7 @@ import org.machine.engine.graph.nodes._
 
 class ElementAssociationsSpec extends FunSpec with Matchers with EasyMockSugar with BeforeAndAfterAll{
   import Neo4JHelper._
-  val dbPath = "target/ElementAssociationsSpec.graph"
-  val dbFile = new File(dbPath)
+  val dbFile = new File(Engine.databasePath)
   var engine:Engine = null
   var systemsDataSetId:String = null
   var noteElementDefininitionId:String = null
@@ -36,7 +35,7 @@ class ElementAssociationsSpec extends FunSpec with Matchers with EasyMockSugar w
 
   override def beforeAll(){
     FileUtils.deleteRecursively(dbFile)
-    engine = new Engine(dbPath)
+    engine = Engine.getInstance
     systemsDataSetId = engine.createDataSet("System Under Review", "System that need to be reviewed.")
     noteElementDefininitionId = engine
       .onDataSet(systemsDataSetId)
