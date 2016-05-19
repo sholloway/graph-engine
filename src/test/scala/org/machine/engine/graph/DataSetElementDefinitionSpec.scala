@@ -17,16 +17,14 @@ import org.machine.engine.graph._
 import org.machine.engine.exceptions._
 import org.machine.engine.graph.nodes._
 
-
 class DataSetElementDefinitionSpec extends FunSpec with Matchers with EasyMockSugar with BeforeAndAfterAll{
   import Neo4JHelper._
-  val dbPath = "target/DataSetElementDefinitionSpec.graph"
-  val dbFile = new File(dbPath)
+  val dbFile = new File(Engine.databasePath)
   var engine:Engine = null
 
   override def beforeAll(){
     FileUtils.deleteRecursively(dbFile)
-    engine = new Engine(dbPath)
+    engine = Engine.getInstance
   }
 
   override def afterAll(){

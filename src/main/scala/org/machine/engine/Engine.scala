@@ -35,8 +35,17 @@ object Engine{
   }
 
   private val config = ConfigFactory.load()
-  private val engine = new Engine(config.getString("engine.graphdb.path"))
-  def getInstance: Engine = engine
+  private val dbPath = config.getString("engine.graphdb.path")
+  private var engine:Option[Engine] = None
+
+  def getInstance: Engine = {
+    if(engine == None){
+      engine = Some(new Engine(dbPath))
+    }
+    engine.get
+  }
+
+  def databasePath = dbPath
 }
 
 class Engine(dbPath:String) extends GraphDSL with LazyLogging{
