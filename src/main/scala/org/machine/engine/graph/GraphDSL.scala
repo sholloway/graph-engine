@@ -2,6 +2,11 @@ package org.machine.engine.graph
 
 import org.machine.engine.graph.nodes._
 
+/*
+TODO: Change where Command scope lives. Should not be in org.machine.engine.graph.commands.
+*/
+import org.machine.engine.graph.commands.CommandScope
+
 /** Definition of internal DSL for working with the underling graph database.
 * ==Graph DSL==
 * The graph DSL is an internal domain specific language designed for making
@@ -286,6 +291,16 @@ import org.machine.engine.graph.nodes._
 * }}}
 */
 trait GraphDSL{
+  //Abstract handlers
+  def reset():GraphDSL
+  def setUser(user: Option[String]):GraphDSL
+  def setScope(scope: CommandScope):GraphDSL
+  def setActionType(actionType: Option[String]):GraphDSL
+  def setEntityType(entityType: Option[String]):GraphDSL
+  def setFilter(filter: Option[String]):GraphDSL
+  def run:CmdResult
+  //End Abstract handlers
+
   def inSystemSpace():GraphDSL
   def inUserSpace():GraphDSL
 
@@ -330,4 +345,21 @@ trait GraphDSL{
 
   def removeInboundAssociations():List[Association]
   def removeOutboundAssociations():List[Association]
+}
+
+trait CmdResult{
+
+}
+
+case class ErrorResult(message:String) extends CmdResult
+case class SuccesfullResult(message:String) extends CmdResult
+
+object CmdResult{
+  def error(msg: String):CmdResult = {
+    new ErrorResult(msg)
+  }
+
+  def ok(msg: String):CmdResult = {
+    new SuccesfullResult(msg)
+  }
 }

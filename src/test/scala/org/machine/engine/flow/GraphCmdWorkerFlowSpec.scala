@@ -32,6 +32,7 @@ class GraphCmdWorkerFlowSpec extends TestKit(ActorSystem("GraphCmdWorkerFlowSpec
 
 
   override def beforeAll(){
+    Engine.shutdown
     FileUtils.deleteRecursively(dbFile)
     engine = Engine.getInstance
     notesDataSetId = engine.createDataSet("notes", "My collection of notes.")
@@ -39,7 +40,7 @@ class GraphCmdWorkerFlowSpec extends TestKit(ActorSystem("GraphCmdWorkerFlowSpec
 
   override def afterAll(){
     TestKit.shutdownActorSystem(system)
-    engine.shutdown()
+    Engine.shutdown
     FileUtils.deleteRecursively(dbFile)
   }
 

@@ -56,6 +56,10 @@ class Engine private (dbPath:String) extends GraphDSL with LazyLogging{
   var scope:CommandScope = CommandScopes.SystemSpaceScope
   var command:EngineCommand = EngineCommands.DefineElement
   val cmdOptions:GraphCommandOptions = new GraphCommandOptions()
+  var actionType:Option[String] = None
+  var user:Option[String] = None
+  var entityType:Option[String] = None
+  var filter:Option[String] = None
 
   def systemSpace:SystemSpace = this.systemSpaceOption.getOrElse(throw new InternalErrorException("SystemSpace has not be initialized."))
   def userSpace:UserSpace = this.userSpaceOption.getOrElse(throw new InternalErrorException("UserSpace has not be initialized."))
@@ -72,7 +76,6 @@ class Engine private (dbPath:String) extends GraphDSL with LazyLogging{
 
   def shutdown(){
     logger.debug("Engine: Shutting Down")
-    //#TODO:70 Register the Neo4J shutdown with the JVM shutdown like in the example.
     database.shutdown()
   }
 
@@ -120,16 +123,56 @@ class Engine private (dbPath:String) extends GraphDSL with LazyLogging{
     return this.userSpaceOption.get
   }
 
+  //////////////////////////////////////////////////////////////////////////////
+  //Abstract handlers
+  def reset():GraphDSL = {
+    cmdOptions.reset
+    actionType = None
+    user = None
+    entityType = None
+    filter = None
+    return this
+  }
+
+  def setUser(user: Option[String]):GraphDSL = {
+    this.user = user
+    return this;
+  }
+
+  def setScope(scope: CommandScope):GraphDSL = {
+    this.scope = scope
+    return this
+  }
+
+  def setActionType(actionType: Option[String]):GraphDSL = {
+    this.actionType = actionType
+    return this
+  }
+
+  def setEntityType(entityType: Option[String]):GraphDSL = {
+    this.entityType = entityType
+    return this
+  }
+
+  def setFilter(filter: Option[String]):GraphDSL = {
+    this.filter = filter
+    return this;
+  }
+
+  def run():CmdResult = {
+    CmdResult.ok("It's all good")
+  }
+  //End Abstract handlers
+  //////////////////////////////////////////////////////////////////////////////
+
   def inSystemSpace():GraphDSL = {
     logger.debug("Engine: Set command scope to system space.")
-    this.scope = CommandScopes.SystemSpaceScope
-    return this
+    return setScope(CommandScopes.SystemSpaceScope)
   }
 
   def inUserSpace():GraphDSL = {
     logger.debug("Engine: Set command scope to user space.")
-    this.scope = CommandScopes.UserSpaceScope
-    return this
+    return setScope(CommandScopes.UserSpaceScope)
   }
 
   def createDataSet(name:String, description:String):String = {
