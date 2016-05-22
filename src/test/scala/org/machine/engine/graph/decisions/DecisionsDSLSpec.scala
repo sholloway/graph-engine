@@ -37,53 +37,38 @@ class DecisionsDSLSpec extends FunSpec with Matchers with EasyMockSugar with Bef
 
   describe("Decision Tree"){
     it ("should find ListDataSets"){
-      val request = new Request(Some("da user"),
+      val request = DecisionRequest(Some("da user"),
         ActionTypes.Retrieve,
         CommandScopes.UserSpaceScope,
         EntityTypes.DataSet,
         Filters.All)
-      val decision = DecisionDSL.findDecision(decisionTree, request.toMap)
+      val decision = DecisionDSL.findDecision(decisionTree, request)
       decision.name should equal("ListDataSets")
     }
 
     it ("should find FindDataSetById"){
-      val request = new Request(Some("da user"),
+      val request = DecisionRequest(Some("da user"),
         ActionTypes.Retrieve,
         CommandScopes.UserSpaceScope,
         EntityTypes.DataSet,
         Filters.ID)
-      val decision = DecisionDSL.findDecision(decisionTree, request.toMap)
+      val decision = DecisionDSL.findDecision(decisionTree, request)
       decision.name should equal("FindDataSetById")
     }
 
     it ("should find FindDataSetByName"){
-      val request = new Request(Some("da user"),
+      val request = DecisionRequest(Some("da user"),
         ActionTypes.Retrieve,
         CommandScopes.UserSpaceScope,
         EntityTypes.DataSet,
         Filters.Name)
 
-      val decision = DecisionDSL.findDecision(decisionTree, request.toMap)
+      val decision = DecisionDSL.findDecision(decisionTree, request)
       decision.name should equal("FindDataSetByName")
     }
 
     it("should draw the tree"){
       DecisionDSL.drawTree(decisionTree,0, new ConsolePlotter())
-    }
-  }
-
-  case class Request(user: Option[String],
-    actionType: ActionType,
-    scope: CommandScope, // system, user, dataset
-    entityType: EntityType, //ElementDefinition, DataSet, Element, Association, None
-    filter: Filter//None, ID, Name
-  ){
-    def toMap():Map[String, Option[String]] = {
-      return Map("user" -> user,
-        "actionType" -> Some(actionType.value),
-        "scope" -> Some(scope.scope),
-        "entityType" -> Some(entityType.value),
-        "filter" -> Some(filter.value))
     }
   }
 }

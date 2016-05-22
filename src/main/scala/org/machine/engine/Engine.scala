@@ -18,6 +18,7 @@ import com.typesafe.scalalogging._
 import org.machine.engine.exceptions._
 import org.machine.engine.graph._
 import org.machine.engine.graph.commands._
+import org.machine.engine.graph.decisions._
 import org.machine.engine.graph.nodes._
 import org.machine.engine.graph.labels._
 import org.machine.engine.graph.internal._
@@ -56,10 +57,10 @@ class Engine private (dbPath:String) extends GraphDSL with LazyLogging{
   var scope:CommandScope = CommandScopes.SystemSpaceScope
   var command:EngineCommand = EngineCommands.DefineElement
   val cmdOptions:GraphCommandOptions = new GraphCommandOptions()
-  var actionType:Option[String] = None
+  var actionType:ActionType = ActionTypes.None
   var user:Option[String] = None
-  var entityType:Option[String] = None
-  var filter:Option[String] = None
+  var entityType:EntityType = EntityTypes.None
+  var filter:Filter = Filters.None
 
   def systemSpace:SystemSpace = this.systemSpaceOption.getOrElse(throw new InternalErrorException("SystemSpace has not be initialized."))
   def userSpace:UserSpace = this.userSpaceOption.getOrElse(throw new InternalErrorException("UserSpace has not be initialized."))
@@ -127,10 +128,10 @@ class Engine private (dbPath:String) extends GraphDSL with LazyLogging{
   //Abstract handlers
   def reset():GraphDSL = {
     cmdOptions.reset
-    actionType = None
+    actionType = ActionTypes.None
     user = None
-    entityType = None
-    filter = None
+    entityType = EntityTypes.None
+    filter = Filters.None
     return this
   }
 
@@ -144,22 +145,43 @@ class Engine private (dbPath:String) extends GraphDSL with LazyLogging{
     return this
   }
 
-  def setActionType(actionType: Option[String]):GraphDSL = {
+  def setActionType(actionType: ActionType):GraphDSL = {
     this.actionType = actionType
     return this
   }
 
-  def setEntityType(entityType: Option[String]):GraphDSL = {
+  def setEntityType(entityType: EntityType):GraphDSL = {
     this.entityType = entityType
     return this
   }
 
-  def setFilter(filter: Option[String]):GraphDSL = {
+  def setFilter(filter: Filter):GraphDSL = {
     this.filter = filter
     return this;
   }
 
   def run():CmdResult = {
+    import org.machine.engine.graph.decisions._
+    val decisionTree = DecisionDSL.buildDecisionTree()
+
+    val decisionRequest = DecisionRequest(Some("user"),
+      this.actionType,
+      this.scope,
+      this.entityType,
+      this.filter)
+
+    val decision = DecisionDSL.findDecision(decisionTree, decisionRequest)
+
+    /* TODO Do not have a stupid match statement.
+    Try to use reflection to remove the boilerplate.
+    */
+    val cmd = decision.name match{
+      case "ListDataSets" => new ListDataSets(database, scope, cmdOptions)
+      case _ => throw new InternalErrorException("Decision Tree result in a command that could not be executed.")
+    }
+
+    val result =  cmd.execute()
+    Console.println(result)
     CmdResult.ok("It's all good")
   }
   //End Abstract handlers

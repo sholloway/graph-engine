@@ -7,6 +7,8 @@ TODO: Change where Command scope lives. Should not be in org.machine.engine.grap
 */
 import org.machine.engine.graph.commands.CommandScope
 
+import org.machine.engine.graph.decisions._
+
 /** Definition of internal DSL for working with the underling graph database.
 * ==Graph DSL==
 * The graph DSL is an internal domain specific language designed for making
@@ -295,9 +297,9 @@ trait GraphDSL{
   def reset():GraphDSL
   def setUser(user: Option[String]):GraphDSL
   def setScope(scope: CommandScope):GraphDSL
-  def setActionType(actionType: Option[String]):GraphDSL
-  def setEntityType(entityType: Option[String]):GraphDSL
-  def setFilter(filter: Option[String]):GraphDSL
+  def setActionType(actionType: ActionType):GraphDSL
+  def setEntityType(entityType: EntityType):GraphDSL
+  def setFilter(filter: Filter):GraphDSL
   def run:CmdResult
   //End Abstract handlers
 
@@ -348,7 +350,6 @@ trait GraphDSL{
 }
 
 trait CmdResult{
-
 }
 
 case class ErrorResult(message:String) extends CmdResult

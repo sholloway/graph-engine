@@ -4,9 +4,9 @@ import org.machine.engine.exceptions._
 import org.machine.engine.graph.commands._
 
 object DecisionDSL{
-  def findDecision(question: Question, request: Map[String, Option[String]], trace:Boolean = false):Decision = {
+  def findDecision(question: Question, request: DecisionRequest, trace:Boolean = false):Decision = {
     if(trace){Console.println(question)}
-    val option = question.evaluate(request)
+    val option = question.evaluate(request.toMap)
 
     /*
     FIXME Could result in no return.

@@ -44,12 +44,16 @@ class EngineStatementBuilderSpec extends FunSpec with Matchers with EasyMockSuga
       .retrieve
       .
     */
-    ignore ("should find all datasets"){
-      val request = new Request(Some("da user"),
-        Some("retrieve"),
+    it ("should find all datasets"){
+      engine.createDataSet("Dataset A", "")
+      engine.createDataSet("Dataset B", "")
+      engine.createDataSet("Dataset C", "")
+
+      val request = new DecisionRequest(Some("da user"),
+        ActionTypes.Retrieve,
         CommandScopes.UserSpaceScope,
-        Some("DataSet"),
-        Some("All"))
+        EntityTypes.DataSet,
+        Filters.All)
 
       val result =
       engine
@@ -63,21 +67,5 @@ class EngineStatementBuilderSpec extends FunSpec with Matchers with EasyMockSuga
 
       Console.println(result)
     }
-  }
-}
-
-//Eventually use org.machine.engine.flow.requests.RequestMessage
-case class Request(user: Option[String],
-  actionType: Option[String], //create, retrieve, update, delete
-  scope: CommandScope, // system, user, dataset
-  entityType: Option[String], //ElementDefinition, DataSet, Element, Association, None
-  filter: Option[String]//None, ID, Name
-){
-  def toMap():Map[String, Option[String]] = {
-    return Map("user" -> user,
-      "actionType" -> actionType,
-      "scope" -> Some(scope.scope),
-      "entityType" -> entityType,
-      "filter" -> filter)
   }
 }
