@@ -5,7 +5,7 @@ import scala.collection.mutable
 
 //Questions can only have options.
 //Options have a single question or decisions.
-class Question(at: String){
+class Question(at: String) extends Node{
   val attribute = at
   private val options = mutable.Map[String, Opt]()
 
@@ -29,6 +29,14 @@ class Question(at: String){
     |Options: ${options.mkString(" ")}
     """.stripMargin.replaceAll("\t","")
   }
+
+  def children:Seq[Node] = {
+    options.values.toSeq
+  }
+
+  def name:String = attribute
+
+  def typeStr:String = "question"
 }
 
 object Question{

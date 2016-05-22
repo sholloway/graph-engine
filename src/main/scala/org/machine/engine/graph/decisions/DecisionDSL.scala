@@ -3,7 +3,6 @@ package org.machine.engine.graph.decisions
 import org.machine.engine.exceptions._
 import org.machine.engine.graph.commands._
 
-
 object DecisionDSL{
   def findDecision(question: Question, request: Map[String, Option[String]], trace:Boolean = false):Decision = {
     if(trace){Console.println(question)}
@@ -36,5 +35,30 @@ object DecisionDSL{
 
     whatsTheScope ~> userSpace ~> whatsTheEntityType ~> dataSet ~> whatsTheActionType ~> retrieve ~> whatsTheFilter
     return whatsTheScope
+  }
+
+  def drawTree(node: Node, depth: Int, plotter: Plotter):Unit = {
+    plotter.plot(node, depth)
+    if(node.children.isEmpty){
+      return
+    }
+    node.children.foreach(child => drawTree(child, depth + 1, plotter))
+  }
+}
+
+trait Plotter{
+  def plot(node:Node, depth: Int)
+}
+
+class ConsolePlotter extends Plotter{
+  def plot(node:Node, depth: Int) = {
+    val indented = if (depth > 1){
+       "    " * (depth-1)
+    }else{
+      ""
+    }
+    val bar = if(depth > 0) "└-- " else ""
+    val line = s"$indented$bar${node.name}.${node.typeStr}:"
+    Console.println(line)
   }
 }

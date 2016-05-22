@@ -1,6 +1,7 @@
 package org.machine.engine.graph.decisions
 
-case class Opt(val name: String, val value: String){
+import scala.collection.mutable
+case class Opt(val name: String, val value: String) extends Node{
   var q: Option[Question] = None
   var d: Option[Decision] = None
 
@@ -19,6 +20,15 @@ case class Opt(val name: String, val value: String){
   override def toString:String = {
     s"name: $name"
   }
+
+  def children:Seq[Node] = {
+    val mut = mutable.ArrayBuffer[Node]()
+    decision.foreach(mut += _)
+    question.foreach(mut += _)
+    mut.toSeq
+  }
+
+  def typeStr:String = "option"
 }
 
 object Opt{

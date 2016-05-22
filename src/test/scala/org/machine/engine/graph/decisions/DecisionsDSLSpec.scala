@@ -66,6 +66,10 @@ class DecisionsDSLSpec extends FunSpec with Matchers with EasyMockSugar with Bef
       val decision = DecisionDSL.findDecision(decisionTree, request.toMap)
       decision.name should equal("FindDataSetByName")
     }
+
+    it("should draw the tree"){
+      DecisionDSL.drawTree(decisionTree,0, new ConsolePlotter())
+    }
   }
 
   case class Request(user: Option[String],
@@ -81,5 +85,5 @@ class DecisionsDSLSpec extends FunSpec with Matchers with EasyMockSugar with Bef
         "entityType" -> Some(entityType.value),
         "filter" -> Some(filter.value))
     }
-  }  
+  }
 }
