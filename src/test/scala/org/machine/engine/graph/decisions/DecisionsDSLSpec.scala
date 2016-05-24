@@ -70,5 +70,9 @@ class DecisionsDSLSpec extends FunSpec with Matchers with EasyMockSugar with Bef
     it("should draw the tree"){
       DecisionDSL.drawTree(decisionTree,0, new ConsolePlotter())
     }
+
+    it("should generate a GraphViz dot file"){
+      DecisionDSL.createDotFile(decisionTree)
+    }
   }
 }

@@ -38,12 +38,6 @@ class EngineStatementBuilderSpec extends FunSpec with Matchers with EasyMockSuga
   Engine.getInstance.datasets()
   */
   describe("Engine Statement Builder"){
-    /*
-    engine
-      .inUserSpace(user)
-      .retrieve
-      .
-    */
     it ("should find all datasets"){
       engine.createDataSet("Dataset A", "")
       engine.createDataSet("Dataset B", "")
@@ -65,6 +59,8 @@ class EngineStatementBuilderSpec extends FunSpec with Matchers with EasyMockSuga
         .setFilter(request.filter)
       .run //finds Cmd and executes it.
 
+      /* TODO Figure out return result to pass the result payload back.
+      */
       Console.println(result)
     }
   }

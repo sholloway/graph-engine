@@ -1,0 +1,12 @@
+digraph EngineDecisionTree{
+	filter->{All ID Name}
+	All->{ListDataSets}
+	internal_user_space->{entityType}
+	ID->{FindDataSetById}
+	actionType->{retrieve}
+	retrieve->{filter}
+	scope->{internal_user_space}
+	entityType->{DataSet}
+	Name->{FindDataSetByName}
+	DataSet->{actionType}
+}
