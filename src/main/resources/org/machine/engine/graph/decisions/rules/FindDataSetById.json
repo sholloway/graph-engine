@@ -1,0 +1,9 @@
+{
+  "name": "Find Data Set by ID",
+  "description": "Query for a specific dataset associated with a specific user.",
+  "scope": "UserSpace",
+  "entityType": "DataType",
+  "actionType": "Retrieve",
+  "filter": "ID",
+  "decision": "FindDataSetById"
+}

@@ -14,6 +14,12 @@ class Question(at: String) extends Node{
     return option
   }
 
+  /** Finds a registered option or registers it.
+  */
+  def getOrElseUpdate(optionName: String):Opt = {
+    return options.getOrElseUpdate(optionName, Opt(optionName, optionName))
+  }
+
   /*
   FIXME This could blow up if the request is null or options returns null.
   */

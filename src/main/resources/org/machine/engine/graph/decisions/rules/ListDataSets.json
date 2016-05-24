@@ -1,0 +1,9 @@
+{
+  "name": "List Data Sets",
+  "description": "Query for the list of all datasets associated with a specific user.",
+  "scope": "UserSpace",
+  "entityType": "DataType",
+  "actionType": "Retrieve",
+  "filter": "All",
+  "decision": "ListDataSets"
+}

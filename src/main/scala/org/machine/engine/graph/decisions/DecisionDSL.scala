@@ -37,6 +37,82 @@ object DecisionDSL{
     return whatsTheScope
   }
 
+  import scala.collection.mutable
+  def buildDecisionTreeFromRules(dir: String):Question = {
+    val scope = Question("scope")
+    val rules = loadRules(dir)
+
+    rules.foreach{ rule =>
+      registerRule(scope, rule)
+    }
+
+    //Console.println(rules.mkString("\n"))
+    return scope
+  }
+
+  /*
+  Order of operations
+  Scope? -> Option -> entityType? -> Option -> actionType? -> Option -> filter? -> Option -> Decision
+
+  First pass. Be explicit.
+  */
+  private def registerRule(scope: Question, rule: Rule) = {
+    //Does the scope option exist? If not create it
+    val scopeOption = scope.getOrElseUpdate(rule.scope)
+
+    //Does the EntityType option exist? If not create it
+    val entityQuestion = scopeOption.getOrElseUpdateQuestion("entityType")
+    val entityOption = entityQuestion.getOrElseUpdate(rule.entityType)
+
+    //Does the ActionType option exist? If not create it
+    val actionTypeQuestion = entityOption.getOrElseUpdateQuestion("actionType")
+    val actionTypeOption = actionTypeQuestion.getOrElseUpdate(rule.actionType)
+
+    //Does the FilterType option exist? If not create it
+    val filterQuestion = actionTypeOption.getOrElseUpdateQuestion("filter")
+    val filterOption = filterQuestion.getOrElseUpdate(rule.filter)
+
+    //Register Decision
+    filterOption -> Decision(rule.decision)
+  }
+
+  private def loadRules(dir:String):Seq[Rule] = {
+    val files = getListOfFiles(dir, List("json"))
+    val rules = mutable.ArrayBuffer.empty[Rule]
+    files.foreach(file => {
+      val json:Option[String] = readFileToString(file)
+      json.foreach{
+        rules += Rule.fromJSON(_)
+      }
+    })
+    return rules
+  }
+
+  import java.io.File
+  private def getListOfFiles(path: String, extensions: List[String]):List[File] = {
+    // val path = getClass.getClassLoader.getResource(dir).getPath
+    val d = new File(path)
+    if (d.exists && d.isDirectory) {
+      d.listFiles.filter(_.isFile).toList.filter{ file =>
+        extensions.exists(file.getName.endsWith(_))
+      }
+    } else {
+      List[File]()
+    }
+  }
+
+  import scala.io.Source
+  private def readFileToString(file: File):Option[String] = {
+    val bufferedFile = Source.fromFile(file)
+    var contents:Option[String] = None
+    try{
+      contents = Some(bufferedFile.getLines.mkString)
+    }finally{
+      bufferedFile.close
+    }
+    return contents
+  }
+
   def drawTree(node: Node, depth: Int, plotter: Plotter):Unit = {
     plotter.plot(node, depth)
     if(node.children.isEmpty){
@@ -54,7 +130,7 @@ object DecisionDSL{
   }
   */
   import scala.collection.mutable
-  def createDotFile(node:Node) = {
+  def createDotFile(node:Node):String = {
     val adjacencyList = mutable.Map.empty[String, Seq[String]]
     breadthFirstTraverse(node, adjacencyList)
 
@@ -65,7 +141,7 @@ object DecisionDSL{
       |\t${graph.mkString("\n\t")}
       |}
       """.stripMargin
-    Console.println(dot)
+    return dot
   }
 
   def breadthFirstTraverse(node:Node, edges: mutable.Map[String, Seq[String]]):Unit = {

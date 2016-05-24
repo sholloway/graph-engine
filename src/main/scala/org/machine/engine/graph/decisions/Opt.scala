@@ -17,6 +17,20 @@ case class Opt(val name: String, val value: String) extends Node{
     this.d = Some(decision)
   }
 
+  def getOrElseUpdateQuestion(qq: String):Question = {
+    if (question.isEmpty){
+      this ~> Question(qq)
+    }
+    return question.get
+  }
+
+  def getOrElseUpdateDecision(dd: String):Decision = {
+    if(decision.isEmpty){
+      this -> Decision(dd)
+    }
+    return decision.get
+  }
+
   override def toString:String = {
     s"name: $name"
   }

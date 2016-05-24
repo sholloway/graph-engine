@@ -67,12 +67,30 @@ class DecisionsDSLSpec extends FunSpec with Matchers with EasyMockSugar with Bef
       decision.name should equal("FindDataSetByName")
     }
 
-    it("should draw the tree"){
+    ignore("should draw the tree"){
       DecisionDSL.drawTree(decisionTree,0, new ConsolePlotter())
     }
 
-    it("should generate a GraphViz dot file"){
-      DecisionDSL.createDotFile(decisionTree)
+    it("should build the tree from the rules"){
+      val url = getClass.getResource("/org/machine/engine/graph/decisions/rules")
+      val path = url.getPath()
+      val tree = DecisionDSL.buildDecisionTreeFromRules(path)
+      val diagram = DecisionDSL.createDotFile(tree)
+      val expected = """
+      |digraph EngineDecisionTree{
+      |  UserSpace->{entityType}
+      |  filter->{All ID Name}
+      |  All->{ListDataSets}
+      |  Retrieve->{filter}
+      |  ID->{FindDataSetById}
+      |  DataType->{actionType}
+      |  actionType->{Retrieve}
+      |  scope->{UserSpace}
+      |  entityType->{DataType}
+      |  Name->{FindDataSetByName}
+      |}
+      """.stripMargin.replaceAll(" ", "")
+      diagram.replaceAll(" ", "").replaceAll("\t","") should equal(expected)
     }
   }
 }
