@@ -135,7 +135,9 @@ object DecisionDSL{
     breadthFirstTraverse(node, adjacencyList)
 
     val graph = mutable.ArrayBuffer.empty[String]
-    adjacencyList.foreach{ case (node, children) => { graph += s"$node->{${children.mkString(" ")}}"}}
+    adjacencyList.foreach{ case (node, children) => {
+      graph += s"$node->{${children.mkString(" ")}}"
+    }}
     val dot = s"""
       |digraph EngineDecisionTree{
       |\t${graph.mkString("\n\t")}
@@ -144,16 +146,26 @@ object DecisionDSL{
     return dot
   }
 
-  def breadthFirstTraverse(node:Node, edges: mutable.Map[String, Seq[String]]):Unit = {
+  def breadthFirstTraverse(node: Node, edges: mutable.Map[String, Seq[String]]):Unit = {
     node match{
       case q: Question => {
+        Console.println(s"${node.name}: ${node.children.length}")
+
         val nodeEdges = node.children.map(_.name).toSeq
-        edges += (node.name -> nodeEdges)
+        if(edges.contains(node.name)){
+          edges(node.name) ++= nodeEdges //nodeEdges isn't mutable...
+        }else{
+          edges += (node.name -> nodeEdges.toBuffer)
+        }
         node.children.foreach(breadthFirstTraverse(_, edges))
       }
       case o: Opt => {
         val nodeEdges = node.children.map(_.name).toSeq
-        edges += (node.name -> nodeEdges)
+        if(edges.contains(node.name)){
+          edges(node.name) ++= nodeEdges
+        }else{
+          edges += (node.name -> nodeEdges.toBuffer)
+        }
         node.children.foreach(breadthFirstTraverse(_, edges))
       }
       case d: Decision => return

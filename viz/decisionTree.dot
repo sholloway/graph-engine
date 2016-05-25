@@ -1,12 +1,18 @@
 digraph EngineDecisionTree{
-	filter->{All ID Name}
-	All->{ListDataSets}
+	ElementDefinition->{actionType}
+	filter->{None All None None All ID Name}
+	internal_system_space->{entityType}
+	Update->{filter}
+	Retrieve->{filter filter}
+	All->{ListAllElementDefinitions ListDataSets}
 	internal_user_space->{entityType}
 	ID->{FindDataSetById}
-	actionType->{retrieve}
-	retrieve->{filter}
-	scope->{internal_user_space}
-	entityType->{DataSet}
+	actionType->{Update Retrieve Delete Create Retrieve}
+	scope->{internal_system_space internal_user_space}
+	None->{EditElementDefintion DeleteElementDefintion CreateElementDefintion}
+	entityType->{ElementDefinition DataSet}
 	Name->{FindDataSetByName}
+	Delete->{filter}
+	Create->{filter}
 	DataSet->{actionType}
 }

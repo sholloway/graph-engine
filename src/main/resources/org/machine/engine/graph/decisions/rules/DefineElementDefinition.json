@@ -1,0 +1,9 @@
+{
+  "name": "Define Element Definition",
+  "description": "Create an element definition.",
+  "scope": "internal_system_space",
+  "entityType": "ElementDefinition",
+  "actionType": "Create",
+  "filter": "None",
+  "decision": "CreateElementDefintion"
+}
