@@ -1,8 +1,8 @@
 {
   "name": "Find Data Set by Name",
   "description": "Query for a specific dataset associated with a specific user.",
-  "scope": "UserSpace",
-  "entityType": "DataType",
+  "scope": "internal_user_space",
+  "entityType": "DataSet",
   "actionType": "Retrieve",
   "filter": "Name",
   "decision": "FindDataSetByName"

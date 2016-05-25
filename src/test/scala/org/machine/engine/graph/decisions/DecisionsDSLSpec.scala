@@ -19,20 +19,15 @@ import org.machine.engine.graph.nodes._
 
 class DecisionsDSLSpec extends FunSpec with Matchers with EasyMockSugar with BeforeAndAfterAll{
   import Neo4JHelper._
-  val dbFile = new File(Engine.databasePath)
-  var engine:Engine = null
+  // val dbFile = new File(Engine.databasePath)
+  // var engine:Engine = null
 
-  val decisionTree = DecisionDSL.buildDecisionTree()
+  val url = getClass.getResource("/org/machine/engine/graph/decisions/rules")
+  val path = url.getPath()
+  var tree:Question = null
 
   override def beforeAll(){
-    Engine.shutdown
-    FileUtils.deleteRecursively(dbFile)
-    engine = Engine.getInstance
-  }
-
-  override def afterAll(){
-    Engine.shutdown
-    FileUtils.deleteRecursively(dbFile)
+    tree = DecisionDSL.buildDecisionTreeFromRules(path)
   }
 
   describe("Decision Tree"){
@@ -42,7 +37,7 @@ class DecisionsDSLSpec extends FunSpec with Matchers with EasyMockSugar with Bef
         CommandScopes.UserSpaceScope,
         EntityTypes.DataSet,
         Filters.All)
-      val decision = DecisionDSL.findDecision(decisionTree, request)
+      val decision = DecisionDSL.findDecision(tree, request)
       decision.name should equal("ListDataSets")
     }
 
@@ -52,7 +47,7 @@ class DecisionsDSLSpec extends FunSpec with Matchers with EasyMockSugar with Bef
         CommandScopes.UserSpaceScope,
         EntityTypes.DataSet,
         Filters.ID)
-      val decision = DecisionDSL.findDecision(decisionTree, request)
+      val decision = DecisionDSL.findDecision(tree, request)
       decision.name should equal("FindDataSetById")
     }
 
@@ -63,12 +58,12 @@ class DecisionsDSLSpec extends FunSpec with Matchers with EasyMockSugar with Bef
         EntityTypes.DataSet,
         Filters.Name)
 
-      val decision = DecisionDSL.findDecision(decisionTree, request)
+      val decision = DecisionDSL.findDecision(tree, request)
       decision.name should equal("FindDataSetByName")
     }
 
     ignore("should draw the tree"){
-      DecisionDSL.drawTree(decisionTree,0, new ConsolePlotter())
+      DecisionDSL.drawTree(tree,0, new ConsolePlotter())
     }
 
     it("should build the tree from the rules"){
@@ -78,18 +73,18 @@ class DecisionsDSLSpec extends FunSpec with Matchers with EasyMockSugar with Bef
       val diagram = DecisionDSL.createDotFile(tree)
       val expected = """
       |digraph EngineDecisionTree{
-      |  UserSpace->{entityType}
-      |  filter->{All ID Name}
-      |  All->{ListDataSets}
-      |  Retrieve->{filter}
-      |  ID->{FindDataSetById}
-      |  DataType->{actionType}
-      |  actionType->{Retrieve}
-      |  scope->{UserSpace}
-      |  entityType->{DataType}
-      |  Name->{FindDataSetByName}
+      |	filter->{All ID Name}
+      |	All->{ListDataSets}
+      |	Retrieve->{filter}
+      |	internal_user_space->{entityType}
+      |	ID->{FindDataSetById}
+      |	actionType->{Retrieve}
+      |	scope->{internal_user_space}
+      |	entityType->{DataSet}
+      |	Name->{FindDataSetByName}
+      |	DataSet->{actionType}
       |}
-      """.stripMargin.replaceAll(" ", "")
+      """.stripMargin.replaceAll(" ", "").replaceAll("\t","")
       diagram.replaceAll(" ", "").replaceAll("\t","") should equal(expected)
     }
   }

@@ -5,9 +5,9 @@ sealed trait ActionType{
 }
 
 object ActionTypes{
-  case object Create extends ActionType{val value="create";}
-  case object Retrieve extends ActionType{val value="retrieve";}
-  case object Update extends ActionType{val value="update";}
-  case object Delete extends ActionType{val value="delete";}
-  case object None extends ActionType{val value="none";}
+  case object Create extends ActionType{val value="Create";}
+  case object Retrieve extends ActionType{val value="Retrieve";}
+  case object Update extends ActionType{val value="Update";}
+  case object Delete extends ActionType{val value="Delete";}
+  case object None extends ActionType{val value="None";}
 }
