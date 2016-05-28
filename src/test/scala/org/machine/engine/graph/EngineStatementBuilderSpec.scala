@@ -34,10 +34,6 @@ class EngineStatementBuilderSpec extends FunSpec with Matchers with EasyMockSuga
 
   /*
   TODO: Test all 41 options
-
-  1. How should the engine load the rules?
-  2. Update ActionTypes
-  3. Change Engine.run to use the decision tree.
   */
   describe("Engine Statement Builder"){
     it ("should find all datasets"){
@@ -51,10 +47,7 @@ class EngineStatementBuilderSpec extends FunSpec with Matchers with EasyMockSuga
         .setActionType(ActionTypes.Retrieve)
         .setEntityType(EntityTypes.DataSet)
         .setFilter(Filters.All)
-      .run //finds Cmd and executes it.
-
-      /* TODO Figure out return result to pass the result payload back.
-      */
+      .run
       result shouldBe a [QueryCmdResult[_]]
       result.asInstanceOf[QueryCmdResult[DataSet]].results.length should equal(3)
     }

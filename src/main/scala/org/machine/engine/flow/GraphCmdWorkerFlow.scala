@@ -38,7 +38,7 @@ object GraphCmdWorkerFlow{
 
   /*
   FIXME: Database Management Bug
-  The engine shuts down the data base on it's shutdown command. The good news is
+  The engine shuts down the database on it's shutdown command. The good news is
   ~shutdown needs to be called explicitly, however, it needs to be thought through
   how multiple workers can connect to the in memory database. Only one should attempt
   to shut down the db when the database is done.
@@ -56,19 +56,29 @@ object GraphCmdWorkerFlow{
   - Use an implicit parameter.
   - Pass the configuration around in memory.
   */
-  import org.machine.engine.Engine
   import com.typesafe.config._
+  import org.machine.engine.Engine
+  import org.machine.engine.flow.requests.RequestMessage
+  import org.machine.engine.graph.commands.{CommandScopes, EngineCmdResult}
+  import org.machine.engine.graph.decisions.{ActionTypes, EntityTypes, Filters}
   def runEngine(capsule: EngineCapsule):EngineCapsule = {
-    sys.addShutdownHook{
-      Console.println("Shutting Down Worker Engine")
-      Engine.getInstance.shutdown()
-    }
+    val request = capsule.attributes("deserializedMsg").asInstanceOf[RequestMessage]
 
-    /*
-    NOTE: Hardcoded command.
-    For the moment, let's just get the database communicating.
-    */
-    val datasets = Engine.getInstance.datasets()
-    return capsule.enrich("CmdResult", datasets, Some("run-engine-flow"))
+    val result:EngineCmdResult = Engine.getInstance
+      .reset
+      .setUser(Some(request.user))
+      .setScope(CommandScopes.pickScope(request.scope))
+      .setActionType(ActionTypes.pickAction(request.actionType))
+      .setEntityType(EntityTypes.pickEntity(request.entityType))
+      .setFilter(Filters.pickFilter(request.filter))
+    .run
+
+    // return new EngineMessageBase(
+    //   capsule.id,
+    //   EngineCapsuleStatuses.Ok.name,
+    //   EngineMessageTypes.CmdResult.name,
+    //   capsule.message.payload /*NOTE: This is just for the moment.*/
+    // )
+    return capsule.enrich("CmdResult", result, Some("run-engine-flow"))
   }
 }

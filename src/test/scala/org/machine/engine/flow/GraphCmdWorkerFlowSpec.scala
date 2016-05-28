@@ -51,11 +51,11 @@ class GraphCmdWorkerFlowSpec extends TestKit(ActorSystem("GraphCmdWorkerFlowSpec
 
       val cmd = """
       |{
-      | "user": "sam",
-      | "actionType": "RETRIEVE",
-      | "scope": "USER_SPACE",
-      | "entityType": "DATA_SET",
-      | "action": "ListDataSets"
+      | "user": "Sam",
+      | "actionType": "Retrieve",
+      | "scope": "UserSpace",
+      | "entityType": "DataSet",
+      | "filter": "All"
       |}
       """.stripMargin.replaceAll("\t","")
 
@@ -63,7 +63,7 @@ class GraphCmdWorkerFlowSpec extends TestKit(ActorSystem("GraphCmdWorkerFlowSpec
       //Should the RequestMessage be an attribute or elevated up?
       val capsule = EngineCapsule(ClientMessage(cmd), "123")
       val requestMsg = RequestMessage.fromJSON(capsule.message.payload)
-      val clientSource = Source.single(capsule.enrich("RequestMessage", requestMsg))
+      val clientSource = Source.single(capsule.enrich("deserializedMsg", requestMsg))
       val sink = Sink.seq[EngineMessage]
 
       val runnable: RunnableGraph[Future[Seq[EngineMessage]]] =

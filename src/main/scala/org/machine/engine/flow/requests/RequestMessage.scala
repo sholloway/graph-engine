@@ -4,7 +4,7 @@ case class RequestMessage(user: String,
   actionType: String,
   scope: String,
   entityType: String,
-  action: String)
+  filter: String)
 
 import net.liftweb.json._
 import net.liftweb.json.Serialization.{read, write}

@@ -10,4 +10,14 @@ object ActionTypes{
   case object Update extends ActionType{val value="Update";}
   case object Delete extends ActionType{val value="Delete";}
   case object None extends ActionType{val value="None";}
+
+  def pickAction(alias: String):ActionType = {
+    alias match {
+      case "Create"   => Create
+      case "Retrieve" => Retrieve
+      case "Update"   => Update
+      case "Delete"   => Delete
+      case _          => None
+    }
+  }
 }

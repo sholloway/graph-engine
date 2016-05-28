@@ -4,11 +4,12 @@ The list of stuff that must be accomplished for version 0.1.0.
 
 ## Features
 The list of features that version 0.1.0 shall be composed of.
-* [ ] 0MQ Protocol
+* [ ] WebSocket Protocol
 * [ ] Akka based concurrent statement execution.
 * [X] Internal Neo4J DSL
 * [ ] Export a dataset to a file.
 * [ ] Import a dataset from a file.
+* [X] Internal Decision Tree
 
 ## Supporting Tasks
 The list of general tasks that must be completed for version 0.1.0 to be considered done.
@@ -18,7 +19,6 @@ The list of general tasks that must be completed for version 0.1.0 to be conside
 * [ ] Return the count of elements in a dataset.
 * [ ] Return the full list of elements and associations with pagenation.
 * [ ] Neo4J Commands Refactor: Pull excluded list values (mid, dsId, etc...) into the parent class.
-* [ ] Implement 0MQ security model.
 * [ ] Add data indexes to Element mid & name.
 * [ ] Add data indexes to ElementDefinition mid & name.
 * [ ] Add data indexes to Association associationId.
@@ -48,9 +48,7 @@ The list of general tasks that must be completed for version 0.1.0 to be conside
 * [X] Change the protobuf package to be org.machine.engine.messages
 * [ ] Put creationTime & lastModifiedTime on ElementDefintion.
 * [ ] Add the concept of a User to the data model. This will require the DSL change.
-      Look at how BitTorrent Sync manages users? What do they exchange to enable replication?
-      Also consider BlockChain. The idea of a Ledger might be a fit for how the graph evolves
-      between collaborators. 
+
 
 ## Notes
 On startup:

@@ -8,6 +8,9 @@ object DeserializeClientMessage{
   */
   def deserialize(capsule: EngineCapsule):EngineCapsule = {
     val deserializedMsg = capsule.message.payload
+
+    //Assume JSON for the moment.    
+
     return capsule.enrich("deserializedMsg", deserializedMsg, Some("deserializeRequest"))
   }
 }
