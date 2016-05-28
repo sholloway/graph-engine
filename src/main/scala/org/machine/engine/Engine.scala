@@ -1,5 +1,8 @@
 package org.machine.engine
 
+import com.typesafe.config._
+import com.typesafe.scalalogging.{LazyLogging}
+
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.{Paths, Files}
@@ -8,17 +11,15 @@ import org.neo4j.graphdb._
 import org.neo4j.graphdb.factory.GraphDatabaseFactory
 import org.neo4j.io.fs.FileUtils
 
-// import scala.language.reflectiveCalls
 import scala.collection.JavaConversions._
 import scala.collection.mutable.{ArrayBuffer, ListBuffer, Map}
 
-import com.typesafe.config._
-import com.typesafe.scalalogging._
-
 import org.machine.engine.exceptions._
 import org.machine.engine.graph._
+import org.machine.engine.graph.utilities._
 import org.machine.engine.graph.commands._
 import org.machine.engine.graph.decisions._
+
 import org.machine.engine.graph.nodes._
 import org.machine.engine.graph.labels._
 import org.machine.engine.graph.internal._
@@ -30,7 +31,10 @@ object Engine{
 
   def getInstance: Engine = {
     if(engine == None){
-      engine = Some(new Engine(dbPath))
+      val url = getClass.getResource("/org/machine/engine/graph/decisions/rules")
+      val path = url.getPath()
+      val decisionTree = DecisionDSL.buildDecisionTreeFromRules(path)
+      engine = Some(new Engine(dbPath, decisionTree))
     }
     engine.get
   }
@@ -46,7 +50,7 @@ object Engine{
   def databasePath = dbPath
 }
 
-class Engine private (dbPath:String) extends GraphDSL with LazyLogging{
+class Engine private (dbPath:String, decisionTree: Question) extends GraphDSL with LazyLogging{
   import Neo4JHelper._
   import SystemSpaceManager._
   import UserSpaceManager._
@@ -160,29 +164,16 @@ class Engine private (dbPath:String) extends GraphDSL with LazyLogging{
     return this;
   }
 
-  def run():CmdResult = {
-    import org.machine.engine.graph.decisions._
-    val decisionTree = DecisionDSL.buildDecisionTree()
-
-    val decisionRequest = DecisionRequest(Some("user"),
+  def run():EngineCmdResult = {
+    val decisionRequest = DecisionRequest(this.user,
       this.actionType,
       this.scope,
       this.entityType,
       this.filter)
 
-    val decision = DecisionDSL.findDecision(decisionTree, decisionRequest)
-
-    /* TODO Do not have a stupid match statement.
-    Try to use reflection to remove the boilerplate.
-    */
-    val cmd = decision.name match{
-      case "ListDataSets" => new ListDataSets(database, scope, cmdOptions)
-      case _ => throw new InternalErrorException("Decision Tree result in a command that could not be executed.")
-    }
-
-    val result =  cmd.execute()
-    Console.println(result)
-    CmdResult.ok("It's all good")
+    val decision = DecisionDSL.findDecision(this.decisionTree, decisionRequest)
+    val cmd = DynamicCmdLoader.provision(decision.name, database, scope, cmdOptions)
+    return cmd.execute()
   }
   //End Abstract handlers
   //////////////////////////////////////////////////////////////////////////////
@@ -208,11 +199,12 @@ class Engine private (dbPath:String) extends GraphDSL with LazyLogging{
     return cmd.execute()
   }
 
-  def datasets():List[DataSet] = {
+  def datasets():Seq[DataSet] = {
     this.scope = CommandScopes.UserSpaceScope
     cmdOptions.reset
     val cmd = new ListDataSets(database, scope, cmdOptions)
-    return cmd.execute()
+    val result:QueryCmdResult[DataSet] = cmd.execute()
+    return result.results
   }
 
   def findDataSetByName(name:String):DataSet = {

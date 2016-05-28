@@ -14,12 +14,20 @@ import org.machine.engine.graph.nodes._
 import org.machine.engine.graph.labels._
 import org.machine.engine.graph.internal._
 
+trait InternalEngineCommand{
+  def execute():EngineCmdResult
+}
+
+trait Neo4JQueryCommandB[T] extends InternalEngineCommand{
+  def execute():QueryCmdResult[T]
+}
+
 class ListDataSets(database: GraphDatabaseService,
   cmdScope: CommandScope,
-  commandOptions: GraphCommandOptions) extends Neo4JQueryCommand[DataSet] with LazyLogging{
+  commandOptions: GraphCommandOptions) extends Neo4JQueryCommandB[DataSet] with LazyLogging{
   import Neo4JHelper._
 
-  def execute():List[DataSet] = {
+  def execute():QueryCmdResult[DataSet] = {
     logger.debug("ListDataSets: Executing Command")
     //#TODO:20 Currently this only returns ElementDefinitions that have associated PropertyDefinitions.
     //#TODO:90 Return creation_time & last_modified_time
@@ -36,7 +44,8 @@ class ListDataSets(database: GraphDatabaseService,
     val records = query[DataSet](database,
       findDataSets, null,
       dataSetMapper)
-    return records.toList
+
+    return QueryCmdResult[DataSet](records.toList)
   }
 
   private def dataSetMapper(

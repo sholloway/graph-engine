@@ -11,11 +11,11 @@ import org.neo4j.io.fs.FileUtils
 
 import org.machine.engine.Engine
 import org.machine.engine.graph._
+import org.machine.engine.graph.utilities.DynamicCmdLoader
 import org.machine.engine.graph.decisions._
 import org.machine.engine.graph.commands._
 import org.machine.engine.exceptions._
 import org.machine.engine.graph.nodes._
-
 
 class EngineStatementBuilderSpec extends FunSpec with Matchers with EasyMockSugar with BeforeAndAfterAll{
   import Neo4JHelper._
@@ -34,34 +34,34 @@ class EngineStatementBuilderSpec extends FunSpec with Matchers with EasyMockSuga
 
   /*
   TODO: Test all 41 options
-  Consider invocation of method using reflection vs cmd pattern.
-  Engine.getInstance.datasets()
+
+  1. How should the engine load the rules?
+  2. Update ActionTypes
+  3. Change Engine.run to use the decision tree.
   */
   describe("Engine Statement Builder"){
     it ("should find all datasets"){
       engine.createDataSet("Dataset A", "")
       engine.createDataSet("Dataset B", "")
       engine.createDataSet("Dataset C", "")
-
-      val request = new DecisionRequest(Some("da user"),
-        ActionTypes.Retrieve,
-        CommandScopes.UserSpaceScope,
-        EntityTypes.DataSet,
-        Filters.All)
-
-      val result =
-      engine
+      val result:EngineCmdResult = engine
         .reset
-        .setUser(request.user)
-        .setScope(request.scope)
-        .setActionType(request.actionType)
-        .setEntityType(request.entityType)
-        .setFilter(request.filter)
+        .setUser(Some("da user"))
+        .setScope(CommandScopes.UserSpaceScope)
+        .setActionType(ActionTypes.Retrieve)
+        .setEntityType(EntityTypes.DataSet)
+        .setFilter(Filters.All)
       .run //finds Cmd and executes it.
 
       /* TODO Figure out return result to pass the result payload back.
       */
-      Console.println(result)
+      result shouldBe a [QueryCmdResult[_]]
+      result.asInstanceOf[QueryCmdResult[DataSet]].results.length should equal(3)
+    }
+
+    it("should use refelction"){
+      val cmd = DynamicCmdLoader.provision("ListDataSets", null, null, null)
+      cmd shouldBe a [ListDataSets]
     }
   }
 }
