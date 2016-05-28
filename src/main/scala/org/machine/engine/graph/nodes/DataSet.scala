@@ -9,11 +9,11 @@ package org.machine.engine.graph.nodes
 * @param createTime When the DataSet was created.
 * @param lastModifiedTime When the DataSet was last edited.
 */
-class DataSet(val id: String,
+case class DataSet(val id: String,
   val name: String,
   val description: String,
   val creationTime: String,
-  val lastModifiedTime: String){ 
+  val lastModifiedTime: String){
 
   override def toString():String = {
     "DataSet: %s %s".format(id.toString(), name)
