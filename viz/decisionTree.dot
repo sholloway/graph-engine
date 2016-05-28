@@ -1,18 +1,68 @@
 digraph EngineDecisionTree{
-	ElementDefinition->{actionType}
-	filter->{None All None None All ID Name}
-	internal_system_space->{entityType}
-	Update->{filter}
-	Retrieve->{filter filter}
-	All->{ListAllElementDefinitions ListDataSets}
-	internal_user_space->{entityType}
-	ID->{FindDataSetById}
-	actionType->{Update Retrieve Delete Create Retrieve}
-	scope->{internal_system_space internal_user_space}
-	None->{EditElementDefintion DeleteElementDefintion CreateElementDefintion}
-	entityType->{ElementDefinition DataSet}
-	Name->{FindDataSetByName}
-	Delete->{filter}
-	Create->{filter}
-	DataSet->{actionType}
+	27->{28}
+	45->{}
+	38->{39}
+	33->{}
+	23->{}
+	18->{19}
+	39->{}
+	28->{}
+	5->{42 36 12 6}
+	9->{}
+	22->{23}
+	1->{2 16}
+	6->{7}
+	32->{33}
+	2->{3}
+	21->{32 22 27}
+	44->{45}
+	3->{4}
+	42->{43}
+	7->{8}
+	20->{21}
+	37->{38}
+	8->{9}
+	15->{}
+	19->{20}
+	43->{44}
+	4->{5}
+	13->{14}
+	16->{17}
+	36->{37}
+	14->{15}
+	12->{13}
+	17->{18}
+	3 [label="entityType" color=yellow]
+	43 [label="filter" color=red]
+	1 [label="scope" color=blue]
+	42 [label="Update" color=black]
+	37 [label="filter" color=red]
+	33 [label="ListDataSets" color=green]
+	23 [label="FindDataSetById" color=green]
+	20 [label="Retrieve" color=black]
+	32 [label="All" color=black]
+	36 [label="Retrieve" color=black]
+	6 [label="Create" color=black]
+	9 [label="CreateElementDefintion" color=green]
+	8 [label="None" color=black]
+	28 [label="FindDataSetByName" color=green]
+	38 [label="All" color=black]
+	7 [label="filter" color=red]
+	17 [label="entityType" color=yellow]
+	4 [label="ElementDefinition" color=black]
+	13 [label="filter" color=red]
+	18 [label="DataSet" color=black]
+	14 [label="None" color=black]
+	44 [label="None" color=black]
+	22 [label="ID" color=black]
+	16 [label="internal_user_space" color=black]
+	45 [label="EditElementDefintion" color=green]
+	12 [label="Delete" color=black]
+	19 [label="actionType" color=orange]
+	27 [label="Name" color=black]
+	21 [label="filter" color=red]
+	15 [label="DeleteElementDefintion" color=green]
+	39 [label="ListAllElementDefinitions" color=green]
+	5 [label="actionType" color=orange]
+	2 [label="internal_system_space" color=black]
 }

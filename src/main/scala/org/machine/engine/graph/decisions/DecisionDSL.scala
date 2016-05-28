@@ -40,13 +40,12 @@ object DecisionDSL{
   import scala.collection.mutable
   def buildDecisionTreeFromRules(dir: String):Question = {
     val scope = Question("scope")
+    scope.id = NodeIdentityGenerator.id
     val rules = loadRules(dir)
-
+    var counter:Short = 0
     rules.foreach{ rule =>
-      registerRule(scope, rule)
+      registerRule(scope, rule, counter)
     }
-
-    //Console.println(rules.mkString("\n"))
     return scope
   }
 
@@ -56,7 +55,7 @@ object DecisionDSL{
 
   First pass. Be explicit.
   */
-  private def registerRule(scope: Question, rule: Rule) = {
+  private def registerRule(scope: Question, rule: Rule, counter:Short) = {
     //Does the scope option exist? If not create it
     val scopeOption = scope.getOrElseUpdate(rule.scope)
 
@@ -73,7 +72,14 @@ object DecisionDSL{
     val filterOption = filterQuestion.getOrElseUpdate(rule.filter)
 
     //Register Decision
-    filterOption -> Decision(rule.decision)
+    /*
+    NOTE Potential Problem with building Decision Tree
+    I could see this approach being an issue. If the option already exists,
+    it is possible that another rule already specified a Decision on the
+    Option. That isn't logical, since the filter should only have one decision,
+    however it could technically happen if there are conflicting rules.
+    */
+    filterOption.getOrElseUpdateDecision(rule.decision)
   }
 
   private def loadRules(dir:String):Seq[Rule] = {
@@ -127,50 +133,76 @@ object DecisionDSL{
   digraph{
   	a->{b c d e f g}
   	b->{e f}[color="blue"]
+    a [lable="Da Root" color=red]
   }
   */
   import scala.collection.mutable
+  case class DotNode(id: Short, label: String, color: String){
+    //Used when generating the output.
+    override def toString:String = {
+      s"$id"
+    }
+
+    def display:String = {
+      s"""$id [label="$label" color=$color]"""
+    }
+  }
+
   def createDotFile(node:Node):String = {
-    val adjacencyList = mutable.Map.empty[String, Seq[String]]
+    val adjacencyList = mutable.Map.empty[DotNode, Seq[DotNode]]
     breadthFirstTraverse(node, adjacencyList)
 
     val graph = mutable.ArrayBuffer.empty[String]
     adjacencyList.foreach{ case (node, children) => {
-      graph += s"$node->{${children.mkString(" ")}}"
+      graph += s"${node.id}->{${children.mkString(" ")}}"
     }}
+
+    val labels = adjacencyList.keys.map(_.display)
     val dot = s"""
       |digraph EngineDecisionTree{
       |\t${graph.mkString("\n\t")}
+      |\t${labels.mkString("\n\t")}
       |}
       """.stripMargin
     return dot
   }
 
-  def breadthFirstTraverse(node: Node, edges: mutable.Map[String, Seq[String]]):Unit = {
+  def breadthFirstTraverse(node: Node,
+    edges: mutable.Map[DotNode, Seq[DotNode]]):Unit = {
     node match{
-      case q: Question => {
-        Console.println(s"${node.name}: ${node.children.length}")
-
-        val nodeEdges = node.children.map(_.name).toSeq
-        if(edges.contains(node.name)){
-          edges(node.name) ++= nodeEdges //nodeEdges isn't mutable...
-        }else{
-          edges += (node.name -> nodeEdges.toBuffer)
-        }
-        node.children.foreach(breadthFirstTraverse(_, edges))
+      case q: Question => processNode(node, edges)
+      case o: Opt => processNode(node, edges)
+      case d: Decision => {
+        val color = ColorMapper.color("decision")
+        val dNode = DotNode(d.id, d.name, color)
+        edges += (dNode -> mutable.ArrayBuffer.empty[DotNode])
+        return
       }
-      case o: Opt => {
-        val nodeEdges = node.children.map(_.name).toSeq
-        if(edges.contains(node.name)){
-          edges(node.name) ++= nodeEdges
-        }else{
-          edges += (node.name -> nodeEdges.toBuffer)
-        }
-        node.children.foreach(breadthFirstTraverse(_, edges))
-      }
-      case d: Decision => return
     }
   }
+
+  private def processNode(node: Node,
+    edges: mutable.Map[DotNode, Seq[DotNode]]):Unit ={
+    val color = ColorMapper.color(node.name)
+    val dotNodes = node.children.map(c => DotNode(c.id, c.name, color))
+    val nodeEdges:Seq[DotNode] = dotNodes.toSeq
+    val keyNode = DotNode(node.id, node.name, color)
+    if(edges.contains(keyNode)){
+      edges(keyNode) ++= nodeEdges
+    }else{
+      edges += (keyNode -> nodeEdges.toBuffer)
+    }
+    node.children.foreach(breadthFirstTraverse(_, edges))
+  }
+}
+
+object ColorMapper{
+  private val map = Map("scope" -> "blue",
+    "entityType" -> "yellow",
+    "actionType" -> "orange",
+    "filter" -> "red",
+    "decision" -> "green").withDefaultValue("black")
+  def color(query:String):String = map(query)
 }
 
 trait Plotter{

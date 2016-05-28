@@ -6,8 +6,15 @@ import scala.collection.mutable
 //Questions can only have options.
 //Options have a single question or decisions.
 class Question(at: String) extends Node{
-  val attribute = at
+  private val attribute = at
   private val options = mutable.Map[String, Opt]()
+  private var identifier:Option[Short] = None
+
+  def id_= (identifier: Short):Unit = this.identifier = Some(identifier)
+
+  def id:Short = {
+    return this.identifier.getOrElse(throw new InternalErrorException("Identifier not set for node."));
+  }
 
   def ~>(option: Opt):Opt = {
     options += (option.name -> option)
@@ -17,7 +24,9 @@ class Question(at: String) extends Node{
   /** Finds a registered option or registers it.
   */
   def getOrElseUpdate(optionName: String):Opt = {
-    return options.getOrElseUpdate(optionName, Opt(optionName, optionName))
+    val option = Opt(optionName, optionName)
+    option.id = NodeIdentityGenerator.id
+    return options.getOrElseUpdate(optionName, option)
   }
 
   /*

@@ -1,12 +1,21 @@
 package org.machine.engine.graph.decisions
 
 import scala.collection.mutable
+import org.machine.engine.exceptions.InternalErrorException
+
 case class Opt(val name: String, val value: String) extends Node{
-  var q: Option[Question] = None
-  var d: Option[Decision] = None
+  private var q: Option[Question] = None
+  private var d: Option[Decision] = None
+  private var identifier:Option[Short] = None
 
   def question = q
   def decision = d
+
+  def id_= (identifier: Short):Unit = this.identifier = Some(identifier)
+
+  def id:Short = {
+    return this.identifier.getOrElse(throw new InternalErrorException("Identifier not set for node."));
+  }
 
   def ~>(question:Question):Question = {
     this.q = Some(question)
@@ -19,14 +28,18 @@ case class Opt(val name: String, val value: String) extends Node{
 
   def getOrElseUpdateQuestion(qq: String):Question = {
     if (question.isEmpty){
-      this ~> Question(qq)
+      val qqq = Question(qq)
+      qqq.id = NodeIdentityGenerator.id
+      this ~> qqq
     }
     return question.get
   }
 
   def getOrElseUpdateDecision(dd: String):Decision = {
     if(decision.isEmpty){
-      this -> Decision(dd)
+      val ddd = Decision(dd)
+      ddd.id = NodeIdentityGenerator.id
+      this -> ddd
     }
     return decision.get
   }
