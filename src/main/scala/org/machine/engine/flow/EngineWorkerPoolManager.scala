@@ -34,19 +34,24 @@ object EngineWorkerPoolManager{
   }
 
   /*TODO Convert to JSON*/
-  private def serializeResponse(response: EngineCmdResult):String = {
-
+  import scala.reflect.{ClassTag, classTag}
+  import scala.reflect.runtime.universe._
+  private def serializeResponse[T: ClassTag](response: EngineCmdResult):String = {
     response match {
-      case query: QueryCmdResult[DataSet] => serializeQuery(query)
+      case query: QueryCmdResult[T @unchecked] => matchQueryResultType(query.results)
       case _ => response.toString
     }
-
   }
 
-  private def serializeQuery(query: QueryCmdResult[DataSet]): String = {
+  private def matchQueryResultType[T: ClassTag](result: Seq[T]):String = result match{
+    case ds: Seq[DataSet @unchecked] if classTag[T] == classTag[DataSet] => serializeDataSetSeq(ds)
+    case _ => result.toString
+  }
+
+  private def serializeDataSetSeq(results: Seq[DataSet]): String = {
     val json =
       ("datasets" ->
-        query.results.map{ ds =>
+        results.map{ ds =>
           (
             ("id" -> ds.id) ~
             ("name" -> ds.name) ~
@@ -56,6 +61,6 @@ object EngineWorkerPoolManager{
           )
         }
       )
-    return pretty(render(json))
+    return prettyRender(json)
   }
 }
