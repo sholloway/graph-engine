@@ -18,12 +18,12 @@ import org.machine.engine.graph.internal._
 
 class FindDownStreamElementsByElementId(database: GraphDatabaseService,
   cmdScope: CommandScope,
-  cmdOptions: GraphCommandOptions) extends LazyLogging{
+  cmdOptions: GraphCommandOptions) extends Neo4JQueryCommand[Element] with LazyLogging{
   import Neo4JHelper._
-  def execute():List[Element] = {
+  def execute():QueryCmdResult[Element] = {
     logger.debug("FindDownStreamElementsByElementId: Executing Command")
     val elements = findElements(database, cmdOptions)
-    return filterElements(elements)
+    return QueryCmdResult(filterElements(elements))
   }
 
   private def findElements(database: GraphDatabaseService, cmdOptions: GraphCommandOptions):List[Element] = {

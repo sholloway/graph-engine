@@ -5,10 +5,8 @@ import org.neo4j.graphdb._
 
 
 /*
-TODO:
-Split this out. Have creation command factory and query command factory.
-The query commands currently do not have a shared ancestor.
-They need to return a List[T].
+TODO: Remove this after all comands have defined rules.
+This should be replaced with the Decision Tree.
 */
 object CommandFactory{
   def build(command:EngineCommand,
@@ -26,7 +24,6 @@ object CommandFactory{
       case EngineCommands.CreateDataSet => new CreateDataSet(database, cmdScope, cmdOptions)
       case EngineCommands.EditDataSet => new EditDataSet(database, cmdScope, cmdOptions)
 
-      //2nd half... Fuck!
       case EngineCommands.ProvisionElement => new CreateElement(database, cmdScope, cmdOptions)
       case EngineCommands.EditElement => new EditElement(database, cmdScope, cmdOptions)
       case EngineCommands.DeleteElement => new DeleteElement(database, cmdScope, cmdOptions)

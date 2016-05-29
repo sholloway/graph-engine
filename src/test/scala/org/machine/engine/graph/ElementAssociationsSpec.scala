@@ -275,7 +275,7 @@ class ElementAssociationsSpec extends FunSpec with Matchers with EasyMockSugar w
             .withField("note", "Existing integration shall be replaced next year.")
           .end
 
-          val outBoundAssociations:List[Association] = engine
+          val outBoundAssociations:Seq[Association] = engine
             .onDataSet(systemsDataSetId)
             .onElement(systemId)
             .findOutboundAssociations()
@@ -323,7 +323,7 @@ class ElementAssociationsSpec extends FunSpec with Matchers with EasyMockSugar w
             .withField("primaryContact", true)
           .end
 
-          val inboundAssociations:List[Association] = engine
+          val inboundAssociations:Seq[Association] = engine
             .onDataSet(systemsDataSetId)
             .onElement(systemId)
             .findInboundAssociations()
@@ -367,7 +367,7 @@ class ElementAssociationsSpec extends FunSpec with Matchers with EasyMockSugar w
             .withField("primaryContact", true)
           .end
 
-          val upstreamElements:List[Element] = engine
+          val upstreamElements:Seq[Element] = engine
             .onDataSet(systemsDataSetId)
             .onElement(systemId)
             .findUpStreamElements
@@ -405,7 +405,7 @@ class ElementAssociationsSpec extends FunSpec with Matchers with EasyMockSugar w
             .withField("note", "Existing integration shall be replaced next year.")
           .end
 
-          val downstreamElements:List[Element] = engine
+          val downstreamElements:Seq[Element] = engine
             .onDataSet(systemsDataSetId)
             .onElement(systemId)
             .findDownStreamElements

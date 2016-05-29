@@ -18,13 +18,13 @@ import org.machine.engine.graph.internal._
 
 class FindAssociationById(database: GraphDatabaseService,
   cmdScope: CommandScope,
-  cmdOptions: GraphCommandOptions) extends LazyLogging{
+  cmdOptions: GraphCommandOptions) extends Neo4JQueryCommand[Association] with LazyLogging{
   import Neo4JHelper._
 
-  def execute():Association = {
+  def execute():QueryCmdResult[Association] = {
     logger.debug("FindAssociationById: Executing Command")
     val associationDefinition:AssociationDefinition = findAssociationStructure(database, cmdOptions)
-    return findAssociation(database, cmdOptions, associationDefinition)
+    return QueryCmdResult(findAssociation(database, cmdOptions, associationDefinition))
   }
 
   private def findAssociationStructure(database: GraphDatabaseService,
@@ -64,7 +64,7 @@ class FindAssociationById(database: GraphDatabaseService,
   private def findAssociation(database: GraphDatabaseService,
     cmdOptions: GraphCommandOptions,
     associationDefinition: AssociationDefinition
-  ):Association = {
+  ):List[Association] = {
     val statement = buildFindAssociationQuery(cmdOptions, associationDefinition);
     val associations = query[Association](database, statement, cmdOptions.toJavaMap, associationMapper)
     return validateAssociation(associations.toList, cmdOptions)
@@ -120,7 +120,7 @@ class FindAssociationById(database: GraphDatabaseService,
 
   private def cast[T:Manifest](x: T):T = x.asInstanceOf[T]
 
-  private def validateAssociation(associations: List[Association], cmdOptions: GraphCommandOptions):Association = {
+  private def validateAssociation(associations: List[Association], cmdOptions: GraphCommandOptions):List[Association] = {
     val associationId = cmdOptions.option[String]("associationId")
     if(associations.length < 1){
       val msg = "No association with associationId: %s could be found.".format(associationId)
@@ -129,6 +129,6 @@ class FindAssociationById(database: GraphDatabaseService,
       val msg = "Multiple associations were found with associationId: %s".format(associationId)
       throw new InternalErrorException(msg);
     }
-    return associations.head
+    return associations
   }
 }

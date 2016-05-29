@@ -19,7 +19,7 @@ class FindElementDefinitionByName(database: GraphDatabaseService,
   cmdOptions: GraphCommandOptions) extends FindElementDefinition with LazyLogging{
   import Neo4JHelper._
 
-  def execute():List[ElementDefinition] = {
+  def execute():QueryCmdResult[ElementDefinition] = {
     logger.debug("FindElementDefinitionByName: Executing Command")
     val findElement = buildQuery(cmdScope, cmdOptions)
     val records = query[(ElementDefinition, PropertyDefinition)](database,
@@ -27,7 +27,7 @@ class FindElementDefinitionByName(database: GraphDatabaseService,
       cmdOptions.toJavaMap,
       elementDefAndPropDefQueryMapper)
     val elementDefs = consolidateElementDefs(records.toList)
-    return validateQueryResponse(elementDefs);
+    return QueryCmdResult(validateQueryResponse(elementDefs));
   }
 
   protected def buildQuery(cmdScope: CommandScope, cmdOptions: GraphCommandOptions):String = {

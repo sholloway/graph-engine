@@ -314,7 +314,7 @@ trait GraphDSL{
 
   def defineElement(name:String, description: String):GraphDSL
   def withProperty(name:String, ptype: String, description: String):GraphDSL
-  def elementDefinitions():List[ElementDefinition]
+  def elementDefinitions():Seq[ElementDefinition]
   def findElementDefinitionById(id:String):ElementDefinition
   def findElementDefinitionByName(name:String):ElementDefinition
 
@@ -339,13 +339,13 @@ trait GraphDSL{
   def findAssociation(associationId: String):Association
   def onAssociation(annotationId: String):GraphDSL
   def removeField(fieldName: String):GraphDSL
-  def findOutboundAssociations():List[Association]
-  def findInboundAssociations():List[Association]
-  def findDownStreamElements():List[Element]
-  def findUpStreamElements():List[Element]
+  def findOutboundAssociations():Seq[Association]
+  def findInboundAssociations():Seq[Association]
+  def findDownStreamElements():Seq[Element]
+  def findUpStreamElements():Seq[Element]
 
-  def removeInboundAssociations():List[Association]
-  def removeOutboundAssociations():List[Association]
+  def removeInboundAssociations():Seq[Association]
+  def removeOutboundAssociations():Seq[Association]
 }
 
 trait CmdResult{

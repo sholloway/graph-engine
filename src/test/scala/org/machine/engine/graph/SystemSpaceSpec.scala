@@ -118,7 +118,7 @@ class SystemSpaceSpec extends FunSpec
             .withProperty("Title", "String", "A user defined title of the note.")
             .end()
 
-          val elements:List[ElementDefinition] = engine
+          val elements:Seq[ElementDefinition] = engine
             .inSystemSpace()
             .elementDefinitions()
 
@@ -133,7 +133,7 @@ class SystemSpaceSpec extends FunSpec
             .withProperty("Title", "String", "A user defined title of the note.")
             .end()
 
-            val elements:List[ElementDefinition] = engine
+            val elements:Seq[ElementDefinition] = engine
               .inSystemSpace()
               .elementDefinitions()
 

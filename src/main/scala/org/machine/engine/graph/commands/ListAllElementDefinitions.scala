@@ -19,7 +19,7 @@ class ListAllElementDefinitions(database: GraphDatabaseService,
   cmdOptions: GraphCommandOptions) extends Neo4JQueryCommand[ElementDefinition] with LazyLogging{
   import Neo4JHelper._
 
-  def execute():List[ElementDefinition] = {
+  def execute():QueryCmdResult[ElementDefinition] = {
     logger.debug("ListAllElementDefintions: Executing Command")
     val scope = buildScope(cmdScope, cmdOptions)
     //#TODO:10 Currently this only returns ElementDefinitions that have associated PropertyDefinitions.
@@ -39,7 +39,7 @@ class ListAllElementDefinitions(database: GraphDatabaseService,
     val records = query[(ElementDefinition, PropertyDefinition)](database,
       findDefinedElements, cmdOptions.toJavaMap,
       elementDefAndPropDefQueryMapper)
-    return consolidateElementDefs(records.toList)
+    return QueryCmdResult(consolidateElementDefs(records.toList))
   }
 
   protected def buildScope(cmdScope: CommandScope, cmdOptions: GraphCommandOptions):String = {

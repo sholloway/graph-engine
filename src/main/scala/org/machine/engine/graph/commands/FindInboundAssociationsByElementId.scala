@@ -18,12 +18,12 @@ import org.machine.engine.graph.internal._
 
 class FindInboundAssociationsByElementId(database: GraphDatabaseService,
   cmdScope: CommandScope,
-  cmdOptions: GraphCommandOptions) extends LazyLogging{
+  cmdOptions: GraphCommandOptions) extends Neo4JQueryCommand[Association] with LazyLogging{
   import Neo4JHelper._
-  def execute():List[Association] = {
+  def execute():QueryCmdResult[Association] = {
     logger.debug("FindInboundAssociationsByElementId: Executing Command")
     val associations = findAssociations(database, cmdOptions)
-    return filterAssociations(associations)
+    return QueryCmdResult(filterAssociations(associations))
   }
 
   private def findAssociations(database: GraphDatabaseService, cmdOptions: GraphCommandOptions):List[Association] = {

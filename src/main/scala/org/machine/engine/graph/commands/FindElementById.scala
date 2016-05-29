@@ -22,24 +22,24 @@ because a field could be of type AnyVal or AnyRef. Example: Byte & List[Byte]
 */
 class FindElementById(database: GraphDatabaseService,
   cmdScope: CommandScope,
-  fields: GraphCommandOptions) extends LazyLogging{
+  fields: GraphCommandOptions) extends Neo4JQueryCommand[Element] with LazyLogging{
   import Neo4JHelper._
 
   private var elementDefintion:scala.collection.immutable.Map[String, List[String]] = null
 
-  def execute():Element = {
+  def execute():QueryCmdResult[Element] = {
     logger.debug("FindElementById: Executing Command")
     val definitions = findElementStructure(database, fields)
     elementDefintion = definitions(0)
-    return findElements(database, fields, elementDefintion)
+    return QueryCmdResult(findElements(database, fields, elementDefintion))
   }
 
   private def findElements(database: GraphDatabaseService,
     fields: GraphCommandOptions,
-    elementDefintion: scala.collection.immutable.Map[String, List[String]]):Element = {
+    elementDefintion: scala.collection.immutable.Map[String, List[String]]):List[Element] = {
     val statement = buildFindElementQuery(fields, elementDefintion);
     val elements = query[Element](database, statement, fields.toJavaMap, elementMapper)
-    return validateElement(elements.toList, fields)(0)
+    return validateElement(elements.toList, fields)
   }
 
   private def validateElement(elements: List[Element], fields: GraphCommandOptions):List[Element] = {

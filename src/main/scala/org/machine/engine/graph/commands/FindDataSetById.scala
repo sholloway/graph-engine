@@ -16,7 +16,7 @@ import org.machine.engine.graph.internal._
 
 class FindDataSetById(database: GraphDatabaseService,
   cmdScope: CommandScope,
-  cmdOptions: GraphCommandOptions) extends Neo4JQueryCommandB[DataSet] with LazyLogging{
+  cmdOptions: GraphCommandOptions) extends Neo4JQueryCommand[DataSet] with LazyLogging{
   import Neo4JHelper._
 
   def execute():QueryCmdResult[DataSet] = {

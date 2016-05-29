@@ -16,6 +16,6 @@ trait Neo4DeleteCommand[T] extends InternalEngineCommand{
   def execute():DeleteCmdResult[T]
 }
 
-trait Neo4JQueryCommandB[T] extends InternalEngineCommand{
+trait Neo4JQueryCommand[T] extends InternalEngineCommand{
   def execute():QueryCmdResult[T]
 }

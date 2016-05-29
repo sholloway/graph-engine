@@ -265,9 +265,10 @@ class Engine private (dbPath:String, decisionTree: Question) extends GraphDSL wi
     return this
   }
 
-  def elementDefinitions():List[ElementDefinition] = {
+  def elementDefinitions():Seq[ElementDefinition] = {
     val cmd = new ListAllElementDefinitions(database, scope, cmdOptions)
-    return cmd.execute()
+    val result:QueryCmdResult[ElementDefinition] = cmd.execute()
+    return result.results
   }
 
   def findElementDefinitionById(id:String):ElementDefinition = {
@@ -276,8 +277,8 @@ class Engine private (dbPath:String, decisionTree: Question) extends GraphDSL wi
     }
     cmdOptions.addOption("mid", id)
     val cmd = new FindElementDefinitionById(database, scope, cmdOptions)
-    val elements = cmd.execute()
-    return elements(0)
+    val result:QueryCmdResult[ElementDefinition] = cmd.execute()
+    return result.results.head
   }
 
   def findElementDefinitionByName(name:String):ElementDefinition = {
@@ -287,7 +288,8 @@ class Engine private (dbPath:String, decisionTree: Question) extends GraphDSL wi
     cmdOptions.addOption("name", name)
     val cmd = new FindElementDefinitionByName(database, scope, cmdOptions)
     val elements = cmd.execute()
-    return elements(0)
+    val result:QueryCmdResult[ElementDefinition] = cmd.execute()
+    return result.results.head
   }
 
   /** Sets the mode to be in edit for an ElementDefintion.
@@ -387,7 +389,9 @@ class Engine private (dbPath:String, decisionTree: Question) extends GraphDSL wi
 
   def findElement(elementId: String):Element = {
     cmdOptions.addOption("mid", elementId)
-    return new FindElementById(database, scope, cmdOptions).execute()
+    val cmd = new FindElementById(database, scope, cmdOptions)
+    val result:QueryCmdResult[Element] = cmd.execute()
+    return result.results.head
   }
 
   def onElement(elementId: String):GraphDSL = {
@@ -419,7 +423,9 @@ class Engine private (dbPath:String, decisionTree: Question) extends GraphDSL wi
 
   def findAssociation(associationId: String):Association = {
     cmdOptions.addOption("associationId", associationId)
-    return new FindAssociationById(database, scope, cmdOptions).execute()
+    val cmd = new FindAssociationById(database, scope, cmdOptions)
+    val result:QueryCmdResult[Association] = cmd.execute()
+    return result.results.head
   }
 
   def onAssociation(annotationId: String):GraphDSL = {
@@ -440,32 +446,44 @@ class Engine private (dbPath:String, decisionTree: Question) extends GraphDSL wi
     return this
   }
 
-  def findOutboundAssociations():List[Association] = {
-    return new FindOutboundAssociationsByElementId(database, scope, cmdOptions).execute()
+  def findOutboundAssociations():Seq[Association] = {
+    val cmd = new FindOutboundAssociationsByElementId(database, scope, cmdOptions)
+    val result:QueryCmdResult[Association] = cmd.execute()
+    return result.results
   }
 
-  def findInboundAssociations():List[Association] = {
-    return new FindInboundAssociationsByElementId(database, scope, cmdOptions).execute()
+  def findInboundAssociations():Seq[Association] = {
+    val cmd = new FindInboundAssociationsByElementId(database, scope, cmdOptions)
+    val result:QueryCmdResult[Association] = cmd.execute()
+    return result.results
   }
 
-  def findDownStreamElements():List[Element] = {
-    return new FindDownStreamElementsByElementId(database, scope, cmdOptions).execute()
+  def findDownStreamElements():Seq[Element] = {
+    val cmd = new FindDownStreamElementsByElementId(database, scope, cmdOptions)
+    val result:QueryCmdResult[Element] = cmd.execute()
+    return result.results
   }
 
-  def findUpStreamElements():List[Element] = {
-    return new FindUpStreamElementsByElementId(database, scope, cmdOptions).execute()
+  def findUpStreamElements():Seq[Element] = {
+    val cmd = new FindUpStreamElementsByElementId(database, scope, cmdOptions)
+    val result:QueryCmdResult[Element] = cmd.execute()
+    return result.results
   }
 
-  def removeInboundAssociations():List[Association] = {
-    val existingInboundAssociations = new FindInboundAssociationsByElementId(database, scope, cmdOptions).execute()
+  def removeInboundAssociations():Seq[Association] = {
+    val result:QueryCmdResult[Association] = new FindInboundAssociationsByElementId(database, scope, cmdOptions).execute()
+    val existingInboundAssociations = result.results
+
     val ids = ArrayBuffer.empty[String]
     existingInboundAssociations.foreach(a => ids += a.id)
     new RemoveInboundAssociations(database, scope, cmdOptions, ids.toList).execute()
     return existingInboundAssociations
   }
 
-  def removeOutboundAssociations():List[Association] = {
-    val existingOutboundAssociations = new FindOutboundAssociationsByElementId(database, scope, cmdOptions).execute()
+  def removeOutboundAssociations():Seq[Association] = {
+    val result:QueryCmdResult[Association] = new FindOutboundAssociationsByElementId(database, scope, cmdOptions).execute()
+    val existingOutboundAssociations = result.results
+
     val ids = ArrayBuffer.empty[String]
     existingOutboundAssociations.foreach(a => ids += a.id)
     new RemoveOutboundAssociations(database, scope, cmdOptions, ids.toList).execute()
