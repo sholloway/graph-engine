@@ -14,14 +14,6 @@ import org.machine.engine.graph.nodes._
 import org.machine.engine.graph.labels._
 import org.machine.engine.graph.internal._
 
-trait InternalEngineCommand{
-  def execute():EngineCmdResult
-}
-
-trait Neo4JQueryCommandB[T] extends InternalEngineCommand{
-  def execute():QueryCmdResult[T]
-}
-
 class ListDataSets(database: GraphDatabaseService,
   cmdScope: CommandScope,
   commandOptions: GraphCommandOptions) extends Neo4JQueryCommandB[DataSet] with LazyLogging{

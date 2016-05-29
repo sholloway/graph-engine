@@ -237,8 +237,8 @@ class Engine private (dbPath:String, decisionTree: Question) extends GraphDSL wi
     cmdOptions.reset
     cmdOptions.addOption("dsId", id)
     val cmd = new FindDataSetById(database, scope, cmdOptions)
-    val elements = cmd.execute()
-    return elements(0)
+    val result:QueryCmdResult[DataSet] = cmd.execute()
+    return result.results(0)
   }
 
   //Resets the command options and sets the command type to Define Element.

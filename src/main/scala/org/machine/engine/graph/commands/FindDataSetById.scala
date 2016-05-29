@@ -16,10 +16,10 @@ import org.machine.engine.graph.internal._
 
 class FindDataSetById(database: GraphDatabaseService,
   cmdScope: CommandScope,
-  cmdOptions: GraphCommandOptions) extends Neo4JQueryCommand[DataSet] with LazyLogging{
+  cmdOptions: GraphCommandOptions) extends Neo4JQueryCommandB[DataSet] with LazyLogging{
   import Neo4JHelper._
 
-  def execute():List[DataSet] = {
+  def execute():QueryCmdResult[DataSet] = {
     logger.debug("FindDataSetById: Executing Command")
     val findDataSets = """
       |match (us:internal_user_space)-[:contains]->(ds:internal_data_set {mid:{dsId}})
@@ -50,7 +50,7 @@ class FindDataSetById(database: GraphDatabaseService,
     return new DataSet(id, name, description, creationTime, lastModifiedTime)
   }
 
-  private def validateQueryResponse(datasets: List[DataSet]):List[DataSet] = {
+  private def validateQueryResponse(datasets: List[DataSet]):QueryCmdResult[DataSet] = {
     val mid = cmdOptions.option[String]("dsId")
     if(datasets.length < 1){
       val msg = "No dataset with mid: %s could be found in %s".format(mid, cmdScope.scope)
@@ -59,6 +59,6 @@ class FindDataSetById(database: GraphDatabaseService,
       val msg = "Multiple data sets where found with mid: %s in %s".format(mid, cmdScope.scope)
       throw new InternalErrorException(msg);
     }
-    return datasets
+    return QueryCmdResult[DataSet](datasets)
   }
 }

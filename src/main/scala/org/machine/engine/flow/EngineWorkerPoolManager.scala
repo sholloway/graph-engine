@@ -33,7 +33,6 @@ object EngineWorkerPoolManager{
     )
   }
 
-  /*TODO Convert to JSON*/
   import scala.reflect.{ClassTag, classTag}
   import scala.reflect.runtime.universe._
   private def serializeResponse[T: ClassTag](response: EngineCmdResult):String = {

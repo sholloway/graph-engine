@@ -19,8 +19,6 @@ import org.machine.engine.graph.nodes._
 
 class DecisionsDSLSpec extends FunSpec with Matchers with EasyMockSugar with BeforeAndAfterAll{
   import Neo4JHelper._
-  // val dbFile = new File(Engine.databasePath)
-  // var engine:Engine = null
 
   val url = getClass.getResource("/org/machine/engine/graph/decisions/rules")
   val path = url.getPath()
