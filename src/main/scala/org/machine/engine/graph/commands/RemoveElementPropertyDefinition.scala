@@ -16,12 +16,12 @@ import org.machine.engine.graph.internal._
 
 class RemoveElementPropertyDefinition(database: GraphDatabaseService,
   cmdScope: CommandScope,
-  cmdOptions: GraphCommandOptions) extends Neo4JCommand with LazyLogging{
+  cmdOptions: GraphCommandOptions) extends Neo4DeleteCommand[String] with LazyLogging{
   import Neo4JHelper._
 
   val filter = List("mid", "pname")
 
-  def execute():String = {
+  def execute():DeleteCmdResult[String] = {
     logger.debug("RemoveElementPropertyDefinition: Executing Command")
     if (!cmdOptions.contains("mid")){
       throw new InternalErrorException("mid required")
@@ -30,7 +30,7 @@ class RemoveElementPropertyDefinition(database: GraphDatabaseService,
     transaction(database, (graphDB:GraphDatabaseService) => {
       removePropertyDefinition(graphDB)
     })
-    return cmdOptions.option[String]("mid")
+    return DeleteCmdResult(cmdOptions.option[String]("mid"))
   }
 
   private def removePropertyDefinition(graphDB: GraphDatabaseService):Unit = {

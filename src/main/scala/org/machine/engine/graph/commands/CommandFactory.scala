@@ -14,7 +14,7 @@ object CommandFactory{
   def build(command:EngineCommand,
     database:GraphDatabaseService,
     cmdScope:CommandScope,
-    cmdOptions:GraphCommandOptions):Neo4JCommand = {
+    cmdOptions:GraphCommandOptions):InternalEngineCommand = {
     return command match {
       case EngineCommands.DefineElement => new CreateElementDefintion(database, cmdScope, cmdOptions)
       case EngineCommands.EditElementDefinition => new EditElementDefintion(database, cmdScope, cmdOptions)
@@ -26,6 +26,7 @@ object CommandFactory{
       case EngineCommands.CreateDataSet => new CreateDataSet(database, cmdScope, cmdOptions)
       case EngineCommands.EditDataSet => new EditDataSet(database, cmdScope, cmdOptions)
 
+      //2nd half... Fuck!
       case EngineCommands.ProvisionElement => new CreateElement(database, cmdScope, cmdOptions)
       case EngineCommands.EditElement => new EditElement(database, cmdScope, cmdOptions)
       case EngineCommands.DeleteElement => new DeleteElement(database, cmdScope, cmdOptions)

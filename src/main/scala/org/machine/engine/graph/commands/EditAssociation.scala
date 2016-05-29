@@ -16,15 +16,15 @@ import org.machine.engine.graph.internal._
 
 class EditAssociation(database: GraphDatabaseService,
   cmdScope: CommandScope,
-  cmdOptions: GraphCommandOptions) extends Neo4JCommand with LazyLogging{
+  cmdOptions: GraphCommandOptions) extends Neo4UpdateCommand[String] with LazyLogging{
   import Neo4JHelper._
 
-  def execute():String = {
+  def execute():UpdateCmdResult[String] = {
     logger.debug("EditAssociation: Executing Command")
     transaction(database, (graphDB:GraphDatabaseService) => {
       editAssociation(graphDB, cmdOptions)
     })
-    return cmdOptions.option[String]("associationId")
+    return UpdateCmdResult(cmdOptions.option[String]("associationId"))
   }
 
   private def editAssociation(graphDB:GraphDatabaseService,

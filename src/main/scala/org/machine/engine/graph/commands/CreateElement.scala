@@ -16,10 +16,10 @@ import org.machine.engine.graph.internal._
 
 class CreateElement(database: GraphDatabaseService,
   cmdScope: CommandScope,
-  cmdOptions: GraphCommandOptions) extends Neo4JCommand with LazyLogging{
+  cmdOptions: GraphCommandOptions) extends Neo4InsertCommand[String] with LazyLogging{
   import Neo4JHelper._
 
-  def execute():String = {
+  def execute():InsertCmdResult[String] = {
     logger.debug("CreateElement: Executing Command")
 
     val elementDef = findElementDefinition(database, cmdOptions)
@@ -28,7 +28,7 @@ class CreateElement(database: GraphDatabaseService,
       createElement(graphDB, cmdOptions, elementDef)
       registerElement(graphDB, cmdOptions, elementDef)
     })
-    return cmdOptions.field[String]("mid")
+    return InsertCmdResult(cmdOptions.field[String]("mid"))
   }
 
   /*

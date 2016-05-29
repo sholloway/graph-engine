@@ -16,16 +16,16 @@ import org.machine.engine.graph.internal._
 
 class DeleteElementDefintion(database: GraphDatabaseService,
   cmdScope: CommandScope,
-  cmdOptions: GraphCommandOptions) extends Neo4JCommand with LazyLogging{
+  cmdOptions: GraphCommandOptions) extends Neo4DeleteCommand[String] with LazyLogging{
   import Neo4JHelper._
 
-  def execute():String = {
+  def execute():DeleteCmdResult[String] = {
     logger.debug("DeleteElementDefintion: Executing Command")
     transaction(database, (graphDB: GraphDatabaseService) => {
       deleteAssociatedPropertyDefinitions(graphDB)
       deleteElementDefinition(graphDB)
     })
-    return cmdOptions.option[String]("mid")
+    return DeleteCmdResult(cmdOptions.option[String]("mid"))
   }
 
   private def deleteAssociatedPropertyDefinitions(graphDB: GraphDatabaseService):Unit = {

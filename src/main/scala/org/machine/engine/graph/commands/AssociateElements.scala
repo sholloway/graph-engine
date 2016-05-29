@@ -17,18 +17,18 @@ import org.machine.engine.graph.internal._
 
 class AssociateElements(database:GraphDatabaseService,
   cmdScope:CommandScope,
-  cmdOptions:GraphCommandOptions) extends Neo4JCommand with LazyLogging{
+  cmdOptions:GraphCommandOptions) extends Neo4InsertCommand[String] with LazyLogging{
   import Neo4JHelper._
 
   val expectedElements = List("dsId", "startingElementId", "endingElementId",
     "associationName", "associationId")
 
-  def execute():String = {
+  def execute():InsertCmdResult[String] = {
     logger.debug("CreateDataSet: Executing Command")
     transaction(database, (graphDB:GraphDatabaseService) => {
       associateElements(graphDB)
     })
-    return cmdOptions.option[String]("associationId")
+    return InsertCmdResult(cmdOptions.option[String]("associationId"))
   }
 
   /*

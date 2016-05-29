@@ -196,7 +196,9 @@ class Engine private (dbPath:String, decisionTree: Question) extends GraphDSL wi
     cmdOptions.addOption("name", name)
     cmdOptions.addOption("description", description)
     val cmd = CommandFactory.build(command, database, scope, cmdOptions)
-    return cmd.execute()
+    val result:EngineCmdResult = cmd.execute()
+    val resultId = getResultValue(result)
+    return resultId
   }
 
   def datasets():Seq[DataSet] = {
@@ -346,14 +348,29 @@ class Engine private (dbPath:String, decisionTree: Question) extends GraphDSL wi
     }
     return this
   }
-  /** Executes the built up command. */
+  /**
+      Executes the built up command.
+      Only used for commands of type Insert, Update, Delete.
+      No queries.
+      TODO: Replace CommandFactory with Decision Tree.
+      Do this after all commands have their ancestry updated.
+  */
   def end():String = {
     logger.debug("Engine: Attempt to execute command.")
     val cmd = CommandFactory.build(command,
       database,
       scope,
       cmdOptions)
-    return cmd.execute()
+    val result:EngineCmdResult = cmd.execute()
+    val resultId = getResultValue(result)
+    return resultId
+  }
+
+  private def getResultValue(result: EngineCmdResult):String = result match {
+    case r: InsertCmdResult[String @unchecked] => r.result
+    case r: UpdateCmdResult[String @unchecked] => r.result
+    case r: DeleteCmdResult[String @unchecked] => r.result
+    case _ => throw new InternalErrorException("Unsupported EngineCmdResult type")
   }
 
   def provision(elementDefId: String):GraphDSL = {

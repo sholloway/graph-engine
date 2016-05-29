@@ -16,15 +16,15 @@ import org.machine.engine.graph.internal._
 
 class EditElement(database: GraphDatabaseService,
   cmdScope: CommandScope,
-  cmdOptions: GraphCommandOptions) extends Neo4JCommand with LazyLogging{
+  cmdOptions: GraphCommandOptions) extends Neo4UpdateCommand[String] with LazyLogging{
   import Neo4JHelper._
 
-  def execute():String = {
+  def execute():UpdateCmdResult[String] = {
     logger.debug("EditDataSet: Executing Command")
     transaction(database, (graphDB:GraphDatabaseService) => {
       editDataSet(graphDB)
     })
-    return cmdOptions.option[String]("dsId")
+    return UpdateCmdResult(cmdOptions.option[String]("dsId"))
   }
 
   private def editDataSet(graphDB:GraphDatabaseService):Unit = {

@@ -17,17 +17,17 @@ import org.machine.engine.graph.internal._
 
 class CreateDataSet(database:GraphDatabaseService,
   cmdScope:CommandScope,
-  cmdOptions:GraphCommandOptions) extends Neo4JCommand with LazyLogging{
+  cmdOptions:GraphCommandOptions) extends Neo4InsertCommand[String] with LazyLogging{
   import Neo4JHelper._
 
-  def execute():String = {
+  def execute():InsertCmdResult[String] = {
     logger.debug("CreateDataSet: Executing Command")
     transaction(database, (graphDB:GraphDatabaseService) => {
       createDataSet(graphDB)
       registerDataSet(graphDB)
     })
     val mid = cmdOptions.option[String]("mid")
-    return mid.toString
+    return InsertCmdResult(mid.toString)
   }
 
   private def createDataSet(graphDB:GraphDatabaseService):Unit = {

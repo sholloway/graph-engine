@@ -16,15 +16,15 @@ import org.machine.engine.graph.internal._
 
 class RemoveElementField(database: GraphDatabaseService,
   cmdScope: CommandScope,
-  cmdOptions: GraphCommandOptions) extends Neo4JCommand with LazyLogging{
+  cmdOptions: GraphCommandOptions) extends Neo4DeleteCommand[String] with LazyLogging{
   import Neo4JHelper._
 
-  def execute():String = {
+  def execute():DeleteCmdResult[String] = {
     logger.debug("RemoveElementField: Executing Command")
     transaction(database, (graphDB: GraphDatabaseService) => {
       removeField(graphDB)
     })
-    return cmdOptions.option[String]("elementId")
+    return DeleteCmdResult(cmdOptions.option[String]("elementId"))
   }
 
   //BUG: This needs to be scoped to be inside the dataset.

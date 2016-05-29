@@ -16,17 +16,17 @@ import org.machine.engine.graph.internal._
 
 class EditElementPropertyDefinition(database: GraphDatabaseService,
   cmdScope: CommandScope,
-  cmdOptions: GraphCommandOptions) extends Neo4JCommand with LazyLogging{
+  cmdOptions: GraphCommandOptions) extends Neo4UpdateCommand[String] with LazyLogging{
   import Neo4JHelper._
 
   val filter = List("mid", "pname")
 
-  def execute():String = {
+  def execute():UpdateCmdResult[String] = {
     logger.debug("EditElementPropertyDefinition: Executing Command")
     transaction(database, (graphDB: GraphDatabaseService) => {
       editPropertyDefinition(graphDB)
     })
-    return cmdOptions.option[String]("mid")
+    return UpdateCmdResult(cmdOptions.option[String]("mid"))
   }
 
   private def editPropertyDefinition(graphDB: GraphDatabaseService):Unit = {

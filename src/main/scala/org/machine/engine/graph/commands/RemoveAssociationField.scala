@@ -16,15 +16,15 @@ import org.machine.engine.graph.internal._
 
 class RemoveAssociationField(database: GraphDatabaseService,
   cmdScope: CommandScope,
-  cmdOptions: GraphCommandOptions) extends Neo4JCommand with LazyLogging{
+  cmdOptions: GraphCommandOptions) extends Neo4DeleteCommand[String] with LazyLogging{
   import Neo4JHelper._
 
-  def execute():String = {
+  def execute():DeleteCmdResult[String] = {
     logger.debug("RemoveAssociationField: Executing Command")
     transaction(database, (graphDB: GraphDatabaseService) => {
       removeField(graphDB)
     })
-    return cmdOptions.option[String]("associationId")
+    return DeleteCmdResult(cmdOptions.option[String]("associationId"))
   }
 
   private def removeField(graphDB: GraphDatabaseService):Unit = {
