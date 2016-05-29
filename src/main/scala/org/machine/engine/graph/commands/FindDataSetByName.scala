@@ -16,10 +16,10 @@ import org.machine.engine.graph.internal._
 
 class FindDataSetByName(database: GraphDatabaseService,
   cmdScope: CommandScope,
-  cmdOptions: GraphCommandOptions) extends Neo4JQueryCommand[DataSet] with LazyLogging{
+  cmdOptions: GraphCommandOptions) extends Neo4JQueryCommandB[DataSet] with LazyLogging{
   import Neo4JHelper._
 
-  def execute():List[DataSet] = {
+  def execute():QueryCmdResult[DataSet] = {
     logger.debug("FindDataSetByName: Executing Command")
     val findDataSets = """
       |match (ss:space)-[:contains]->(ds:internal_data_set {name:{name}})
@@ -51,7 +51,7 @@ class FindDataSetByName(database: GraphDatabaseService,
     return new DataSet(id, name, description, creationTime, lastModifiedTime)
   }
 
-  private def validateQueryResponse(datasets: List[DataSet]):List[DataSet] = {
+  private def validateQueryResponse(datasets: List[DataSet]):QueryCmdResult[DataSet] = {
     val name = cmdOptions.option[String]("name")
     if(datasets.length < 1){
       val msg = "No dataset with Name: %s could be found in %s".format(name, cmdScope.scope)
@@ -60,6 +60,6 @@ class FindDataSetByName(database: GraphDatabaseService,
       val msg = "Multiple data sets where found with Name: %s in %s".format(name, cmdScope.scope)
       throw new InternalErrorException(msg);
     }
-    return datasets
+    return QueryCmdResult[DataSet](datasets)
   }
 }

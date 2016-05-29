@@ -212,8 +212,8 @@ class Engine private (dbPath:String, decisionTree: Question) extends GraphDSL wi
     cmdOptions.reset
     cmdOptions.addOption("name", name)
     val cmd = new FindDataSetByName(database, scope, cmdOptions)
-    val elements = cmd.execute()
-    return elements(0)
+    val result:QueryCmdResult[DataSet] = cmd.execute()
+    return result.results(0)
   }
 
   def onDataSet(id: String):GraphDSL = {
