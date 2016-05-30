@@ -12,7 +12,7 @@ import org.machine.engine.exceptions._
 * @param creationTime When the element was created.
 * @param lastModifiedTime When the element was last edited.
 */
-class Element(val id: String,
+case class Element(val id: String,
   val elementType: String,
   val elementDescription: String,
   val fields: Map[String, Any],
