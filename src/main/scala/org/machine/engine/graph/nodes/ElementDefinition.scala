@@ -8,7 +8,7 @@ import scala.collection.mutable.ListBuffer
 * @param id The Element Defintion NodeJS ID.
 * @param name The Element Definition's name.
 */
-class ElementDefinition(val id: String,
+case class ElementDefinition(val id: String,
   val name: String,
   val description: String){
   private val propertyDefs = new PropertyDefinitions()

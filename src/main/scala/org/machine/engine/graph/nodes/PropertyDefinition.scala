@@ -8,7 +8,7 @@ package org.machine.engine.graph.nodes
 * @param type The PropertyDefinition's type.
 * @param description The PropertyDefinition's description.
 */
-class PropertyDefinition(val id: String,
+case class PropertyDefinition(val id: String,
   val name: String,
   val propertyType: String,
   val description: String){

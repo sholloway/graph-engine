@@ -3,7 +3,7 @@ package org.machine.engine.encoder.json
 import scala.reflect.{ClassTag, classTag}
 import scala.reflect.runtime.universe._
 
-import org.machine.engine.graph.nodes.DataSet
+import org.machine.engine.graph.nodes._
 import org.machine.engine.graph.commands.{CommandScopes, EngineCmdResult, QueryCmdResult, UpdateCmdResult, DeleteCmdResult, InsertCmdResult}
 
 object OutboundJSONSerializer{
@@ -23,6 +23,7 @@ object OutboundJSONSerializer{
     val resultType = findType(result.head)
     resultType match {
       case _ : DataSet => DataSetJSONSerializer.serialize(result.asInstanceOf[Seq[DataSet]])
+      case _ : ElementDefinition => ElementDefinitionJSONSerializer.serialize(result.asInstanceOf[Seq[ElementDefinition]])
       case _ => {
         Console.println("Could not match Seq[DataSet]")
         result.toString
@@ -37,6 +38,16 @@ object OutboundJSONSerializer{
   private def findType(obj: Any):Type = {
     if(obj.isInstanceOf[DataSet]){
       return typeOf[DataSet]
+    }else if(obj.isInstanceOf[ElementDefinition]){
+      return typeOf[ElementDefinition]
+    }else if(obj.isInstanceOf[Element]){
+      return typeOf[Element]
+    }else if(obj.isInstanceOf[Association]){
+      return typeOf[Association]
+    }else if(obj.isInstanceOf[AssociationDefinition]){
+      return typeOf[AssociationDefinition]
+    }else if(obj.isInstanceOf[PropertyDefinition]){
+      return typeOf[PropertyDefinition]
     }else{
       return typeOf[Any]
     }
