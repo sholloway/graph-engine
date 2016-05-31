@@ -11,7 +11,7 @@ import org.machine.engine.exceptions._
 * @param creationTime When the association was created.
 * @param lastModifiedTime When the association was last edited.
 */
-class Association(val id: String,
+case class Association(val id: String,
   val associationType: String,
   val fields: Map[String, Any],
   val startingElementId: String,
