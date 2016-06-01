@@ -9,7 +9,6 @@ import org.machine.engine.encoder.json.OutboundJSONSerializer
 
 object EngineWorkerPoolManager{
   def execute(capsule: EngineCapsule):EngineMessage = {
-    // Console.println(capsule.attributes)
     val request = capsule.attributes("deserializedMsg").asInstanceOf[RequestMessage]
 
     val result:EngineCmdResult = Engine.getInstance
@@ -27,7 +26,7 @@ object EngineWorkerPoolManager{
       capsule.id,
       EngineCapsuleStatuses.Ok.name,
       EngineMessageTypes.CmdResult.name,
-      responseStr /*NOTE: This is just for the moment.*/
+      responseStr
     )
-  }  
+  }
 }

@@ -2,7 +2,7 @@ package org.machine.engine.encoder.json
 
 import org.machine.engine.graph.nodes.ElementDefinition
 
-object ElementDefinitionJSONSerializer{
+object ElementDefinitionJSONSerializer extends JSONSerializer[ElementDefinition]{
   import net.liftweb.json._
   import net.liftweb.json.JsonDSL._
   def serialize(results: Seq[ElementDefinition]): String = {

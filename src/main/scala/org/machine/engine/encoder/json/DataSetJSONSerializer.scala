@@ -2,7 +2,7 @@ package org.machine.engine.encoder.json
 
 import org.machine.engine.graph.nodes.DataSet
 
-object DataSetJSONSerializer{
+object DataSetJSONSerializer extends JSONSerializer[DataSet]{
   import net.liftweb.json._
   import net.liftweb.json.JsonDSL._
   def serialize(results: Seq[DataSet]): String = {

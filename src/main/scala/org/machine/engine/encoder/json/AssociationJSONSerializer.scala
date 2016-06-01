@@ -2,7 +2,7 @@ package org.machine.engine.encoder.json
 
 import org.machine.engine.graph.nodes.Association
 
-object AssociationJSONSerializer{
+object AssociationJSONSerializer extends JSONSerializer[Association]{
   import net.liftweb.json._
   import net.liftweb.json.JsonDSL._
   def serialize(results: Seq[Association]): String = {

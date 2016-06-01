@@ -27,6 +27,9 @@ class WebSocketFlowSpec extends TestKit(ActorSystem("WebSocketFlowSpec")) with I
   val dbFile = new File(dbPath)
   var engine:Engine = null
   var notesDataSetId:String = null
+  implicit val materializer = ActorMaterializer()
+  implicit val ec: ExecutionContext = scala.concurrent.ExecutionContext.Implicits.global
+  val sink = Sink.seq[Message]
 
   override def beforeAll(){
     Engine.shutdown
@@ -48,8 +51,6 @@ class WebSocketFlowSpec extends TestKit(ActorSystem("WebSocketFlowSpec")) with I
     to the actual WS server.
     */
     it("should do recieve JSON over WebSocket"){
-      implicit val materializer = ActorMaterializer()
-      implicit val ec: ExecutionContext = scala.concurrent.ExecutionContext.Implicits.global
 
       val cmd = """
       |{
@@ -60,12 +61,8 @@ class WebSocketFlowSpec extends TestKit(ActorSystem("WebSocketFlowSpec")) with I
       | "filter": "All"
       |}
       """.stripMargin.replaceAll("\t","")
-      val clientSource = Source.single(TextMessage(cmd))
-      val sink = Sink.seq[Message]
 
-      val runnable: RunnableGraph[Future[Seq[Message]]] =
-        clientSource.via(WebSocketFlow.flow).toMat(sink)(Keep.right)
-
+      val runnable: RunnableGraph[Future[Seq[Message]]] = createClientSource(cmd).via(WebSocketFlow.flow).toMat(sink)(Keep.right)
       val result: Future[Seq[Message]] = runnable.run()
 
       result.onSuccess{
@@ -82,4 +79,6 @@ class WebSocketFlowSpec extends TestKit(ActorSystem("WebSocketFlowSpec")) with I
       }
     }
   }
+
+  def createClientSource(msg: String) = Source.single(TextMessage(msg))
 }
