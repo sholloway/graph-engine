@@ -13,11 +13,27 @@ object OutboundJSONSerializer{
       case query: QueryCmdResult[_] => {
         findSerializer(query.results)
       }
+      case update: UpdateCmdResult[_] => {
+        serializeId(update.result)
+      }
+      case delete: DeleteCmdResult[_] => {
+        serializeId(delete.result)
+      }
+      case insert: InsertCmdResult[_] => {
+        serializeId(insert.result)
+      }
       case _ => {
-        Console.println("failed to match for QueryCmdResult")
-        result.toString
+        return throw new InternalErrorException(s"Could not find a matching JSON serializer for type $result")
       }
     }
+  }
+
+  private def serializeId(result: Any) = {
+    s"""
+    |{
+    |  "id": "${result.toString}"
+    |}
+    """.stripMargin
   }
 
   /*
@@ -54,7 +70,7 @@ object OutboundJSONSerializer{
     }else{
       return throw new InternalErrorException(s"Could not find a matching JSON serializer for type $resultType")
     }
-  }  
+  }
 }
 
 

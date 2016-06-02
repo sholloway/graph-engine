@@ -49,9 +49,16 @@ class WebSocketFlowSpec extends TestKit(ActorSystem("WebSocketFlowSpec")) with I
     TODO:
     As soon as I can send a message through the flow, attempt to wire it up
     to the actual WS server.
-    */
-    it("should do recieve JSON over WebSocket"){
 
+    Rather than spin up a flow 41 times, write a test harness that actually spins
+    up a websocket server (encapsulating the below) and call the commands.
+
+    Action Items:
+    - [ ] Test for command types other than just QueryCmdResult
+    - [ ] CoreFlowSpec is a bad test. This one has evolved past it.
+    - [ ] GraphCmdWorker and EngineWorkerPoolManager does not currently work together.
+    */
+    it("should process the list of datasets associated with a user"){
       val cmd = """
       |{
       | "user": "Sam",
