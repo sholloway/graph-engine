@@ -4,7 +4,6 @@ import akka.actor.ActorSystem
 import akka.http.scaladsl.Http
 import akka.http.scaladsl.model.HttpMethods._
 import akka.http.scaladsl.model._
-// import akka.http.javadsl.model.ws.{Message, BinaryMessage, TextMessage, UpgradeToWebSocket}
 import akka.http.scaladsl.model.ws.{Message, BinaryMessage, TextMessage, UpgradeToWebSocket}
 import akka.stream.{ActorMaterializer, Graph, FlowShape}
 import akka.stream.scaladsl.{Flow, Sink, Source}
@@ -13,6 +12,7 @@ import scala.io.StdIn
 import scala.collection.JavaConversions._
 
 import org.machine.engine.flow.{WebSocketFlow}
+import scala.concurrent.{Future}
 
 /*
 TODO:
@@ -100,18 +100,19 @@ class WebServer {
   private val httpGetMsg = """
   |<html>
   | <body>
-  | This is a private channel for engine communication.
+  |   This is a private channel for engine communication.
   | </body>
   |</html>""".stripMargin
 
   private val config = system.settings.config
   //All the subprotocols supported. Listed in descending priority.
   private val validSubprotocols:List[String] = config.getStringList("engine.communication.webserver.subprotocols").toList
+  private var bindingFutureOption:Option[Future[Http.ServerBinding]] = None;
 
   def start() = {
     val requestHandler: HttpRequest => HttpResponse = {
       case HttpRequest(GET, Uri.Path("/"), _, _, _) => handleRootRequest()
-      case HttpRequest(GET, Uri.Path("/info"), _, _, _) => handleInfoRequest()
+      case HttpRequest(GET, Uri.Path("/configuration"), _, _, _) => handleInfoRequest()
       case req @ HttpRequest(GET, Uri.Path("/ws"),_, _, _) => handleWebSocketRequest(req)
       case req @ HttpRequest(GET, Uri.Path("/ws/ping"),_, _, _) => handleWebSocketRequest(req)
       case _: HttpRequest =>
@@ -120,12 +121,17 @@ class WebServer {
 
     val host = config.getString("engine.communication.webserver.host")
     val port = config.getInt("engine.communication.webserver.port")
-    val bindingFuture = Http().bindAndHandleSync(requestHandler, host, port)
-    println(s"Server online at http://$host:$port/\nPress RETURN to stop...")
-    StdIn.readLine() // let it run until user presses return
-    bindingFuture
-      .flatMap(_.unbind()) // trigger unbinding from the port
-      .onComplete(_ ⇒ system.terminate()) // and shutdown when done
+    bindingFutureOption = Some(Http().bindAndHandleSync(requestHandler, host, port))
+  }
+
+  /*
+  TODO Continue on this.
+  */
+  def stop() = {
+    bindingFutureOption.foreach{ future =>
+      future.flatMap(_.unbind()) // trigger unbinding from the port
+      .onComplete(_ => system.terminate()) // and shutdown when done
+    }
   }
 
   private def handleRootRequest(): HttpResponse = {

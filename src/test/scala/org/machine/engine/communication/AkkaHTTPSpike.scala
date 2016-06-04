@@ -26,6 +26,8 @@ class AkkaHTTPSpike extends TestKit(ActorSystem("AkkaHTTPSpike")) with ImplicitS
     ignore("should event on an incoming message"){
       val server = new WebServer()
       server.start()
+      //StdIn.readLine() // let it run until user presses return
+      server.stop()
     }
   }
 }
