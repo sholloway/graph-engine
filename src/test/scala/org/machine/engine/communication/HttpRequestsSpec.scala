@@ -26,7 +26,7 @@ import org.machine.engine.Engine
 
 import akka.http.scaladsl.unmarshalling.Unmarshal
 
-class WebServerSpec extends TestKit(ActorSystem("AkkaHTTPSpike")) with ImplicitSender
+class HttpRequestsSpec extends TestKit(ActorSystem("AkkaHTTPSpike")) with ImplicitSender
   with FunSpecLike with Matchers with ScalaFutures with BeforeAndAfterAll{
   import HttpMethods._
   implicit val materializer = ActorMaterializer()
@@ -66,44 +66,28 @@ class WebServerSpec extends TestKit(ActorSystem("AkkaHTTPSpike")) with ImplicitS
   }
 
   describe("Receiving Requests"){
-    describe("WebSocket Requests"){
-      it ("should echo commands for /ping")(pending)
-      it ("should AssociateElements")(pending)
-      it ("should CommandFactory")(pending)
-      it ("should CommandScope")(pending)
-      it ("should CreateDataSet")(pending)
-      it ("should CreateElement")(pending)
-      it ("should CreateElementDefinition")(pending)
-      it ("should DeleteAssociation")(pending)
-      it ("should DeleteElement")(pending)
-      it ("should DeleteElementDefintion")(pending)
-      it ("should EditAssociation")(pending)
-      it ("should EditDataSet")(pending)
-      it ("should EditElement")(pending)
-      it ("should EditElementDefintion")(pending)
-      it ("should EditElementPropertyDefinition")(pending)
-      it ("should EngineCmdResult")(pending)
-      it ("should EngineCommands")(pending)
-      it ("should FindAssociationById")(pending)
-      it ("should FindDataSetById")(pending)
-      it ("should FindDataSetByName")(pending)
-      it ("should FindDownStreamElementsByElementId")(pending)
-      it ("should FindElementById")(pending)
-      it ("should FindElementDefinition")(pending)
-      it ("should FindElementDefinitionById")(pending)
-      it ("should FindElementDefinitionByName")(pending)
-      it ("should FindInboundAssociationsByElementId")(pending)
-      it ("should FindOutboundAssociationsByElementId")(pending)
-      it ("should FindUpStreamElementsByElementId")(pending)
-      it ("should GraphCommandOptions")(pending)
-      it ("should InternalEngineCommand")(pending)
-      it ("should ListAllElementDefinitions")(pending)
-      it ("should ListDataSets")(pending)
-      it ("should RemoveAssociationField")(pending)
-      it ("should RemoveElementField")(pending)
-      it ("should RemoveElementPropertyDefinition")(pending)
-      it ("should RemoveInboundAssociations")(pending)
-      it ("should RemoveOutboundAssociations")(pending)
+    describe ("HTTP Requests"){
+      it ("should return static message for root"){
+        val responseFuture = Http().singleRequest(HttpRequest(GET, uri = s"$scheme://$host:$port"))
+        val expected = "<html><body>This is a private channel for engine communication.</body></html>"
+        verifyHTTPRequest(responseFuture, expected, 1.second)
+      }
+
+      it ("should return static message for /"){
+        val responseFuture = Http().singleRequest(HttpRequest(GET, uri = s"$scheme://$host:$port/"))
+        val expected = "<html><body>This is a private channel for engine communication.</body></html>"
+        verifyHTTPRequest(responseFuture, expected, 1.second)
+      }
+
+      it ("should provide usage stats for /stats")(pending)
+
+      it ("should provide configuration for /configuration"){
+        val responseFuture = Http().singleRequest(HttpRequest(GET, uri = s"$scheme://$host:$port/configuration"))
+        val expected = s"<html><body><h1>Engine</h1><hr/>Version:$engineVersion</body></html>"
+        verifyHTTPRequest(responseFuture, expected, 1.second)
+      }
+
+      it ("should provide the diagram of the in memory decision tree for /rules")(pending)
     }
   }
 
