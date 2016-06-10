@@ -179,15 +179,19 @@ class WebServer {
     val relativePath = req.uri.toRelative.toString
     relativePath match {
       /*
-      NOTE: <ight need to pivot design to leverage
+      NOTE: Might need to pivot design to leverage
       def handleMessagesWithSinkSource(inSink: Graph[SinkShape[Message], Any],
         outSource: Graph[SourceShape[Message], Any], subprotocol: Option[String] = None): HttpResponse
       */
       // case "/ws" => upgradeReqHeader.handleMessages(inboundStreamGraph(), topLevelProtocolOption)
       case "/ws" => upgradeReqHeader.handleMessages(WebSocketFlow.flow, topLevelProtocolOption)
       case "/ws/ping" => upgradeReqHeader.handleMessages(echo, topLevelProtocolOption)
+      case rp => {
+        system.log.error("Could not match the relative path of the request.")
+        system.log.error(s"Relative Path was: $rp")
+        return HttpResponse(400, entity = "Unsupport Relative Path")
+      }
     }
-
   }
 
   private def validProtocolSpecified(clientProtocols: Seq[String]):Boolean = {

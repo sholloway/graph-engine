@@ -9,12 +9,19 @@ import org.scalatest.mock._
 import org.scalatest.concurrent.ScalaFutures
 import org.scalatest.time.{Millis, Seconds, Span}
 
+import akka.{ Done, NotUsed }
 import akka.actor.ActorSystem
 import akka.actor.{Actor, Props}
 
 import akka.http.scaladsl.Http
 import akka.http.scaladsl.model._
+import akka.http.scaladsl.model.ws._
+import akka.http.scaladsl.unmarshalling.Unmarshal
+import akka.http.scaladsl.model.headers.{ BasicHttpCredentials, Authorization }
+
 import akka.stream.ActorMaterializer
+import akka.stream.scaladsl._
+
 import akka.testkit.{ TestActors, TestKit, ImplicitSender }
 import akka.util.ByteString
 
@@ -24,15 +31,13 @@ import scala.concurrent.{ExecutionContext, Future}
 import com.typesafe.config._
 import org.machine.engine.Engine
 
-import akka.http.scaladsl.unmarshalling.Unmarshal
-
 class WebServerSpec extends TestKit(ActorSystem("AkkaHTTPSpike")) with ImplicitSender
   with FunSpecLike with Matchers with ScalaFutures with BeforeAndAfterAll{
   import HttpMethods._
   implicit val materializer = ActorMaterializer()
   implicit val ec: ExecutionContext = scala.concurrent.ExecutionContext.Implicits.global
   implicit val defaultPatience = PatienceConfig(timeout = Span(5, Seconds), interval = Span(500, Millis))
-
+  import system.dispatcher
 
   private val config = ConfigFactory.load()
   val server = new WebServer()
@@ -44,6 +49,7 @@ class WebServerSpec extends TestKit(ActorSystem("AkkaHTTPSpike")) with ImplicitS
   val host = config.getString("engine.communication.webserver.host")
   val port = config.getString("engine.communication.webserver.port")
   val engineVersion = config.getString("engine.version")
+  val echoPath = s"ws://$host:$port/ws/ping"
 
   /*
   TODO Test the WebServer
@@ -59,6 +65,7 @@ class WebServerSpec extends TestKit(ActorSystem("AkkaHTTPSpike")) with ImplicitS
   }
 
   override def afterAll(){
+    println("started after all")
     server.stop()
     TestKit.shutdownActorSystem(system)
     Engine.shutdown
@@ -67,7 +74,50 @@ class WebServerSpec extends TestKit(ActorSystem("AkkaHTTPSpike")) with ImplicitS
 
   describe("Receiving Requests"){
     describe("WebSocket Requests"){
-      it ("should echo commands for /ping")(pending)
+      it ("should echo commands for /ping"){
+        val printSink: Sink[Message, Future[Done]] = createPrintSink()
+        val helloSource: Source[Message, NotUsed] = Source.single(TextMessage("hello world!"))
+
+        // the Future[Done] is the materialized value of Sink.foreach
+        // and it is completed when the stream completes
+        val flow: Flow[Message, Message, Future[Done]] = Flow.fromSinkAndSourceMat(printSink, helloSource)(Keep.left)
+
+        // upgradeResponse is a Future[WebSocketUpgradeResponse] that
+        // completes or fails when the connection succeeds or fails
+        // and closed is a Future[Done] representing the stream completion from above
+        val (upgradeResponse, closed) = Http().singleWebSocketRequest(WebSocketRequest(echoPath, subprotocol = Some("engine.json.v1")), flow)
+
+        val connected = upgradeResponse.map { upgrade =>
+          // just like a regular http request we can get 404 NotFound,
+          // with a response body, that will be available from upgrade.response
+          println("Upgrade Response Recieved")
+          if (upgrade.response.status == StatusCodes.OK) {
+            println("200 Received")
+            Done
+          } else if(upgrade.response.status == StatusCodes.SwitchingProtocols){
+            println("101 Recieved")
+          }else {
+            throw new RuntimeException(s"Connection failed: ${upgrade.response.status}")
+          }
+        }
+
+        // in a real application you would not side effect here
+        // and handle errors more carefully
+        connected.onComplete(println)
+        connected.onFailure{
+          case e => {
+            println(e)
+            fail()
+          }
+        }
+        closed.foreach(_ => println("closed"))
+
+        whenReady(connected){ response =>
+          println("stupid...")
+          println(response)
+        }
+      }
+
       it ("should AssociateElements")(pending)
       it ("should CommandFactory")(pending)
       it ("should CommandScope")(pending)
@@ -107,27 +157,10 @@ class WebServerSpec extends TestKit(ActorSystem("AkkaHTTPSpike")) with ImplicitS
     }
   }
 
-  def normalize(msg: String):String = {
-    msg.replaceAll("\t","").replaceAll("\n","").replaceAll(" ", "")
-  }
-
-  def verifyHTTPRequest(responseFuture: Future[HttpResponse], expected: String, timeout: FiniteDuration, log: Boolean = false) = {
-    whenReady(responseFuture) { response =>
-      response match {
-        case HttpResponse(StatusCodes.OK, headers, entity, _) => {
-          val bs: Future[ByteString] = entity.toStrict(timeout).map { _.data }
-          val s: Future[String] = bs.map(_.utf8String)
-          whenReady(s){ payload =>
-            if(log){
-              println(payload)
-            }
-            normalize(payload) should equal(normalize(expected))
-          }
-        }
-        case HttpResponse(code, _, _, _) =>
-          println("Request failed, response code: " + code)
-          fail()
-      }
+  def createPrintSink(): Sink[Message, Future[Done]] = Sink.foreach {
+    case message: TextMessage.Strict => {
+      println("Received Response from Server:")
+      println(message.text)
     }
   }
 }
