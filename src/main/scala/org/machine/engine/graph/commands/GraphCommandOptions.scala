@@ -13,7 +13,6 @@ class GraphCommandOptions{
   private var graphValue = Map.empty[String, AnyVal]
   private var graphObjects = Map.empty[String, AnyRef]
 
-  //#TODO:60 Make these read only...
   def fieldValues = this.graphValue
   def fieldObjects = this.graphObjects
   def optionValues = this.graphValue
