@@ -16,16 +16,14 @@ trait EngineMessage{
     |$textMessage
     """.stripMargin
   }
+}
 
-  def toJSON:String = {
-    return s"""
-    |{
-    |  "id": "$id",
-    |  "status": "$status",
-    |  "messageType": "$messageType",
-    |  "textMessage": "$textMessage"
-    |}
-    """.stripMargin
-    .replaceAll("\t","")
+import net.liftweb.json._
+import net.liftweb.json.DefaultFormats
+import net.liftweb.json.Serialization.{read, write}
+object EngineMessage{
+  implicit val formats = DefaultFormats
+  def toJSON(em: EngineMessage):String = {
+    return write(em)
   }
 }

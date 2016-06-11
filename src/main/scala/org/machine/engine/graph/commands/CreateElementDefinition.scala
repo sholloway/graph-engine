@@ -21,6 +21,7 @@ class CreateElementDefintion(database: GraphDatabaseService,
 
   def execute():InsertCmdResult[String] = {
     logger.debug("CreateElementDefintion: Executing Command")
+    generateId(cmdOptions)
     transaction(database, (graphDB: GraphDatabaseService) => {
       createElementDefinition(graphDB)
       createPropertyDefinitions(graphDB)

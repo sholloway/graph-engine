@@ -1,5 +1,7 @@
 package org.machine.engine.flow.requests
 
+import scala.util.{Either, Left, Right}
+
 import org.machine.engine.exceptions._
 import org.machine.engine.graph.commands.CommandScopes
 import org.machine.engine.graph.decisions.{ActionTypes, EntityTypes, Filters}

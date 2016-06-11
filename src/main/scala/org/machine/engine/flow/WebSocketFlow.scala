@@ -51,6 +51,7 @@ object WebSocketFlow{
   }
 
   def transform3(msg: EngineMessage):TextMessage = {
-    return TextMessage.apply(msg.toJSON)
+    val json = EngineMessage.toJSON(msg)
+    return TextMessage.apply(json)
   }
 }

@@ -33,6 +33,9 @@ import org.machine.engine.Engine
 import org.machine.engine.graph.nodes._
 import org.machine.engine.flow.requests._
 
+import net.liftweb.json._
+import net.liftweb.json.DefaultFormats
+
 class WebServerSpec extends TestKit(ActorSystem("AkkaHTTPSpike")) with ImplicitSender
   with FunSpecLike with Matchers with ScalaFutures with BeforeAndAfterAll{
   import HttpMethods._
@@ -125,9 +128,30 @@ class WebServerSpec extends TestKit(ActorSystem("AkkaHTTPSpike")) with ImplicitS
           val flow = Flow.fromSinkAndSourceMat(Sink.seq[Message], request)(Keep.left)
           val (upgradeResponse, closed) = Http().singleWebSocketRequest(WebSocketRequest(echoPath, subprotocol = Some("engine.json.v1")), flow)
           val connected = upgradeResponse.map(verifyProtocolsSwitched)
+
           connected.onFailure(failTest)
+
           whenReady(closed){ results =>
-            println(results)
+            results should have length 2
+            val txtMessage = results(1).asInstanceOf[TextMessage.Strict]
+            val envelopeDom = parse(txtMessage.text)
+            val envelopeMap = envelopeDom.values.asInstanceOf[Map[String, Any]]
+            envelopeMap("status") should equal("Ok")
+            envelopeMap("messageType") should equal("CmdResult")
+
+            val payload:String = envelopeMap("textMessage").asInstanceOf[String]
+            val payloadDom = parse(payload)
+            val payloadMap = payloadDom.values.asInstanceOf[Map[String, Any]]
+            payloadMap.contains("id") should equal(true)
+            val edId = payloadMap("id").asInstanceOf[String]
+
+            val ed = engine
+              .inSystemSpace
+              .findElementDefinitionById(edId)
+
+            ed.name should equal("Mobile Device")
+            ed.description should equal("A computer that can be carried by the user.")
+            ed.properties should have length 2
           }
         }
 

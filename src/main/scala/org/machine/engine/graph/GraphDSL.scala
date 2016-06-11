@@ -5,7 +5,7 @@ import org.machine.engine.graph.nodes._
 /*
 TODO: Change where Command scope lives. Should not be in org.machine.engine.graph.commands.
 */
-import org.machine.engine.graph.commands.{CommandScope, EngineCmdResult}
+import org.machine.engine.graph.commands.{CommandScope, EngineCmdResult, GraphCommandOptions}
 import org.machine.engine.graph.decisions._
 
 /** Definition of internal DSL for working with the underling graph database.
@@ -299,6 +299,7 @@ trait GraphDSL{
   def setActionType(actionType: ActionType):GraphDSL
   def setEntityType(entityType: EntityType):GraphDSL
   def setFilter(filter: Filter):GraphDSL
+  def setOptions(options: GraphCommandOptions):GraphDSL
   def run:EngineCmdResult
   //End Abstract handlers
 

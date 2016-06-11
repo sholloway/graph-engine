@@ -5,7 +5,13 @@ trait InternalEngineCommand{
 }
 
 trait Neo4InsertCommand[T] extends InternalEngineCommand{
+  import org.machine.engine.graph.Neo4JHelper._
   def execute():InsertCmdResult[T]
+  def generateId(cmdOptions: GraphCommandOptions) = {
+    if (!cmdOptions.contains("mid")){
+      cmdOptions.addOption("mid", uuid)
+    }
+  }
 }
 
 trait Neo4UpdateCommand[T] extends InternalEngineCommand{

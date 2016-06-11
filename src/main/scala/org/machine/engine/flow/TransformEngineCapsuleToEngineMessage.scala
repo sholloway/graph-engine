@@ -11,7 +11,7 @@ object TransformEngineCapsuleToEngineMessage{
       capsule.id,
       capsule.status.name,
       msgType.name,
-      capsule.message.payload /*NOTE: This is just for the moment.*/
+      capsule.message.payload 
     )
   }
 }

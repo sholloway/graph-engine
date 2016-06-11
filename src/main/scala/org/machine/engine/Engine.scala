@@ -60,7 +60,7 @@ class Engine private (dbPath:String, decisionTree: Question) extends GraphDSL wi
   var userSpaceOption:Option[UserSpace] = None
   var scope:CommandScope = CommandScopes.SystemSpaceScope
   var command:EngineCommand = EngineCommands.DefineElement
-  val cmdOptions:GraphCommandOptions = new GraphCommandOptions()
+  var cmdOptions:GraphCommandOptions = new GraphCommandOptions()
   var actionType:ActionType = ActionTypes.None
   var user:Option[String] = None
   var entityType:EntityType = EntityTypes.None
@@ -161,7 +161,12 @@ class Engine private (dbPath:String, decisionTree: Question) extends GraphDSL wi
 
   def setFilter(filter: Filter):GraphDSL = {
     this.filter = filter
-    return this;
+    return this
+  }
+
+  def setOptions(options: GraphCommandOptions):GraphDSL = {
+    cmdOptions = options
+    return this
   }
 
   def run():EngineCmdResult = {

@@ -34,7 +34,7 @@ trait EngineCapsule{
   /**
   Return a deep copy of the capsule with the status set to the new value.
   */
-  def setStatus(newStatus: EngineCapsuleStatus):EngineCapsule
+  def setStatus(newStatus: EngineCapsuleStatus, error: Option[String] = None):EngineCapsule
 
   /**
   Optional associated error message. Only relevent if
@@ -113,12 +113,12 @@ class EngineCapsuleBase(
     )
   }
 
-  def setStatus(newStatus: EngineCapsuleStatus):EngineCapsule = {
+  def setStatus(newStatus: EngineCapsuleStatus, error: Option[String] = None):EngineCapsule = {
     return new EngineCapsuleBase(
       auditTrail,
       attributes,
       newStatus,
-      errorMessage,
+      error,
       message,
       id
     )
