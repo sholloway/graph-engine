@@ -20,4 +20,9 @@ object EntityTypes{
       case _                   => None
     }
   }
+
+  def validTypes = Seq("ElementDefinition",
+    "DataSet",
+    "Element",
+    "Association")
 }

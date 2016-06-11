@@ -20,4 +20,9 @@ object ActionTypes{
       case _          => None
     }
   }
+
+  def validTypes = Seq("Create",
+    "Retrieve",
+    "Update",
+    "Delete")
 }

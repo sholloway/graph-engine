@@ -18,4 +18,6 @@ object Filters{
       case _ => None
     }
   }
+
+  def validFilters = Seq("ID", "Name", "All", "None")
 }

@@ -16,4 +16,7 @@ object CommandScopes{
       case "DataSet"     => DataSetScope
     }
   }
+
+  def validScopes = Seq("UserSpace",
+    "SystemSpace", "DataSet")
 }

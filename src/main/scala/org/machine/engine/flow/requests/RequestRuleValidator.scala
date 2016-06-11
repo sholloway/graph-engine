@@ -1,81 +1,10 @@
-package org.machine.engine
+package org.machine.engine.flow.requests
 
-import org.scalatest._
-import scala.util.{Either, Left, Right}
 import org.machine.engine.exceptions._
+import org.machine.engine.graph.commands.CommandScopes
+import org.machine.engine.graph.decisions.{ActionTypes, EntityTypes, Filters}
 
-class PartialFunctionsSpike extends FunSpec with Matchers with BeforeAndAfterAll{
-  import RuleValidator._
-
-  val validRequest = Map("user"->"Bob",
-    "actionType"->"blah",
-    "scope"->"asfsf",
-    "entityType"->"asfs",
-    "filter"->"r32f")
-
-  val missingUser =  Map("actionType"->"blah",
-    "scope"->"asfsf",
-    "entityType"->"asfs",
-    "filter"->"r32f")
-
-  val missingActionType =  Map("user"->"Bob",
-    "scope"->"asfsf",
-    "entityType"->"asfs",
-    "filter"->"r32f")
-
-  val missingScope = Map("user"->"Bob",
-    "actionType"->"blah",
-    "entityType"->"asfs",
-    "filter"->"r32f")
-
-  val missingEntityType = Map("user"->"Bob",
-    "actionType"->"blah",
-    "scope"->"asfsf",
-    "filter"->"r32f")
-
-  val missingFilter = Map("user"->"Bob",
-    "actionType"->"blah",
-    "scope"->"asfsf",
-    "entityType"->"asfs")
-
-  override def beforeAll(){}
-  override def afterAll(){}
-
-  /*
-  Thoughts:
-  Could possibly use Either[Map[String, Any], String] for response.
-  Could have isDefinedAt fail if the string is present.
-
-  Chaining will require the output be the same as the input.
-  */
-  describe("Partial Functions"){
-    it ("should be map on a valid request"){
-      validate(Left(validRequest)) should equal(Left(validRequest))
-    }
-
-    it ("should invalidate a request missing a user"){
-      validate(Left(missingUser)) should equal(Right("The request must contain a valid user."))
-    }
-
-    it ("should invalidate a request missing a action type"){
-      validate(Left(missingActionType)) should equal(Right("The request must contain a valid action type."))
-    }
-
-    it ("should invalidate a request missing a scope"){
-      validate(Left(missingScope)) should equal(Right("The request must contain a valid scope."))
-    }
-
-    it ("should invalidate a request missing a entity type"){
-      validate(Left(missingEntityType)) should equal(Right("The request must contain a valid entity type."))
-    }
-
-    it ("should invalidate a request missing a filter"){
-      validate(Left(missingFilter)) should equal(Right("The request must contain a valid filter."))
-    }
-  }
-}
-
-object RuleValidator{
+object RequestRuleValidator{
   type ValidationFailure = String
   type ValidationInput = Either[Map[String, Any], ValidationFailure]
 
@@ -88,10 +17,11 @@ object RuleValidator{
   }
 
   private val validateUser = new PartialFunction[ValidationInput,ValidationInput]{
+    private val parameter = "user"
     def isDefinedAt(input: ValidationInput):Boolean = genericIsDefined(input)
     def apply(either: ValidationInput):ValidationInput = {
       if(isDefinedAt(either)){
-        if(either.left.get.contains("user")){
+        if(either.left.get.contains(parameter)){
           return Left(either.left.get)
         }else{
           return Right("The request must contain a valid user.")
@@ -103,10 +33,13 @@ object RuleValidator{
   }
 
   private val validateActionType = new PartialFunction[ValidationInput, ValidationInput]{
+    private val parameter = "actionType"
     def isDefinedAt(input: ValidationInput):Boolean = genericIsDefined(input)
     def apply(either: ValidationInput):ValidationInput = {
       if(isDefinedAt(either)){
-        if(either.left.get.contains("actionType")){
+        val request = either.left.get
+        if(request.contains(parameter) &&
+          ActionTypes.validTypes.contains(request(parameter))){
           return Left(either.left.get)
         }else{
           return Right("The request must contain a valid action type.")
@@ -118,10 +51,13 @@ object RuleValidator{
   }
 
   private val validateScope = new PartialFunction[ValidationInput, ValidationInput]{
+    private val parameter = "scope"
     def isDefinedAt(input: ValidationInput):Boolean = genericIsDefined(input)
     def apply(either: ValidationInput):ValidationInput = {
       if(isDefinedAt(either)){
-        if(either.left.get.contains("scope")){
+        val request = either.left.get
+        if(request.contains(parameter) &&
+          CommandScopes.validScopes.contains(request(parameter))){
           return Left(either.left.get)
         }else{
           return Right("The request must contain a valid scope.")
@@ -133,10 +69,13 @@ object RuleValidator{
   }
 
   private val validateEntityType = new PartialFunction[ValidationInput, ValidationInput]{
+    private val parameter = "entityType"
     def isDefinedAt(input: ValidationInput):Boolean = genericIsDefined(input)
     def apply(either: ValidationInput):ValidationInput = {
       if(isDefinedAt(either)){
-        if(either.left.get.contains("entityType")){
+        val request = either.left.get
+        if(request.contains(parameter) &&
+          EntityTypes.validTypes.contains(request(parameter))){
           return Left(either.left.get)
         }else{
           return Right("The request must contain a valid entity type.")
@@ -148,10 +87,13 @@ object RuleValidator{
   }
 
   private val validateFilter = new PartialFunction[ValidationInput, ValidationInput]{
+    private val parameter =  "filter"
     def isDefinedAt(input: ValidationInput):Boolean = genericIsDefined(input)
     def apply(either: ValidationInput):ValidationInput = {
       if(isDefinedAt(either)){
-        if(either.left.get.contains("filter")){
+        val request = either.left.get
+        if(request.contains(parameter) &&
+          Filters.validFilters.contains(request(parameter))){
           return Left(either.left.get)
         }else{
           return Right("The request must contain a valid filter.")
