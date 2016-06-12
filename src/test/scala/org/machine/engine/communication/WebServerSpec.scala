@@ -104,51 +104,40 @@ class WebServerSpec extends TestKit(ActorSystem("AkkaHTTPSpike")) with ImplicitS
 
       describe("System Space"){
         /*
-        1. Create an ED with the WS Server.
-        2. Verify the ED exists using the Engine API.
+        Next Steps
+        1. Refactor this test.
+        2. Remove the ignore on the above test.
+        3. Run all tests.
+        4. Merge with Master
+        5. Push to Github.com
+
+        Notes
+        Could I use a Test Fixture for some of the setup?
         */
         it ("should CreateElementDefinition"){
           val edSpec = Map("name"->"Mobile Device",
             "description"->"A computer that can be carried by the user.",
             "properties"->Seq(Map("name"->"Model", "propertyType"->"String", "description"->"The specific manufacture model."),
-              Map("name"->"Manufacture", "propertyType"->"String", "description"->"The company that made the device."))
-          )
+              Map("name"->"Manufacture", "propertyType"->"String", "description"->"The company that made the device.")))
 
-          val rm = RequestMessage(user="Bob",
+          val request = buildWSRequest(user="Bob",
             actionType="Create",
             scope="SystemSpace",
             entityType="ElementDefinition",
             filter="None",
-            options=edSpec
-          )
+            options=edSpec)
 
-          val json = RequestMessage.toJSON(rm)
-
-          val request = Source.single(TextMessage(json))
-          val flow = Flow.fromSinkAndSourceMat(Sink.seq[Message], request)(Keep.left)
-          val (upgradeResponse, closed) = Http().singleWebSocketRequest(WebSocketRequest(echoPath, subprotocol = Some("engine.json.v1")), flow)
-          val connected = upgradeResponse.map(verifyProtocolsSwitched)
-
-          connected.onFailure(failTest)
+          val closed:Future[Seq[Message]] = invokeWS(request)
 
           whenReady(closed){ results =>
             results should have length 2
-            val txtMessage = results(1).asInstanceOf[TextMessage.Strict]
-            val envelopeDom = parse(txtMessage.text)
-            val envelopeMap = envelopeDom.values.asInstanceOf[Map[String, Any]]
+            val envelopeMap = msgToMap(results.last)
             envelopeMap("status") should equal("Ok")
             envelopeMap("messageType") should equal("CmdResult")
-
-            val payload:String = envelopeMap("textMessage").asInstanceOf[String]
-            val payloadDom = parse(payload)
-            val payloadMap = payloadDom.values.asInstanceOf[Map[String, Any]]
+            val payloadMap = strToMap(envelopeMap("textMessage").asInstanceOf[String])
             payloadMap.contains("id") should equal(true)
             val edId = payloadMap("id").asInstanceOf[String]
-
-            val ed = engine
-              .inSystemSpace
-              .findElementDefinitionById(edId)
-
+            val ed = engine.inSystemSpace.findElementDefinitionById(edId)
             ed.name should equal("Mobile Device")
             ed.description should equal("A computer that can be carried by the user.")
             ed.properties should have length 2
@@ -217,6 +206,41 @@ class WebServerSpec extends TestKit(ActorSystem("AkkaHTTPSpike")) with ImplicitS
         it ("should RemoveElementField")(pending)
       }
     }
+  }
+
+  def buildWSRequest(user: String,
+    actionType: String,
+    scope: String,
+    entityType: String,
+    filter: String, options: Map[String, Any]):Source[Message, NotUsed] = {
+    val rm = RequestMessage(user, actionType, scope, entityType, filter, options)
+    val json = RequestMessage.toJSON(rm)
+    return Source.single(TextMessage(json))
+  }
+
+  /*
+  Invoke the websocket and return a future with the Sink
+  captured as a sequence of responses.
+  */
+  def invokeWS(request: Source[Message, NotUsed],
+    path: String = echoPath,
+    protocol: String = "engine.json.v1"):Future[Seq[Message]] = {
+    val flow = Flow.fromSinkAndSourceMat(Sink.seq[Message], request)(Keep.left)
+    val (upgradeResponse, closed) = Http().singleWebSocketRequest(WebSocketRequest(path, subprotocol = Some(protocol)), flow)
+    val connected = upgradeResponse.map(verifyProtocolsSwitched)
+    connected.onFailure(failTest)
+    return closed
+  }
+
+  def msgToMap(msg: Message):Map[String, Any] = {
+    val txtMessage = msg.asInstanceOf[TextMessage.Strict]
+    val envelopeDom = parse(txtMessage.text)
+    return envelopeDom.values.asInstanceOf[Map[String, Any]]
+  }
+
+  def strToMap(str: String):Map[String, Any] = {
+    val payloadDom = parse(str)
+    return payloadDom.values.asInstanceOf[Map[String, Any]]
   }
 
   def printJson(request: RequestMessage) = {
