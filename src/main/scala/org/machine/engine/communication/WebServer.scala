@@ -110,6 +110,7 @@ class WebServer {
   private var bindingFutureOption:Option[Future[Http.ServerBinding]] = None;
 
   def start() = {
+    system.log.info("Webserver Starting")
     val requestHandler: HttpRequest => HttpResponse = {
       case HttpRequest(GET, Uri.Path("/"), _, _, _) => handleRootRequest()
       case HttpRequest(GET, Uri.Path("/configuration"), _, _, _) => handleInfoRequest()
@@ -128,6 +129,7 @@ class WebServer {
   TODO Continue on this.
   */
   def stop() = {
+    system.log.info("Webserver Stopping")
     bindingFutureOption.foreach{ future =>
       future.flatMap(_.unbind()) // trigger unbinding from the port
       .onComplete(_ => system.terminate()) // and shutdown when done

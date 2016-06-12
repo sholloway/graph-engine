@@ -49,21 +49,13 @@ class GraphCmdWorkerFlowSpec extends TestKit(ActorSystem("GraphCmdWorkerFlowSpec
       implicit val materializer = ActorMaterializer()
       implicit val ec: ExecutionContext = scala.concurrent.ExecutionContext.Implicits.global
 
-      val cmd = """
-      |{
-      | "user": "Sam",
-      | "actionType": "Retrieve",
-      | "scope": "UserSpace",
-      | "entityType": "DataSet",
-      | "filter": "All"
-      |}
-      """.stripMargin.replaceAll("\t","")
+      val request = RequestMessage(user="Sam",
+        actionType="Retrieve", scope="UserSpace",
+        entityType="DataSet", filter="All")
 
-      //Change this to generate a RequestMessage from the ClientMessage.
-      //Should the RequestMessage be an attribute or elevated up?
-      val capsule = EngineCapsule(ClientMessage(cmd), "123")
-      val requestMsg = RequestMessage.fromJSON(capsule.message.payload)
-      val clientSource = Source.single(capsule.enrich("deserializedMsg", requestMsg))
+      val requestStr = RequestMessage.toJSON(request)
+      val capsule = EngineCapsule(ClientMessage(requestStr), "123")
+      val clientSource = Source.single(capsule.enrich("deserializedMsg", request))
       val sink = Sink.seq[EngineMessage]
 
       val runnable: RunnableGraph[Future[Seq[EngineMessage]]] =
