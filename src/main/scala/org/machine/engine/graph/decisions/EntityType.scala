@@ -9,6 +9,7 @@ object EntityTypes{
   case object DataSet extends EntityType{val value="DataSet";}
   case object Element extends EntityType{val value="Element";}
   case object Association extends EntityType{val value="Association";}
+  case object PropertyDefinition extends EntityType{val value="PropertyDefinition";}
   case object None extends EntityType{val value="None";}
 
   def pickEntity(alias: String):EntityType = {
@@ -17,6 +18,7 @@ object EntityTypes{
       case "DataSet"           => DataSet
       case "Element"           => Element
       case "Association"       => Association
+      case "PropertyDefinition"=> PropertyDefinition
       case _                   => None
     }
   }
@@ -24,5 +26,6 @@ object EntityTypes{
   def validTypes = Seq("ElementDefinition",
     "DataSet",
     "Element",
+    "PropertyDefinition",
     "Association")
 }

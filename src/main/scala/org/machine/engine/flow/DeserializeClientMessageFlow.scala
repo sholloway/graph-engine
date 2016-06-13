@@ -13,7 +13,7 @@ object DeserializeClientMessage{
     Validate EntityType
     Validate Filter
 
-  Validate Command Specific Options
+  Validate Command Specific Options 
     At this point, do I traverse the tree and find the Decision?
   */
   def deserialize(capsule: EngineCapsule):EngineCapsule = {

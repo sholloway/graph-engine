@@ -33,7 +33,9 @@ class FindElementDefinitionById(database: GraphDatabaseService,
   /*
   FIXME Only finds element definition with properties.
   This is incorrect. The DSL and WS API both allows creation of
-  element definitions without properties. 
+  element definitions without properties.
+
+  Make the compose_of an optional relationship in the query.
   */
   private def buildQuery(cmdScope: CommandScope, cmdOptions: GraphCommandOptions):String = {
     val edMatchClause = buildElementDefinitionMatchClause(cmdOptions)

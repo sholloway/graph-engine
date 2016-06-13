@@ -136,14 +136,7 @@ class WebServerSpec extends FunSpecLike with Matchers with ScalaFutures with Bef
         }
 
         it ("should provide an empty payload if no element definitions exist"){
-          val eds = engine.inSystemSpace.elementDefinitions
-          eds.foreach{ ed =>
-            engine
-              .inSystemSpace
-              .onElementDefinition(ed.id)
-              .delete
-            .end
-          }
+          purgeAllElementDefinitions
 
           val request = buildWSRequest(user="Bob",
             actionType="Retrieve",
@@ -164,11 +157,8 @@ class WebServerSpec extends FunSpecLike with Matchers with ScalaFutures with Bef
         }
 
         it ("should EditElementDefintion"){
-          val edId = engine
-            .inSystemSpace
-            .defineElement("Timepiece", "A time tracking apparatus.")
-            .withProperty("blah", "blah", "blah")
-          .end
+          purgeAllElementDefinitions
+          val edId = createTimepieceElementDefinition
 
           val request = buildWSRequest(user="Bob",
             actionType="Update",
@@ -194,7 +184,52 @@ class WebServerSpec extends FunSpecLike with Matchers with ScalaFutures with Bef
           }
         }
 
-        it ("should EditElementPropertyDefinition")(pending)
+        /*
+        Next Steps
+        Finish this test.
+        1. Create an ED
+        2. Through the WS API editity a property on the ED.
+        3. Verify through the Engine API the change occured.
+
+        FIXME There is no way to add properties to an existing ElementDefinition.
+        FIXME The code flow is confusing.
+        1. RequestMessage.jsonToMap (DeserializeClientMessage)
+        2. RequestRuleValidator.validate (DeserializeClientMessage)
+        3. RequestMessage.parseJSON (DeserializeClientMessage)
+        4. buildOptions(EngineWorkerPoolManager)
+
+        Could we get rid of the initial jsonToMap?
+        */
+        it ("should EditElementPropertyDefinition"){
+          purgeAllElementDefinitions
+          val edId = createTimepieceElementDefinition
+
+          val request = buildWSRequest(user="Bob",
+            actionType="Update",
+            scope="SystemSpace",
+            entityType="PropertyDefinition",
+            filter="None",
+            options=Map("mid"->edId, "pname" -> "Hours",
+              "description" -> "Tracks the passing of hours.")
+          )
+
+          val closed:Future[Seq[Message]] = invokeWS(request, enginePath)
+
+          whenReady(closed){ results =>
+            results should have length 2
+            val envelopeMap = msgToMap(results.last)
+            envelopeMap("status") should equal("Ok")
+            envelopeMap("messageType") should equal("CmdResult")
+            val payloadMap = strToMap(envelopeMap("textMessage").asInstanceOf[String])
+            payloadMap.contains("id") should equal(true)
+
+            //verify with engine that it has changed. :)
+            val ed = engine.inSystemSpace.findElementDefinitionById(edId)
+            ed.properties.length should equal(1)
+            ed.properties.head.description should equal("Tracks the passing of hours.")
+          }
+        }
+
         it ("should RemoveElementPropertyDefinition")(pending)
         it ("should DeleteElementDefintion")(pending)
         it ("should FindElementDefinition")(pending)
@@ -254,5 +289,25 @@ class WebServerSpec extends FunSpecLike with Matchers with ScalaFutures with Bef
         it ("should RemoveElementField")(pending)
       }
     }
+  }
+
+  def purgeAllElementDefinitions = {
+    val eds = engine.inSystemSpace.elementDefinitions
+    eds.foreach{ ed =>
+      engine
+        .inSystemSpace
+        .onElementDefinition(ed.id)
+        .delete
+      .end
+    }
+  }
+
+  def createTimepieceElementDefinition:String = {
+    val edId = engine
+      .inSystemSpace
+      .defineElement("Timepiece", "A time tracking apparatus.")
+      .withProperty("Hours", "Int", "Tracks the passing.")
+    .end
+    return edId
   }
 }
