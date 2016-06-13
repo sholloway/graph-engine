@@ -109,4 +109,11 @@ class GraphCommandOptions{
     graphObjects.keys.foreach(key => items += key)
     return items.toList
   }
+
+  override def toString:String = {
+    import scala.collection.mutable.StringBuilder
+    val sb = StringBuilder.newBuilder
+    this.foreach{ case (k,v) => sb ++=(s"$k -> $v\n")}
+    return sb.toString
+  }
 }

@@ -79,7 +79,7 @@ class WebServerSpec extends FunSpecLike with Matchers with ScalaFutures with Bef
       }
 
       describe("System Space"){
-        it ("should CreateElementDefinition"){
+        it ("should create element definition"){
           val edSpec = Map("name"->"Mobile Device",
             "description"->"A computer that can be carried by the user.",
             "properties"->Seq(Map("name"->"Model", "propertyType"->"String", "description"->"The specific manufacture model."),
@@ -109,8 +109,91 @@ class WebServerSpec extends FunSpecLike with Matchers with ScalaFutures with Bef
           }
         }
 
-        it ("should ListAllElementDefinitions")(pending)
-        it ("should EditElementDefintion")(pending)
+        it ("should list all element definitions"){
+          engine
+            .inSystemSpace
+            .defineElement("Note", "A brief record of something, captured to assist the memory or for future reference.")
+            .withProperty("Note Text", "String", "The body of the note.")
+          .end
+
+          val request = buildWSRequest(user="Bob",
+            actionType="Retrieve",
+            scope="SystemSpace",
+            entityType="ElementDefinition",
+            filter="All")
+
+          val closed:Future[Seq[Message]] = invokeWS(request, enginePath)
+
+          whenReady(closed){ results =>
+            results should have length 2
+            val envelopeMap = msgToMap(results.last)
+            envelopeMap("status") should equal("Ok")
+            envelopeMap("messageType") should equal("CmdResult")
+            val payloadMap = strToMap(envelopeMap("textMessage").asInstanceOf[String])
+            payloadMap.contains("ElementDefinitions") should equal(true)
+            payloadMap("ElementDefinitions").asInstanceOf[List[Map[String, Any]]].length should be >= 1
+          }
+        }
+
+        it ("should provide an empty payload if no element definitions exist"){
+          val eds = engine.inSystemSpace.elementDefinitions
+          eds.foreach{ ed =>
+            engine
+              .inSystemSpace
+              .onElementDefinition(ed.id)
+              .delete
+            .end
+          }
+
+          val request = buildWSRequest(user="Bob",
+            actionType="Retrieve",
+            scope="SystemSpace",
+            entityType="ElementDefinition",
+            filter="All")
+
+          val closed:Future[Seq[Message]] = invokeWS(request, enginePath)
+
+          whenReady(closed){ results =>
+            results should have length 2
+            val envelopeMap = msgToMap(results.last)
+            envelopeMap("status") should equal("Ok")
+            envelopeMap("messageType") should equal("CmdResult")
+            val payload = envelopeMap("textMessage").asInstanceOf[String]
+            payload.isEmpty should equal(true)
+          }
+        }
+
+        it ("should EditElementDefintion"){
+          val edId = engine
+            .inSystemSpace
+            .defineElement("Timepiece", "A time tracking apparatus.")
+            .withProperty("blah", "blah", "blah")
+          .end
+
+          val request = buildWSRequest(user="Bob",
+            actionType="Update",
+            scope="SystemSpace",
+            entityType="ElementDefinition",
+            filter="None",
+            options=Map("mid"->edId, "name" -> "Watch")
+          )
+
+          val closed:Future[Seq[Message]] = invokeWS(request, enginePath)
+
+          whenReady(closed){ results =>
+            results should have length 2
+            val envelopeMap = msgToMap(results.last)
+            envelopeMap("status") should equal("Ok")
+            envelopeMap("messageType") should equal("CmdResult")
+            val payloadMap = strToMap(envelopeMap("textMessage").asInstanceOf[String])
+            payloadMap.contains("id") should equal(true)
+
+            //verify with engine that it has changed. :)
+            val ed = engine.inSystemSpace.findElementDefinitionById(edId)
+            ed.name should equal("Watch")
+          }
+        }
+
         it ("should EditElementPropertyDefinition")(pending)
         it ("should RemoveElementPropertyDefinition")(pending)
         it ("should DeleteElementDefintion")(pending)

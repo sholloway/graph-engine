@@ -40,6 +40,7 @@ object RequestMessage{
 
     if(jsonMap.contains("options")){
       val jsonOptions = jsonMap("options").asInstanceOf[Map[String, Any]]
+      fetchString("mid", options, jsonOptions)
       fetchString("name", options, jsonOptions)
       fetchString("description", options, jsonOptions)
       if (jsonOptions.contains("properties")){

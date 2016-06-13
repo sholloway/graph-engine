@@ -58,18 +58,22 @@ object OutboundJSONSerializer{
   }
 
   private def findSerializer(result: Seq[_]):String = {
-    val resultType = findType(result.head)
-    if(typeOf[DataSet] =:= resultType){
-      return DataSetJSONSerializer.serialize(result.asInstanceOf[Seq[DataSet]])
-    }else if(typeOf[ElementDefinition] =:= resultType){
-      return ElementDefinitionJSONSerializer.serialize(result.asInstanceOf[Seq[ElementDefinition]])
-    }else if(typeOf[Element] =:= resultType){
-      return ElementJSONSerializer.serialize(result.asInstanceOf[Seq[Element]])
-    }else if(typeOf[Association] =:= resultType){
-      return AssociationJSONSerializer.serialize(result.asInstanceOf[Seq[Association]])
-    }else{
-      return throw new InternalErrorException(s"Could not find a matching JSON serializer for type $resultType")
+    if (result.isEmpty){
+      return ""
     }
+    val resultType = findType(result.head)
+    val response:String = if(typeOf[DataSet] =:= resultType){
+      DataSetJSONSerializer.serialize(result.asInstanceOf[Seq[DataSet]])
+    }else if(typeOf[ElementDefinition] =:= resultType){
+      ElementDefinitionJSONSerializer.serialize(result.asInstanceOf[Seq[ElementDefinition]])
+    }else if(typeOf[Element] =:= resultType){
+      ElementJSONSerializer.serialize(result.asInstanceOf[Seq[Element]])
+    }else if(typeOf[Association] =:= resultType){
+      AssociationJSONSerializer.serialize(result.asInstanceOf[Seq[Association]])
+    }else{
+      throw new InternalErrorException(s"Could not find a matching JSON serializer for type $resultType")
+    }
+    return response
   }
 }
 

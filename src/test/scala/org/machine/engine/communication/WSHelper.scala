@@ -28,7 +28,7 @@ object WSHelper{
     actionType: String,
     scope: String,
     entityType: String,
-    filter: String, options: Map[String, Any]):Source[Message, NotUsed] = {
+    filter: String, options: Map[String, Any] = Map.empty[String, Any]):Source[Message, NotUsed] = {
     val rm = RequestMessage(user, actionType, scope, entityType, filter, options)
     val json = RequestMessage.toJSON(rm)
     return Source.single(TextMessage(json))

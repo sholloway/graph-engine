@@ -21,6 +21,8 @@ class EditElementDefintion(database: GraphDatabaseService,
 
   def execute():UpdateCmdResult[String] = {
     logger.debug("EditElementDefintion: Executing Command")
+    println("In EditElementDefintion")
+    println(cmdOptions)
     transaction(database, (graphDB:GraphDatabaseService) => {
       editElementDefinition(graphDB)
     })

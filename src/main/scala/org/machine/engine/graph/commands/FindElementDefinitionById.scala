@@ -30,6 +30,11 @@ class FindElementDefinitionById(database: GraphDatabaseService,
     return QueryCmdResult(validateQueryResponse(elementDefs));
   }
 
+  /*
+  FIXME Only finds element definition with properties.
+  This is incorrect. The DSL and WS API both allows creation of
+  element definitions without properties. 
+  */
   private def buildQuery(cmdScope: CommandScope, cmdOptions: GraphCommandOptions):String = {
     val edMatchClause = buildElementDefinitionMatchClause(cmdOptions)
     val scope = buildScope(cmdScope, cmdOptions)
