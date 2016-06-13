@@ -21,6 +21,7 @@ import scala.concurrent.{ExecutionContext, Future}
 
 import com.typesafe.config._
 import org.machine.engine.Engine
+import org.machine.engine.exceptions._
 import org.machine.engine.graph.nodes._
 import org.machine.engine.flow.requests._
 
@@ -262,7 +263,37 @@ class WebServerSpec extends FunSpecLike with Matchers with ScalaFutures with Bef
           }
         }
 
-        it ("should DeleteElementDefintion")(pending)
+        it ("should DeleteElementDefintion"){
+          purgeAllElementDefinitions
+          val edId = createTimepieceElementDefinition
+
+          val request = buildWSRequest(user="Bob",
+            actionType="Delete",
+            scope="SystemSpace",
+            entityType="ElementDefinition",
+            filter="None",
+            options=Map("mid"->edId)
+          )
+
+          val closed:Future[Seq[Message]] = invokeWS(request, enginePath)
+
+          whenReady(closed){ results =>
+            results should have length 2
+            val envelopeMap = msgToMap(results.last)
+            envelopeMap("status") should equal("Ok")
+            envelopeMap("messageType") should equal("CmdResult")
+            val payloadMap = strToMap(envelopeMap("textMessage").asInstanceOf[String])
+            payloadMap.contains("id") should equal(true)
+
+            val expectedIdMsg = "No element with ID: %s could be found in %s".format(edId, "internal_system_space")
+            the [InternalErrorException] thrownBy{
+              engine
+                .inSystemSpace
+                .findElementDefinitionById(edId)
+            }should have message expectedIdMsg
+          }
+        }
+
         it ("should FindElementDefinition")(pending)
         it ("should FindElementDefinitionById")(pending)
         it ("should FindElementDefinitionByName")(pending)
