@@ -67,7 +67,36 @@ class WebServerUserSpaceSpec extends FunSpecLike with Matchers with ScalaFutures
   describe("Receiving Requests"){
     describe("WebSocket Requests"){
       describe("User Space"){
-        it ("should CreateElementDefinition")(pending)
+        it ("should CreateElementDefinition"){
+          val edSpec = Map("name"->"Mobile Device",
+            "description"->"A computer that can be carried by the user.",
+            "properties"->Seq(Map("name"->"Model", "propertyType"->"String", "description"->"The specific manufacture model."),
+              Map("name"->"Manufacture", "propertyType"->"String", "description"->"The company that made the device.")))
+
+          val request = buildWSRequest(user="Bob",
+            actionType="Create",
+            scope="UserSpace",
+            entityType="ElementDefinition",
+            filter="None",
+            options=edSpec)
+
+          val closed:Future[Seq[Message]] = invokeWS(request, enginePath)
+
+          whenReady(closed){ results =>
+            results should have length 2
+            val envelopeMap = msgToMap(results.last)
+            envelopeMap("status") should equal("Ok")
+            envelopeMap("messageType") should equal("CmdResult")
+            val payloadMap = strToMap(envelopeMap("textMessage").asInstanceOf[String])
+            payloadMap.contains("id") should equal(true)
+            val edId = payloadMap("id").asInstanceOf[String]
+            val ed = engine.inUserSpace.findElementDefinitionById(edId)
+            ed.name should equal("Mobile Device")
+            ed.description should equal("A computer that can be carried by the user.")
+            ed.properties should have length 2
+          }
+        }
+
         it ("should ListAllElementDefinitions")(pending)
         it ("should EditElementDefintion")(pending)
 
