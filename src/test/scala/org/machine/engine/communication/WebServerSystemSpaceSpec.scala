@@ -124,7 +124,7 @@ class WebServerSystemSpaceSpec extends FunSpecLike with Matchers with ScalaFutur
         }
 
         it ("should provide an empty payload if no element definitions exist"){
-          purgeAllElementDefinitions
+          purgeAllElementDefinitions()
 
           val request = buildWSRequest(user="Bob",
             actionType="Retrieve",
@@ -145,8 +145,8 @@ class WebServerSystemSpaceSpec extends FunSpecLike with Matchers with ScalaFutur
         }
 
         it ("should EditElementDefintion"){
-          purgeAllElementDefinitions
-          val edId = createTimepieceElementDefinition
+          purgeAllElementDefinitions()
+          val edId = createTimepieceElementDefinition()
 
           val request = buildWSRequest(user="Bob",
             actionType="Update",
@@ -189,8 +189,8 @@ class WebServerSystemSpaceSpec extends FunSpecLike with Matchers with ScalaFutur
         Could we get rid of the initial jsonToMap?
         */
         it ("should EditElementPropertyDefinition"){
-          purgeAllElementDefinitions
-          val edId = createTimepieceElementDefinition
+          purgeAllElementDefinitions()
+          val edId = createTimepieceElementDefinition()
 
           val request = buildWSRequest(user="Bob",
             actionType="Update",
@@ -221,8 +221,8 @@ class WebServerSystemSpaceSpec extends FunSpecLike with Matchers with ScalaFutur
         }
 
         it ("should RemoveElementPropertyDefinition"){
-          purgeAllElementDefinitions
-          val edId = createTimepieceElementDefinition
+          purgeAllElementDefinitions()
+          val edId = createTimepieceElementDefinition()
 
           val request = buildWSRequest(user="Bob",
             actionType="Delete",
@@ -251,8 +251,8 @@ class WebServerSystemSpaceSpec extends FunSpecLike with Matchers with ScalaFutur
         }
 
         it ("should DeleteElementDefintion"){
-          purgeAllElementDefinitions
-          val edId = createTimepieceElementDefinition
+          purgeAllElementDefinitions()
+          val edId = createTimepieceElementDefinition()
 
           val request = buildWSRequest(user="Bob",
             actionType="Delete",
@@ -282,8 +282,8 @@ class WebServerSystemSpaceSpec extends FunSpecLike with Matchers with ScalaFutur
         }
 
         it ("should FindElementDefinitionById"){
-          purgeAllElementDefinitions
-          val edId = createTimepieceElementDefinition
+          purgeAllElementDefinitions()
+          val edId = createTimepieceElementDefinition()
 
           val request = buildWSRequest(user="Bob",
             actionType="Retrieve",
@@ -311,8 +311,8 @@ class WebServerSystemSpaceSpec extends FunSpecLike with Matchers with ScalaFutur
         }
 
         it ("should FindElementDefinitionByName"){
-          purgeAllElementDefinitions
-          val edId = createTimepieceElementDefinition
+          purgeAllElementDefinitions()
+          val edId = createTimepieceElementDefinition()
 
           val request = buildWSRequest(user="Bob",
             actionType="Retrieve",
@@ -340,27 +340,5 @@ class WebServerSystemSpaceSpec extends FunSpecLike with Matchers with ScalaFutur
         }
       }
     }
-  }
-
-  def purgeAllElementDefinitions = {
-    val eds = engine.inSystemSpace.elementDefinitions
-    eds.foreach{ ed =>
-      engine
-        .inSystemSpace
-        .onElementDefinition(ed.id)
-        .delete
-      .end
-    }
-  }
-
-  def createTimepieceElementDefinition:String = {
-    val edId = engine
-      .inSystemSpace
-      .defineElement("Timepiece", "A time tracking apparatus.")
-      .withProperty("Hours", "Int", "Tracks the passing.")
-      .withProperty("Minutes", "Int", "Tracks the passing of minutes.")
-      .withProperty("Seconds", "Int", "Tracks the passing of seconds.")
-    .end
-    return edId
   }
 }

@@ -70,12 +70,15 @@ class WebServerUserSpaceSpec extends FunSpecLike with Matchers with ScalaFutures
         it ("should CreateElementDefinition")(pending)
         it ("should ListAllElementDefinitions")(pending)
         it ("should EditElementDefintion")(pending)
+
         it ("should EditElementPropertyDefinition")(pending)
         it ("should RemoveElementPropertyDefinition")(pending)
+
         it ("should DeleteElementDefintion")(pending)
         it ("should FindElementDefinition")(pending)
         it ("should FindElementDefinitionById")(pending)
         it ("should FindElementDefinitionByName")(pending)
+
 
         it ("should CreateDataSet")(pending)
         it ("should ListDataSets")(pending)

@@ -15,8 +15,9 @@ import net.liftweb.json.DefaultFormats
 import org.scalatest._
 import scala.concurrent.{ExecutionContext, Future}
 
+import org.machine.engine.Engine
 import org.machine.engine.flow.requests._
-
+import org.machine.engine.graph.commands.{CommandScope, CommandScopes}
 
 object WSHelper{
   implicit val system = ActorSystem()
@@ -89,5 +90,31 @@ object WSHelper{
       println(e)
       Matchers.fail()
     }
+  }
+
+  /*
+  Deletes all element definitions.
+  WARNING: Don't run on a data set you care about.
+  */
+  def purgeAllElementDefinitions(scope: CommandScope = CommandScopes.SystemSpaceScope) = {
+    val eds = Engine.getInstance.inSystemSpace.elementDefinitions
+    eds.foreach{ ed =>
+      Engine.getInstance
+        .setScope(scope)
+        .onElementDefinition(ed.id)
+        .delete
+      .end
+    }
+  }
+
+  def createTimepieceElementDefinition(scope: CommandScope = CommandScopes.SystemSpaceScope):String = {
+    val edId = Engine.getInstance
+      .setScope(scope)
+      .defineElement("Timepiece", "A time tracking apparatus.")
+      .withProperty("Hours", "Int", "Tracks the passing.")
+      .withProperty("Minutes", "Int", "Tracks the passing of minutes.")
+      .withProperty("Seconds", "Int", "Tracks the passing of seconds.")
+    .end
+    return edId
   }
 }
