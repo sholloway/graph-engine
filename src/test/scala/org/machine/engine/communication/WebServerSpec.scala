@@ -79,6 +79,9 @@ class WebServerSpec extends FunSpecLike with Matchers with ScalaFutures with Bef
         }
       }
 
+      it ("Should gracefully handle requests that do not match to decisions")(pending)
+      it ("Should gracefully handle requests missing parameters")(pending)
+
       describe("System Space"){
         it ("should create element definition"){
           val edSpec = Map("name"->"Mobile Device",
@@ -294,9 +297,63 @@ class WebServerSpec extends FunSpecLike with Matchers with ScalaFutures with Bef
           }
         }
 
-        it ("should FindElementDefinition")(pending)
-        it ("should FindElementDefinitionById")(pending)
-        it ("should FindElementDefinitionByName")(pending)
+        it ("should FindElementDefinitionById"){
+          purgeAllElementDefinitions
+          val edId = createTimepieceElementDefinition
+
+          val request = buildWSRequest(user="Bob",
+            actionType="Retrieve",
+            scope="SystemSpace",
+            entityType="ElementDefinition",
+            filter="ID",
+            options=Map("mid"->edId)
+          )
+
+          val closed:Future[Seq[Message]] = invokeWS(request, enginePath)
+
+          whenReady(closed){ results =>
+            results should have length 2
+            val envelopeMap = msgToMap(results.last)
+            envelopeMap("status") should equal("Ok")
+            envelopeMap("messageType") should equal("CmdResult")
+            val payloadMap = strToMap(envelopeMap("textMessage").asInstanceOf[String])
+            payloadMap.contains("ElementDefinitions") should equal(true)
+            val eds = payloadMap("ElementDefinitions").asInstanceOf[List[Map[String, Any]]]
+            eds.length should equal(1)
+            val ed = eds.head
+            ed("name") should equal("Timepiece")
+            ed("id") should equal(edId)
+          }
+        }
+
+        it ("should FindElementDefinitionByName"){
+          purgeAllElementDefinitions
+          val edId = createTimepieceElementDefinition
+
+          val request = buildWSRequest(user="Bob",
+            actionType="Retrieve",
+            scope="SystemSpace",
+            entityType="ElementDefinition",
+            filter="Name",
+            options=Map("name"->"Timepiece")
+          )
+
+          val closed:Future[Seq[Message]] = invokeWS(request, enginePath)
+
+          whenReady(closed){ results =>
+            results should have length 2
+            val envelopeMap = msgToMap(results.last)
+            envelopeMap("status") should equal("Ok")
+            envelopeMap("messageType") should equal("CmdResult")
+            val payloadMap = strToMap(envelopeMap("textMessage").asInstanceOf[String])
+            payloadMap.contains("ElementDefinitions") should equal(true)
+            val eds = payloadMap("ElementDefinitions").asInstanceOf[List[Map[String, Any]]]
+            eds.length should equal(1)
+            val ed = eds.head
+            ed("name") should equal("Timepiece")
+            ed("id") should equal(edId)
+          }
+        }
       }
 
       describe("User Space"){
