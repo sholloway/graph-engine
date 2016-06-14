@@ -25,7 +25,7 @@ import org.machine.engine.exceptions._
 import org.machine.engine.graph.nodes._
 import org.machine.engine.flow.requests._
 
-class WebServerSpec extends FunSpecLike with Matchers with ScalaFutures with BeforeAndAfterAll{
+class WebServerDataSetSpec extends FunSpecLike with Matchers with ScalaFutures with BeforeAndAfterAll{
   import WSHelper._
 
   //Configure the whenReady for how long to wait.
@@ -66,21 +66,38 @@ class WebServerSpec extends FunSpecLike with Matchers with ScalaFutures with Bef
 
   describe("Receiving Requests"){
     describe("WebSocket Requests"){
-      it ("should echo commands for /ping"){
-        val request = Source.fromIterator(() => Seq(tm("A"), tm("B"), tm("C"), tm("D"), tm("E"), tm("F")).toIterator)
-        val closed = invokeWS(request, echoPath)
-        whenReady(closed){ results =>
-          results should equal(Vector(TextMessage.Strict("A"),
-            TextMessage.Strict("B"),
-            TextMessage.Strict("C"),
-            TextMessage.Strict("D"),
-            TextMessage.Strict("E"),
-            TextMessage.Strict("F")))
-        }
-      }
+      describe("Datasets"){
+        it ("should CreateElementDefinition")(pending)
+        it ("should ListAllElementDefinitions")(pending)
+        it ("should EditElementDefintion")(pending)
+        it ("should EditElementPropertyDefinition")(pending)
+        it ("should RemoveElementPropertyDefinition")(pending)
+        it ("should DeleteElementDefintion")(pending)
+        it ("should FindElementDefinition")(pending)
+        it ("should FindElementDefinitionById")(pending)
+        it ("should FindElementDefinitionByName")(pending)
 
-      it ("Should gracefully handle requests that do not match to decisions")(pending)
-      it ("Should gracefully handle requests missing parameters")(pending)
+        it ("should CreateElement")(pending)
+        it ("should DeleteAssociation")(pending)
+        it ("should DeleteElement")(pending)
+
+        it ("should AssociateElements")(pending)
+        it ("should EditAssociation")(pending)
+        it ("should RemoveInboundAssociations")(pending)
+        it ("should RemoveOutboundAssociations")(pending)
+
+        it ("should EditElement")(pending)
+
+        it ("should FindDownStreamElementsByElementId")(pending)
+        it ("should FindElementById")(pending)
+
+        it ("should FindAssociationById")(pending)
+        it ("should FindInboundAssociationsByElementId")(pending)
+        it ("should FindOutboundAssociationsByElementId")(pending)
+        it ("should FindUpStreamElementsByElementId")(pending)
+        it ("should RemoveAssociationField")(pending)
+        it ("should RemoveElementField")(pending)
+      }
     }
-  }  
+  }
 }
