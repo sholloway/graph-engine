@@ -80,7 +80,8 @@ class WebServerSpec extends FunSpecLike with Matchers with ScalaFutures with Bef
       }
 
       it ("Should gracefully handle requests that do not match to decisions")(pending)
+
       it ("Should gracefully handle requests missing parameters")(pending)
     }
-  }  
+  }
 }

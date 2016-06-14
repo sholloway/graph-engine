@@ -97,7 +97,32 @@ class WebServerUserSpaceSpec extends FunSpecLike with Matchers with ScalaFutures
           }
         }
 
-        it ("should ListAllElementDefinitions")(pending)
+        it ("should ListAllElementDefinitions"){
+          engine
+            .inUserSpace
+            .defineElement("Note", "A brief record of something, captured to assist the memory or for future reference.")
+            .withProperty("Note Text", "String", "The body of the note.")
+          .end
+
+          val request = buildWSRequest(user="Bob",
+            actionType="Retrieve",
+            scope="UserSpace",
+            entityType="ElementDefinition",
+            filter="All")
+
+          val closed:Future[Seq[Message]] = invokeWS(request, enginePath)
+
+          whenReady(closed){ results =>
+            results should have length 2
+            val envelopeMap = msgToMap(results.last)
+            envelopeMap("status") should equal("Ok")
+            envelopeMap("messageType") should equal("CmdResult")
+            val payloadMap = strToMap(envelopeMap("textMessage").asInstanceOf[String])
+            payloadMap.contains("ElementDefinitions") should equal(true)
+            payloadMap("ElementDefinitions").asInstanceOf[List[Map[String, Any]]].length should be >= 1
+          }
+        }
+
         it ("should EditElementDefintion")(pending)
 
         it ("should EditElementPropertyDefinition")(pending)
