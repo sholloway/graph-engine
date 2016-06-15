@@ -1,0 +1,9 @@
+{
+  "name": "Update Element Definition Property Definition in System Space",
+  "description": "Update an element definition's property.",
+  "scope": "internal_user_space",
+  "entityType": "PropertyDefinition",
+  "actionType": "Delete",
+  "filter": "None",
+  "decision": "RemoveElementPropertyDefinition"
+}
