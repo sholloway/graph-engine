@@ -190,7 +190,7 @@ class WebServerUserSpaceSpec extends FunSpecLike with Matchers with ScalaFutures
         Possibly removing more than one property. (Which would result in not
         being able to retrieve the ed due to another bug.)
         */
-        ignore ("should RemoveElementPropertyDefinition"){
+        it ("should RemoveElementPropertyDefinition"){
           purgeAllElementDefinitions(CommandScopes.UserSpaceScope)
           val edId = createTimepieceElementDefinition(CommandScopes.UserSpaceScope)
 
