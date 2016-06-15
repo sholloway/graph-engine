@@ -97,7 +97,7 @@ object WSHelper{
   WARNING: Don't run on a data set you care about.
   */
   def purgeAllElementDefinitions(scope: CommandScope = CommandScopes.SystemSpaceScope) = {
-    val eds = Engine.getInstance.inSystemSpace.elementDefinitions
+    val eds = Engine.getInstance.setScope(scope).elementDefinitions
     eds.foreach{ ed =>
       Engine.getInstance
         .setScope(scope)

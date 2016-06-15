@@ -1,0 +1,9 @@
+{
+  "name": "List Element Definitions",
+  "description": "List all element definitions.",
+  "scope": "internal_user_space",
+  "entityType": "ElementDefinition",
+  "actionType": "Retrieve",
+  "filter": "Name",
+  "decision": "FindElementDefinitionByName"
+}
