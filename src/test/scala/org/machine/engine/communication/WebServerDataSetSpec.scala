@@ -22,6 +22,7 @@ import scala.concurrent.{ExecutionContext, Future}
 import com.typesafe.config._
 import org.machine.engine.Engine
 import org.machine.engine.exceptions._
+import org.machine.engine.graph.commands.CommandScopes
 import org.machine.engine.graph.nodes._
 import org.machine.engine.flow.requests._
 

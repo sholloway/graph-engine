@@ -22,6 +22,7 @@ import scala.concurrent.{ExecutionContext, Future}
 import com.typesafe.config._
 import org.machine.engine.Engine
 import org.machine.engine.exceptions._
+import org.machine.engine.graph.commands.CommandScopes
 import org.machine.engine.graph.nodes._
 import org.machine.engine.flow.requests._
 
@@ -123,7 +124,34 @@ class WebServerUserSpaceSpec extends FunSpecLike with Matchers with ScalaFutures
           }
         }
 
-        it ("should EditElementDefintion")(pending)
+        it ("should EditElementDefintion"){
+          purgeAllElementDefinitions(CommandScopes.UserSpaceScope)
+          val edId = createTimepieceElementDefinition(CommandScopes.UserSpaceScope)
+
+          val request = buildWSRequest(user="Bob",
+            actionType="Update",
+            scope="UserSpace",
+            entityType="ElementDefinition",
+            filter="None",
+            options=Map("mid"->edId, "name" -> "Watch")
+          )
+
+          val closed:Future[Seq[Message]] = invokeWS(request, enginePath)
+
+          whenReady(closed){ results =>
+            results should have length 2
+            val envelopeMap = msgToMap(results.last)
+            envelopeMap("status") should equal("Ok")
+            envelopeMap("messageType") should equal("CmdResult")
+            val payloadMap = strToMap(envelopeMap("textMessage").asInstanceOf[String])
+            payloadMap.contains("id") should equal(true)
+
+            //verify with engine that it has changed. :)
+            val ed = engine.inUserSpace.findElementDefinitionById(edId)
+            ed.name should equal("Watch")
+          }
+        }
+
 
         it ("should EditElementPropertyDefinition")(pending)
         it ("should RemoveElementPropertyDefinition")(pending)
