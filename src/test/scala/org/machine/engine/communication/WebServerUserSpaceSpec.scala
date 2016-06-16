@@ -310,7 +310,35 @@ class WebServerUserSpaceSpec extends FunSpecLike with Matchers with ScalaFutures
         }
 
 
-        it ("should CreateDataSet")(pending)
+        it ("should CreateDataSet"){
+          // deleteAllDataSets("Bob")
+          val dsName = "Favorite Timepieces"
+          val dsDesc = "A collection focused on timepieces."
+          val request = buildWSRequest(user="Bob",
+            actionType="Create",
+            scope="UserSpace",
+            entityType="DataSet",
+            filter="None",
+            options=Map("name"->dsName, "description"->dsDesc)
+          )
+
+          val closed:Future[Seq[Message]] = invokeWS(request, enginePath)
+
+          whenReady(closed){ results =>
+            results should have length 2
+            val envelopeMap = msgToMap(results.last)
+            envelopeMap("status") should equal("Ok")
+            envelopeMap("messageType") should equal("CmdResult")
+            val payloadMap = strToMap(envelopeMap("textMessage").asInstanceOf[String])
+            payloadMap.contains("id") should equal(true)
+            val id = payloadMap("id").asInstanceOf[String]
+            val ds = engine.findDataSetByName(dsName)
+            ds.id should equal(id)
+            ds.name should equal(dsName)
+            ds.description should equal(dsDesc)
+          }
+        }
+
         it ("should ListDataSets")(pending)
 
         it ("should EditDataSet")(pending)

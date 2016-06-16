@@ -22,6 +22,7 @@ class CreateDataSet(database:GraphDatabaseService,
 
   def execute():InsertCmdResult[String] = {
     logger.debug("CreateDataSet: Executing Command")
+    generateId(cmdOptions)
     transaction(database, (graphDB:GraphDatabaseService) => {
       createDataSet(graphDB)
       registerDataSet(graphDB)
