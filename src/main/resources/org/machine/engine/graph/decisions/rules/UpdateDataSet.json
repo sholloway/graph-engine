@@ -1,0 +1,9 @@
+{
+  "name": "Update DataSet",
+  "description": "Update a dataset.",
+  "scope": "internal_user_space",
+  "entityType": "DataSet",
+  "actionType": "Update",
+  "filter": "None",
+  "decision": "EditDataSet"
+}

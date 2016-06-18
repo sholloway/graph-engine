@@ -40,6 +40,7 @@ object EngineWorkerPoolManager{
     println(request)
     Function.chain(Seq(
       fetchMid,
+      fetchDsId,
       fetchPName,
       fetchName,
       fetchDescription,
@@ -54,6 +55,17 @@ object EngineWorkerPoolManager{
   ) = {
     if (request.options.contains(str)){
       options.addOption(str, request.options(str))
+    }
+  }
+
+  private val fetchDsId = new PartialFunction[Capsule, Capsule]{
+    private val property = "dsId"
+    def isDefinedAt(capsule: Capsule):Boolean = capsule._1.options.contains(property)
+    def apply(capsule: Capsule):Capsule = {
+      if(isDefinedAt(capsule)){
+        capsule._2.addOption(property,capsule._1.options(property))
+      }
+      return capsule
     }
   }
 
