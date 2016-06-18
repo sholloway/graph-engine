@@ -35,9 +35,7 @@ object EngineWorkerPoolManager{
   }
 
   private def buildOptions(request: RequestMessage):GraphCommandOptions = {
-    val options = new GraphCommandOptions()
-    println("In Build Options")
-    println(request)
+    val options = new GraphCommandOptions()    
     Function.chain(Seq(
       fetchMid,
       fetchDsId,

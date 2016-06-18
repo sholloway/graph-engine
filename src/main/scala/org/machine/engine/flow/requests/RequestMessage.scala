@@ -24,9 +24,7 @@ object RequestMessage{
     return write(rm)
   }
 
-  def parseJSON(msg: String):RequestMessage ={
-    println("RequestMessage.parse")
-    println(msg)
+  def parseJSON(msg: String):RequestMessage ={    
     val json = parse(msg)
 
     val user = (json \ "user").asInstanceOf[JString].values
