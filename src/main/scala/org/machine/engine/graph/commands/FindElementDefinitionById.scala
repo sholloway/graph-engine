@@ -36,7 +36,7 @@ class FindElementDefinitionById(database: GraphDatabaseService,
   element definitions without properties.
 
   Make the compose_of an optional relationship in the query.
-  */
+  */  
   private def buildQuery(cmdScope: CommandScope, cmdOptions: GraphCommandOptions):String = {
     val edMatchClause = buildElementDefinitionMatchClause(cmdOptions)
     val scope = buildScope(cmdScope, cmdOptions)

@@ -60,7 +60,6 @@ class WebServerDataSetSpec extends FunSpecLike with Matchers with ScalaFutures w
 
   override def afterAll(){
     server.stop()
-    // TestKit.shutdownActorSystem(system)
     Engine.shutdown
     FileUtils.deleteRecursively(dbFile)
   }
@@ -68,7 +67,40 @@ class WebServerDataSetSpec extends FunSpecLike with Matchers with ScalaFutures w
   describe("Receiving Requests"){
     describe("WebSocket Requests"){
       describe("Datasets"){
-        it ("should CreateElementDefinition")(pending)
+        it ("should CreateElementDefinition By DS ID"){
+          val dsId = engine.createDataSet("dsQ", "DS")
+          val edName = "Space Ship"
+          val edDesc = "A ship that can traverse outer space."
+          val edSpec = Map("dsId"->dsId,
+            "name"->edName,
+            "description"->edDesc,
+            "properties"->Seq(Map("name"->"p1", "propertyType"->"String", "description"->"p1"),
+              Map("name"->"p2", "propertyType"->"String", "description"->"p2")))
+
+          val request = buildWSRequest(user="Bob",
+            actionType="Create",
+            scope="DataSet",
+            entityType="ElementDefinition",
+            filter="None",
+            options=edSpec)
+
+          val closed:Future[Seq[Message]] = invokeWS(request, enginePath)
+
+          whenReady(closed){ results =>
+            results should have length 2
+            val envelopeMap = validateOkMsg(msgToMap(results.last))
+            val payloadMap = strToMap(envelopeMap("textMessage").asInstanceOf[String])
+            payloadMap.contains("id") should equal(true)
+            val edId = payloadMap("id").asInstanceOf[String]
+            val ed = engine.onDataSet(dsId).findElementDefinitionById(edId)
+            ed.name should equal(edName)
+            ed.description should equal(edDesc)
+            ed.properties should have length 2
+          }
+        }
+
+        it ("should CreateElementDefinition By DS Name")(pending)
+
         it ("should ListAllElementDefinitions")(pending)
         it ("should EditElementDefintion")(pending)
         it ("should EditElementPropertyDefinition")(pending)

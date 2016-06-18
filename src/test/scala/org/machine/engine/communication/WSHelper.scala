@@ -20,6 +20,7 @@ import org.machine.engine.flow.requests._
 import org.machine.engine.graph.commands.{CommandScope, CommandScopes}
 
 object WSHelper{
+  import Matchers._
   implicit val system = ActorSystem()
   implicit val materializer = ActorMaterializer()
   // implicit val ec: ExecutionContext = scala.concurrent.ExecutionContext.Implicits.global
@@ -116,5 +117,11 @@ object WSHelper{
       .withProperty("Seconds", "Int", "Tracks the passing of seconds.")
     .end
     return edId
+  }
+
+  def validateOkMsg(envelopeMap: Map[String, Any]):Map[String, Any] = {
+    envelopeMap("status") should equal("Ok")
+    envelopeMap("messageType") should equal("CmdResult")
+    return envelopeMap
   }
 }

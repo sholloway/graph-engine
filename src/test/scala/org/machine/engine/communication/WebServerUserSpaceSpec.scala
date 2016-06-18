@@ -60,7 +60,6 @@ class WebServerUserSpaceSpec extends FunSpecLike with Matchers with ScalaFutures
 
   override def afterAll(){
     server.stop()
-    // TestKit.shutdownActorSystem(system)
     Engine.shutdown
     FileUtils.deleteRecursively(dbFile)
   }
@@ -428,11 +427,5 @@ class WebServerUserSpaceSpec extends FunSpecLike with Matchers with ScalaFutures
         }
       }
     }
-  }
-
-  def validateOkMsg(envelopeMap: Map[String, Any]):Map[String, Any] = {
-    envelopeMap("status") should equal("Ok")
-    envelopeMap("messageType") should equal("CmdResult")
-    return envelopeMap
-  }
+  }  
 }
