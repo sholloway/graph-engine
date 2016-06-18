@@ -13,14 +13,14 @@ object DeserializeClientMessage{
     Validate EntityType
     Validate Filter
 
-  Validate Command Specific Options 
+  Validate Command Specific Options
     At this point, do I traverse the tree and find the Decision?
   */
   def deserialize(capsule: EngineCapsule):EngineCapsule = {
     val serializedMsg = capsule.message.payload
     val jsonMap = RequestMessage.jsonToMap(serializedMsg)
     val transformedCapsule: EngineCapsule = RequestRuleValidator.validate(Left(jsonMap)) match{
-      case Left(jmap) =>{
+      case Left(jmap) =>{      
         val requestMsg = RequestMessage.parseJSON(serializedMsg)
         capsule.enrich("deserializedMsg", requestMsg, Some("deserializeRequest"))
       }

@@ -389,9 +389,6 @@ class WebServerUserSpaceSpec extends FunSpecLike with Matchers with ScalaFutures
             results should have length 2
             val envelopeMap = validateOkMsg(msgToMap(results.last))
             val payloadMap = strToMap(envelopeMap("textMessage").asInstanceOf[String])
-
-            println(payloadMap)
-
             payloadMap.contains("datasets") should equal(true)
             val ds = payloadMap("datasets").asInstanceOf[List[Map[String, Any]]].head
             ds("id") should equal(dsId)
@@ -400,7 +397,33 @@ class WebServerUserSpaceSpec extends FunSpecLike with Matchers with ScalaFutures
           }
         }
 
-        it ("should FindDataSetByName")(pending)
+        it ("should FindDataSetByName"){
+          val dsName = "Yet another DataSet"
+          val desc = "Da DataSet Description"
+          val dsId = engine.createDataSet(dsName, desc)
+
+          val request = buildWSRequest(user="Bob",
+            actionType="Retrieve",
+            scope="UserSpace",
+            entityType="DataSet",
+            filter="Name",
+            options=Map("name"->dsName)
+          )
+
+          val closed:Future[Seq[Message]] = invokeWS(request, enginePath)
+
+          whenReady(closed){ results =>
+            results should have length 2
+            val envelopeMap = validateOkMsg(msgToMap(results.last))
+            val payloadMap = strToMap(envelopeMap("textMessage").asInstanceOf[String])
+            payloadMap.contains("datasets") should equal(true)
+            val ds = payloadMap("datasets").asInstanceOf[List[Map[String, Any]]].head
+            ds("id") should equal(dsId)
+            ds("name") should equal(dsName)
+            ds("description") should equal(desc)
+          }
+        }
+
         it ("should find list of datasets per user")(pending)
       }
     }
