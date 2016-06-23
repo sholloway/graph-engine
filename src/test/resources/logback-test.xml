@@ -6,10 +6,19 @@
     </encoder>
   </appender>
 
+  <appender name="FILE" class="ch.qos.logback.core.FileAppender">
+    <!-- Need to think through the place to write these to. -->
+    <file>/Users/sholloway/Documents/Code/machine-desktop/machine-engine/logs/app.log</file>
+    <append>false</append>
+    <encoder>
+      <pattern>%d{HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n</pattern>
+    </encoder>
+  </appender>
   <!-- Set the log level for all classes in the package org.machine.engine -->
-  <logger name="org.machine.engine" level="ERROR" />
+  <logger name="org.machine.engine" level="DEBUG" />
 
   <root level="DEBUG">
     <appender-ref ref="STDOUT" />
+    <appender-ref ref="FILE" />
   </root>
 </configuration>

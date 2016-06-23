@@ -48,6 +48,8 @@ libraryDependencies ++= Seq(
 	 "org.zeromq" % "jeromq" % "0.3.5",
 	 "org.neo4j" % "neo4j" % "2.3.3",
 	 "org.neo4j" % "neo4j-slf4j" % "2.3.3",
+	 "org.neo4j" % "neo4j-graphviz" % "2.3.3" % Test,
+	 "org.neo4j" % "neo4j-io" % "2.3.3" % Test,
 	 "net.liftweb" %% "lift-json" % "3.0-RC3"
 )
 

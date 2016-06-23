@@ -27,9 +27,11 @@ class FindElementDefinitionByName(database: GraphDatabaseService,
       cmdOptions.toJavaMap,
       elementDefAndPropDefQueryMapper)
     val elementDefs = consolidateElementDefs(records.toList)
-    return QueryCmdResult(validateQueryResponse(elementDefs));
+    return QueryCmdResult(elementDefs);
   }
 
+  /* FIXME FindElementDefinitionByName will not find element definitions with no associated properties.
+  */
   protected def buildQuery(cmdScope: CommandScope, cmdOptions: GraphCommandOptions):String = {
     val edMatchClause = buildElementDefinitionMatchClause(cmdOptions)
     val scope = buildScope(cmdScope, cmdOptions)
@@ -63,11 +65,11 @@ class FindElementDefinitionByName(database: GraphDatabaseService,
   private def noElementDefFoundErrorMsg():String = {
     val name = cmdOptions.option[String]("name")
     return cmdScope match{
-      case CommandScopes.SystemSpaceScope => "No element with Name: %s could be found in %s".format(name, cmdScope.scope)
-      case CommandScopes.UserSpaceScope => "No element with Name: %s could be found in %s".format(name, cmdScope.scope)
+      case CommandScopes.SystemSpaceScope => "No element definition with Name: %s could be found in %s".format(name, cmdScope.scope)
+      case CommandScopes.UserSpaceScope => "No element definition with Name: %s could be found in %s".format(name, cmdScope.scope)
       case CommandScopes.DataSetScope => {
         val dsIdentifier = getDataSetIdentifier(cmdOptions)
-        "No element with Name: %s could be found in dataset: %s".format(name, dsIdentifier)
+        "No element definition with Name: %s could be found in dataset: %s".format(name, dsIdentifier)
       }
     }
   }

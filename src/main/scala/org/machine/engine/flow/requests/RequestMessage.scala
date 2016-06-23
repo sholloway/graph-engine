@@ -24,7 +24,7 @@ object RequestMessage{
     return write(rm)
   }
 
-  def parseJSON(msg: String):RequestMessage ={    
+  def parseJSON(msg: String):RequestMessage ={
     val json = parse(msg)
 
     val user = (json \ "user").asInstanceOf[JString].values
@@ -40,6 +40,7 @@ object RequestMessage{
       val jsonOptions = jsonMap("options").asInstanceOf[Map[String, Any]]
       fetchString("mid", options, jsonOptions)
       fetchString("dsId", options, jsonOptions)
+      fetchString("dsName", options, jsonOptions)
       fetchString("pname", options, jsonOptions)
       fetchString("name", options, jsonOptions)
       fetchString("description", options, jsonOptions)

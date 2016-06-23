@@ -22,6 +22,13 @@ class CreateElementDefintion(database: GraphDatabaseService,
   def execute():InsertCmdResult[String] = {
     logger.debug("CreateElementDefintion: Executing Command")
     generateId(cmdOptions)
+    println(cmdOptions)
+    /*
+    FIXME Merge of an ED needs to consider the scope.
+    Rather than using the pattern of creating a node, then Associating
+    it with a scope item, the initial merge needs to consider that.
+    (scope)-[:contains]->(ed)
+    */
     transaction(database, (graphDB: GraphDatabaseService) => {
       createElementDefinition(graphDB)
       createPropertyDefinitions(graphDB)
@@ -92,6 +99,7 @@ class CreateElementDefintion(database: GraphDatabaseService,
   private def registerTheElement(graphDB: GraphDatabaseService):Unit = {
     logger.debug("CreateElementDefintion: Associating the element definition to the system space.")
     val statement = matchRegisterStatement()
+    println(statement)
     run(graphDB,
       statement,
       cmdOptions.toJavaMap,
@@ -125,6 +133,7 @@ class CreateElementDefintion(database: GraphDatabaseService,
         .replaceAll("label", cmdScope.scope)
         .replaceAll("dsFilter", filter)
       }
+      case _ => throw new InternalErrorException("No Matching Scope Found: "+cmdScope)
     }
     return query
   }

@@ -113,8 +113,14 @@ class Engine private (dbPath:String, decisionTree: Question) extends GraphDSL wi
     val dbFile = new File(dbPath)
     val graphDBFactory = new GraphDatabaseFactory()
     import org.neo4j.logging.slf4j.Slf4jLogProvider
-    graphDBFactory.setUserLogProvider(new Slf4jLogProvider())
-    val graphDB = graphDBFactory.newEmbeddedDatabase(dbFile)
+    import org.neo4j.graphdb.factory.GraphDatabaseSettings
+
+    val graphDB = graphDBFactory
+      .setUserLogProvider(new Slf4jLogProvider())
+      .newEmbeddedDatabaseBuilder(dbFile)
+      .setConfig( GraphDatabaseSettings.dump_configuration, "true" )
+      .newGraphDatabase()
+
     graphDBOption = Some(graphDB)
   }
 

@@ -36,7 +36,7 @@ class FindElementDefinitionById(database: GraphDatabaseService,
   element definitions without properties.
 
   Make the compose_of an optional relationship in the query.
-  */  
+  */
   private def buildQuery(cmdScope: CommandScope, cmdOptions: GraphCommandOptions):String = {
     val edMatchClause = buildElementDefinitionMatchClause(cmdOptions)
     val scope = buildScope(cmdScope, cmdOptions)
@@ -70,11 +70,11 @@ class FindElementDefinitionById(database: GraphDatabaseService,
   private def noElementDefFoundErrorMsg():String = {
     val id = cmdOptions.option[String]("mid")
     return cmdScope match{
-      case CommandScopes.SystemSpaceScope => "No element with ID: %s could be found in %s".format(id, cmdScope.scope)
-      case CommandScopes.UserSpaceScope => "No element with ID: %s could be found in %s".format(id, cmdScope.scope)
+      case CommandScopes.SystemSpaceScope => "No element definition with ID: %s could be found in %s".format(id, cmdScope.scope)
+      case CommandScopes.UserSpaceScope => "No element definition with ID: %s could be found in %s".format(id, cmdScope.scope)
       case CommandScopes.DataSetScope => {
         val dsIdentifier = getDataSetIdentifier(cmdOptions)
-        "No element with ID: %s could be found in dataset: %s".format(id, dsIdentifier)
+        "No element definition with ID: %s could be found in dataset: %s".format(id, dsIdentifier)
       }
     }
   }

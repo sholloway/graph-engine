@@ -1,0 +1,41 @@
+digraph Neo {
+  node [
+    fontsize = "8"
+    shape = "Mrecord"
+    fontname = "Bitstream Vera Sans"
+  ]
+  edge [
+    fontname = "Bitstream Vera Sans"
+    fontsize = "8"
+  ]
+  N0 [
+    label = "{Node\[0\]: internal_system_space|'mid' = '5b5a68f8-21dc-4b90-8e4f-c34c7d527d27' : String\l'name' = 'System Space' : String\l}"
+  ]
+  N1 [
+    label = "{Node\[1\]: internal_user_space|'mid' = '3670e4b9-426c-487e-b432-1c3b5b624db4' : String\l'name' = 'User Space' : String\l}"
+  ]
+  N1 -> N3 [
+    label = "contains\n"
+  ]
+  N1 -> N2 [
+    label = "contains\n"
+  ]
+  N2 [
+    label = "{Node\[2\]: internal_data_set|'description' = 'A dataset' : String\l'mid' = 'ad740b8a-d40e-4d42-8336-252c6123164d' : String\l'name' = 'Dataset A' : String\l'creation_time' = 1466371828414 : long\l}"
+  ]
+  N3 [
+    label = "{Node\[3\]: internal_data_set|'description' = 'Another dataset' : String\l'mid' = 'bfc8a301-1ed8-4cf4-b536-9ff340d9247c' : String\l'name' = 'Dataset B' : String\l'creation_time' = 1466371829057 : long\l}"
+  ]
+  N3 -> N4 [
+    label = "exists_in\n"
+  ]
+  N4 [
+    label = "{Node\[4\]: element_definition|'description' = 'A precious stone.' : String\l'mid' = '7da1047c-b3d7-4a4e-8713-66e64a38f290' : String\l'name' = 'Gem' : String\l'creation_time' = 1466371829168 : long\l}"
+  ]
+  N4 -> N5 [
+    label = "composed_of\n"
+  ]
+  N5 [
+    label = "{Node\[5\]: property_definition|'type' = 'String' : String\l'description' = 'The color of light the gem reflects.' : String\l'mid' = 'c1e2a4df-87d7-4aff-a187-c442f650614b' : String\l'name' = 'color' : String\l'creation_time' = 1466371829194 : long\l}"
+  ]
+}

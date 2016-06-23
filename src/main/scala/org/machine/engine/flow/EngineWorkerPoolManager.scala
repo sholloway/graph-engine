@@ -35,10 +35,11 @@ object EngineWorkerPoolManager{
   }
 
   private def buildOptions(request: RequestMessage):GraphCommandOptions = {
-    val options = new GraphCommandOptions()    
+    val options = new GraphCommandOptions()
     Function.chain(Seq(
       fetchMid,
       fetchDsId,
+      fetchDsName,
       fetchPName,
       fetchName,
       fetchDescription,
@@ -58,6 +59,17 @@ object EngineWorkerPoolManager{
 
   private val fetchDsId = new PartialFunction[Capsule, Capsule]{
     private val property = "dsId"
+    def isDefinedAt(capsule: Capsule):Boolean = capsule._1.options.contains(property)
+    def apply(capsule: Capsule):Capsule = {
+      if(isDefinedAt(capsule)){
+        capsule._2.addOption(property,capsule._1.options(property))
+      }
+      return capsule
+    }
+  }
+
+  private val fetchDsName = new PartialFunction[Capsule, Capsule]{
+    private val property = "dsName"
     def isDefinedAt(capsule: Capsule):Boolean = capsule._1.options.contains(property)
     def apply(capsule: Capsule):Capsule = {
       if(isDefinedAt(capsule)){

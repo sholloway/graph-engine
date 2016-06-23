@@ -33,9 +33,15 @@ brew install protobuf
 * [ZeroMQ Node](https://github.com/JustinTulloss/zeromq.node)
 * [ZeroMQ Socket Types](http://api.zeromq.org/2-1:zmq-socket)
 
+### Neo4J
+* [Documentation](http://neo4j.com/docs/)
+* [Java Docs](http://neo4j.com/docs/2.3.3/javadocs/)
+
 ### Misc
 * [Google Protocol Buffers](https://developers.google.com/protocol-buffers/)
 * [TypeSafe Configuration](https://github.com/typesafehub/config)
+* [TypeSafe LazyLogging](https://github.com/typesafehub/scala-logging)
+* [Logback](http://logback.qos.ch/)
 * [I Am Done](https://github.com/imdone/imdone-core#metadata)
 * [Semantic Versioning](http://semver.org/)
 * [Web Socket Protocol](https://tools.ietf.org/html/rfc6455)

@@ -254,14 +254,14 @@ class DataSetElementDefinitionSpec extends FunSpec with Matchers with EasyMockSu
             .delete
           .end
 
-          val expectedIdMsg = "No element with ID: %s could be found in dataset: %s".format(archPrinciple.id, datasetName)
+          val expectedIdMsg = "No element definition with ID: %s could be found in dataset: %s".format(archPrinciple.id, datasetName)
           the [InternalErrorException] thrownBy{
             engine
               .onDataSetByName(datasetName)
               .findElementDefinitionById(archPrinciple.id)
           }should have message expectedIdMsg
 
-          val expectedNameMsg = "No element with Name: %s could be found in dataset: %s".format(archPrinciple.name, datasetName)
+          val expectedNameMsg = "No element definition with Name: %s could be found in dataset: %s".format(archPrinciple.name, datasetName)
           the [InternalErrorException] thrownBy{
             engine
               .onDataSetByName(datasetName)

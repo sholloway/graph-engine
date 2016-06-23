@@ -22,7 +22,7 @@ import scala.concurrent.{ExecutionContext, Future}
 import com.typesafe.config._
 import org.machine.engine.Engine
 import org.machine.engine.exceptions._
-import org.machine.engine.graph.commands.CommandScopes
+import org.machine.engine.graph.commands.{CommandScopes}
 import org.machine.engine.graph.nodes._
 import org.machine.engine.flow.requests._
 
@@ -99,7 +99,58 @@ class WebServerDataSetSpec extends FunSpecLike with Matchers with ScalaFutures w
           }
         }
 
-        it ("should CreateElementDefinition By DS Name")(pending)
+        /*
+        FIXME Multiple Element Definitions cannot have the same name.
+        A merge is occuring. They need to be unique by MID not name. It is
+        reasonable that the same ED would exist in multiple datasets.
+        */
+        it ("should CreateElementDefinition By DS Name"){
+          val dsName = "dsD"
+          val datasetId = engine.createDataSet(dsName, "DS")
+          val edName = "Bullshit"
+          val edDesc = "A ship that can traverse outer space."
+          val edSpec = Map("dsName"->dsName,
+            "name"->edName,
+            "description"->edDesc,
+            "properties"->Seq(Map("name"->"p1", "propertyType"->"String", "description"->"p1"),
+              Map("name"->"p2", "propertyType"->"String", "description"->"p2")))
+
+          val request = buildWSRequest(user="Bob",
+            actionType="Create",
+            scope="DataSet",
+            entityType="ElementDefinition",
+            filter="None",
+            options=edSpec)
+
+          val closed:Future[Seq[Message]] = invokeWS(request, enginePath)
+
+          whenReady(closed){ results =>
+            results should have length 2
+            val envelopeMap = validateOkMsg(msgToMap(results.last))
+            val payloadMap = strToMap(envelopeMap("textMessage").asInstanceOf[String])
+            payloadMap.contains("id") should equal(true)
+            val edId = payloadMap("id").asInstanceOf[String]
+
+            import org.machine.engine.viz.GraphVizHelper
+            try{
+              val ed = engine.onDataSet(datasetId).findElementDefinitionById(edId)
+              ed.name should equal(edName)
+              ed.description should equal(edDesc)
+              ed.properties should have length 2
+              GraphVizHelper.visualize(engine.database,
+                s"${GraphVizHelper.wd}/viz",
+                "temp.dot")
+            }catch{
+              case e: InternalErrorException => {
+                println(e)
+                GraphVizHelper.visualize(engine.database,
+                  s"${GraphVizHelper.wd}/viz",
+                  "temp.dot")
+                fail()
+              }
+            }
+          }
+        }
 
         it ("should ListAllElementDefinitions")(pending)
         it ("should EditElementDefintion")(pending)

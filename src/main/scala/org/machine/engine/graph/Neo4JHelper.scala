@@ -102,7 +102,7 @@ object Neo4JHelper{
     val createSystemSpaceParams = Map("mid"->uuid, "name"->"System Space")
     var systemSpaces:Array[SystemSpace] = null
     transaction(db, (graphDB: GraphDatabaseService) =>{
-      systemSpaces = insert[SystemSpace](graphDB,
+      systemSpaces = run[SystemSpace](graphDB,
         CreateSystemSpaceCypherStatement,
         createSystemSpaceParams,
         SystemSpace.queryMapper)
@@ -142,7 +142,7 @@ object Neo4JHelper{
 
   /** Generates a Unique Universal Identifier
   */
-  def uuid = java.util.UUID.randomUUID.toString
+  def uuid() = java.util.UUID.randomUUID.toString
 
   /** Given a record from a query result set, finds a value corrisponding to
   *   the provided column name. Thows an exception if the field is not found

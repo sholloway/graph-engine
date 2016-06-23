@@ -1,0 +1,59 @@
+digraph Neo {
+  node [
+    fontsize = "8"
+    shape = "Mrecord"
+    fontname = "Bitstream Vera Sans"
+  ]
+  edge [
+    fontname = "Bitstream Vera Sans"
+    fontsize = "8"
+  ]
+  N0 [
+    label = "{Node\[0\]: internal_system_space|'mid' = '642e328d-32fb-4d1e-8685-124bd0685348' : String\l'name' = 'System Space' : String\l}"
+  ]
+  N1 [
+    label = "{Node\[1\]: internal_user_space|'mid' = '8c65de3b-5d24-4bf8-9af0-b85ab2c660cf' : String\l'name' = 'User Space' : String\l}"
+  ]
+  N1 -> N2 [
+    label = "contains\n"
+  ]
+  N2 [
+    label = "{Node\[2\]: internal_data_set|'mid' = '95c88984-33a9-44aa-be63-b20a8be6dbb4' : String\l'name' = 'dsD' : String\l'creation_time' = 1466267349387 : long\l'description' = 'DS' : String\l}"
+  ]
+  N2 -> N6 [
+    label = "exists_in\n"
+  ]
+  N2 -> N3 [
+    label = "exists_in\n"
+  ]
+  N3 [
+    label = "{Node\[3\]: element_definition|'description' = 'A ship that can traverse outer space.' : String\l'mid' = '3693e768-a1f7-469e-a00a-021bbde1b11a' : String\l'name' = 'Space Ship' : String\l'creation_time' = 1466267351113 : long\l}"
+  ]
+  N3 -> N5 [
+    label = "composed_of\n"
+  ]
+  N3 -> N4 [
+    label = "composed_of\n"
+  ]
+  N4 [
+    label = "{Node\[4\]: property_definition|'type' = 'String' : String\l'mid' = 'fe95cbfc-df9a-4589-911b-58da0cb51f35' : String\l'name' = 'p1' : String\l'creation_time' = 1466267351181 : long\l'description' = 'p1' : String\l}"
+  ]
+  N5 [
+    label = "{Node\[5\]: property_definition|'type' = 'String' : String\l'mid' = 'a5ae18ce-1bcb-48f0-b2ae-1e153007f8ea' : String\l'name' = 'p2' : String\l'creation_time' = 1466267351240 : long\l'description' = 'p2' : String\l}"
+  ]
+  N6 [
+    label = "{Node\[6\]: element_definition|'mid' = '5f2ec490-9226-48d2-929c-f73fa817b4f5' : String\l'name' = 'blah' : String\l'creation_time' = 1466267351679 : long\l'description' = 'ha' : String\l}"
+  ]
+  N6 -> N8 [
+    label = "composed_of\n"
+  ]
+  N6 -> N7 [
+    label = "composed_of\n"
+  ]
+  N7 [
+    label = "{Node\[7\]: property_definition|'type' = 'String' : String\l'description' = 'The name of the business capability.' : String\l'mid' = '96b2bd00-3dd4-40c0-b9af-bb97212743c3' : String\l'name' = 'name' : String\l'creation_time' = 1466267351683 : long\l}"
+  ]
+  N8 [
+    label = "{Node\[8\]: property_definition|'description' = 'A short paragraph describing the business capability.' : String\l'type' = 'String' : String\l'mid' = '0d1b26b4-fba9-41ae-bbd9-8676e8136ed3' : String\l'name' = 'description' : String\l'creation_time' = 1466267351689 : long\l}"
+  ]
+}

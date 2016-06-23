@@ -8,6 +8,10 @@ import org.machine.engine.exceptions._
 
 import org.machine.engine.graph.nodes.PropertyDefinitions
 
+object GraphCommandOptions{
+  def apply():GraphCommandOptions = new GraphCommandOptions()
+}
+
 //http://daily-scala.blogspot.com/2010/04/creating-custom-traversable.html
 class GraphCommandOptions{
   private var graphValue = Map.empty[String, AnyVal]
@@ -18,7 +22,7 @@ class GraphCommandOptions{
   def optionValues = this.graphValue
   def optionObjects = this.graphObjects
 
-  def addField(fieldName: String, fieldValue: Any) = {
+  def addField(fieldName: String, fieldValue: Any):GraphCommandOptions = {
     fieldValue match {
       case x: Boolean => graphValue.+=(fieldName -> fieldValue.asInstanceOf[Boolean])
       case x: Byte => graphValue.+=(fieldName -> fieldValue.asInstanceOf[Byte])
@@ -30,10 +34,12 @@ class GraphCommandOptions{
       case x: Char => graphValue.+=(fieldName -> fieldValue.asInstanceOf[Char])
       case x: String => graphObjects.+=(fieldName -> fieldValue.asInstanceOf[String])
       case x: PropertyDefinitions => graphObjects.+=(fieldName -> fieldValue.asInstanceOf[PropertyDefinitions])
+      case _ => throw new InternalErrorException("GraphCommandOptions.addField: Unsupported type.")
     }
+    this
   }
 
-  def addOption(optionName:String, optionValue: Any) = {
+  def addOption(optionName:String, optionValue: Any):GraphCommandOptions = {
     addField(optionName, optionValue)
   }
 
