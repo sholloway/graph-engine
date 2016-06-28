@@ -5,9 +5,13 @@ class PropertyDefinitions{
   val definitions = ListBuffer.empty[PropertyDefinition]
 
   def addProperty(prop: PropertyDefinition):PropertyDefinitions = {
-    definitions += prop
+    if(prop != null){
+      definitions += prop
+    }
     return this
   }
 
   def toList:List[PropertyDefinition] = definitions.toList
+
+  def isEmpty():Boolean = definitions.isEmpty
 }

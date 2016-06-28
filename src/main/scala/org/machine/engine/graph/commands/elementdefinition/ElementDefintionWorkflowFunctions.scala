@@ -1,18 +1,19 @@
 package org.machine.engine.graph.commands.elementdefinition
 
 import com.typesafe.scalalogging.{LazyLogging}
+import scala.collection.JavaConversions._
 import scala.collection.mutable.ArrayBuffer
 import scala.util.{Either, Left, Right}
 import org.machine.engine.graph.Neo4JHelper
-import org.neo4j.graphdb.GraphDatabaseService
 import org.machine.engine.exceptions.{InternalErrorException}
 import org.machine.engine.graph.commands.{CommandScope, CommandScopes, FindElementDefinitionByName, GraphCommandOptions, QueryCmdResult}
-import org.machine.engine.graph.nodes.{ElementDefinition}
+import org.machine.engine.graph.nodes.{ElementDefinition, PropertyDefinition, PropertyDefinitions}
+import org.neo4j.graphdb.GraphDatabaseService
 
 object ElementDefintionWorkflowFunctions extends LazyLogging{
   import Neo4JHelper._
 
-  private val elementDefAlreadyExistsErrorMsg = "Element Definition already exists with the provided name."
+
 
   sealed trait WorkflowStatus{
     def value:Boolean
@@ -24,29 +25,41 @@ object ElementDefintionWorkflowFunctions extends LazyLogging{
   }
 
   type WorkflowErrorMsg = String
-  type Status = Either[WorkflowStatus, WorkflowErrorMsg]
-  type Capsule = (GraphDatabaseService,
-    CommandScope,
-    GraphCommandOptions,
-    Status)
+  type Status           = Either[WorkflowStatus, WorkflowErrorMsg]
+  type Capsule          = (GraphDatabaseService, CommandScope, GraphCommandOptions, Status)
 
-  val MissingMidErrorMsg            = "The command CreateElementDefinition requires the option mid."
-  val MissingNameErrorMsg           = "The command CreateElementDefinition requires the option name."
-  val MissingDescErrorMsg           = "The command CreateElementDefinition requires the option description."
-  val MissingCreationTimeErrorMsg   = "The command CreateElementDefinition requires the option creationTime."
-  val DataSetFilterRequiredErrorMsg = "For scope type DataSet, either dsId or dsName must be provided."
+  val ElementDefAlreadyExistsErrorMsg           = "Element Definition already exists with the provided name."
+  val MissingMidErrorMsg                        = "The command CreateElementDefinition requires the option mid."
+  val MissingNameErrorMsg                       = "The command CreateElementDefinition requires the option name."
+  val MissingDescErrorMsg                       = "The command CreateElementDefinition requires the option description."
+  val MissingCreationTimeErrorMsg               = "The command CreateElementDefinition requires the option creationTime."
+  val DataSetFilterRequiredErrorMsg             = "For scope type DataSet, either dsId or dsName must be provided."
+  val ElementDefinitionCreationFailureErrorMsg  = "Internal Error: Element Definition could not be created."
+  val PropertyDefinitionCreationFailureErrorMsg = "Internal Error: Property Definition could not be created."
 
-  val CreateElementDefintionStmt = "createElementDefinitionStmt"
-  val ElementDefinitionId = "edId"
-  val Mid = "mid"
-  val Name = "name"
-  val Description = "description"
-  val CreationTime = "creationTime"
-  val ElementDefinitionCreationFailureErrorMsg = "Internal Error: Element Definition could not be created."
-  val DataSetId = "dsId"
-  val DataSetName = "dsName"
-  val CreatedElementDefinitionId = "createdElementDefinitionId"
-  val Empty = ""
+  val CreateElementDefintionStmt  = "createElementDefinitionStmt"
+  val ElementDefinitionId         = "edId"
+  val Mid                         = "mid"
+  val Name                        = "name"
+  val Description                 = "description"
+  val CreationTime                = "creationTime"
+  val DataSetId                   = "dsId"
+  val DataSetName                 = "dsName"
+  val CreatedElementDefinitionId  = "createdElementDefinitionId"
+  val Empty                       = ""
+  val Properties                  = "properties"
+
+
+  def workflow(capsule: Capsule):Capsule = {
+    val wf = Function.chain(Seq(
+      mIdGuard,
+      verifyRequiredCmdOptions,
+      verifyUniqueness,
+      createElementDefinitionStmt,
+      createElementDefinition,
+      createPropertyDefinitions))
+    return wf(capsule)
+  }
 
   val mIdGuard = new PartialFunction[Capsule, Capsule]{
     def isDefinedAt(capsule: Capsule):Boolean = {
@@ -100,7 +113,7 @@ object ElementDefintionWorkflowFunctions extends LazyLogging{
       if(!isDefinedAt(capsule)) return capsule
       val cmd = new FindElementDefinitionByName(capsule._1, capsule._2, capsule._3)
       val response:QueryCmdResult[ElementDefinition] = cmd.execute()
-      val status:Status = if(response.results.isEmpty) Left(WorkflowStatuses.OK) else Right(elementDefAlreadyExistsErrorMsg)
+      val status:Status = if(response.results.isEmpty) Left(WorkflowStatuses.OK) else Right(ElementDefAlreadyExistsErrorMsg)
       return (capsule._1, capsule._2, capsule._3, status)
     }
   }
@@ -207,6 +220,46 @@ object ElementDefintionWorkflowFunctions extends LazyLogging{
       Right(ElementDefinitionStatusCouldNotBeCreatedErrorMsg)
     }
 
-  // createPropertyDefinitions,
+  val createPropertyDefinitions = new PartialFunction[Capsule, Capsule]{
+    def isDefinedAt(capsule: Capsule):Boolean = {
+      capsule._4 == Left(WorkflowStatuses.OK) &&
+      capsule._3.contains(CreatedElementDefinitionId) &&
+      capsule._3.contains(Properties) &&
+      !capsule._3.option[PropertyDefinitions](Properties).isEmpty
+    }
+    def apply(capsule:Capsule):Capsule = {
+      if(!isDefinedAt(capsule)) return capsule
+      var status:Status = null
+      val edId = capsule._3.option[String](CreatedElementDefinitionId)
+      val createPropertyStatement = """
+      |match(ed:element_definition) where ed.mid = {edId}
+      |create (ed)-[:composed_of]->(pd:property_definition {
+      |  mid:{mid},
+      |  name:{name},
+      |  type:{type},
+      |  description:{description}
+      |})
+      """.stripMargin
+      try{
+        transaction(capsule._1, (graphDB: GraphDatabaseService) => {
+          capsule._3.option[PropertyDefinitions](Properties).toList.foreach(property => {
+            val options = property.toMap + ("edId"->edId)
+            run(graphDB,
+              createPropertyStatement,
+              options,
+              emptyResultProcessor[ElementDefinition])
+          })
+        })
+        status = Left(WorkflowStatuses.OK)
+      }catch{
+        case e: Throwable => {
+          logger.error("Could not create property definition.", e)
+          status = Right(PropertyDefinitionCreationFailureErrorMsg)
+        }
+      }
+      return (capsule._1, capsule._2, capsule._3, status)
+    }
+  }
+
   // processResponse
 }

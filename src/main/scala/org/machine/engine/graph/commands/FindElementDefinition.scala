@@ -48,7 +48,7 @@ trait FindElementDefinition extends Neo4JQueryCommand[ElementDefinition]{
     results: ArrayBuffer[(org.machine.engine.graph.nodes.ElementDefinition, PropertyDefinition)],
     record: java.util.Map[java.lang.String, Object]) = {
     val ed = mapElementDefintion(record)
-    val pd = mapPropertyDefintion(record)
+    val pd = mapPropertyDefintion(record) //mMy return null, if no prop def.
     val pair = (ed, pd)
     results += pair
   }
@@ -78,10 +78,33 @@ trait FindElementDefinition extends Neo4JQueryCommand[ElementDefinition]{
   }
 
   protected def mapPropertyDefintion(record: java.util.Map[java.lang.String, Object]):PropertyDefinition = {
+
+    if (!nullGuard(record, "propId") ||
+      !nullGuard(record, "propName") ||
+      !nullGuard(record, "propType") ||
+      !nullGuard(record, "propDescription")
+    ){
+      return null;
+    }
+
     val propId = record.get("propId").toString()
     val propName = record.get("propName").toString()
     val propType = record.get("propType").toString()
     val propDescription = record.get("propDescription").toString()
     return new PropertyDefinition(propId, propName, propType, propDescription)
+  }
+
+  protected def nullGuard(record: java.util.Map[java.lang.String, Object], key: String): Boolean = {
+    val ok = if(!record.contains(key)){
+      false
+    }else{
+      val value = record.get(key);
+      if(value == null){
+        false
+      }else{
+        true
+      }
+    }
+    return ok;
   }
 }
