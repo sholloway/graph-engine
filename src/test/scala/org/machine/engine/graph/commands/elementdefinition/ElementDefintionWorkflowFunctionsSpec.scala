@@ -404,13 +404,6 @@ class ElementDefintionWorkflowFunctionsSpec extends FunSpecLike
         createPropertyDefinitions.isDefinedAt(capsule) should equal(false)
       }
 
-      /*
-      Next Steps
-      1. This demonstrates a bug. There are two EDs in system space with the same name.
-      2. Add verifyUniqueness to the workflow and make sure that it won't
-         allow two EDs with the same name in system space.
-      3. Add more asserts on this test. Find the created props on the ed.
-      */
       it("should enforce unique element definitions in system space"){
         options.reset
 
@@ -449,14 +442,77 @@ class ElementDefintionWorkflowFunctionsSpec extends FunSpecLike
         val capsule = (engine.database, CommandScopes.DataSetScope, options, Left(WorkflowStatuses.OK))
         val processed = minimalCreateWithPropsWF(capsule)
         processed._4 should equal(Left(WorkflowStatuses.OK))
-        GraphVizHelper.visualize(engine.database)
 
-        //Use FindElementDefinitionById & verify the props are indeed associated with the ed.
+        processed._3.contains(CreatedElementDefinitionId) should equal(true)
+        val ed = engine.onDataSet(dsId).findElementDefinitionById(edId);
+        ed.properties.length should equal(1)
       }
 
-      it("should create properties on element defintion in a dataset by dsId")(pending)
-      it("should create properties on element defintion in user space")(pending)
-      it("should create properties on element defintion in system space")(pending)
+      it("should create properties on element defintion in a dataset by dsId"){
+        options.reset
+        val dsName = "Dataset G"
+        val dsId = engine.createDataSet(dsName, "~~~")
+        options.addOption("dsId", dsId)
+
+        val edId = uuid()
+        options.addOption("mid", edId)
+        options.addOption("name", "box")
+        options.addOption("description", "A container with equal sized dimensions on all axis.")
+        options.addOption("creationTime", time)
+
+        val props = new PropertyDefinitions().addProperty(PropertyDefinition(uuid, "pA", "String", "A property"))
+        options.addOption("properties", props)
+        val capsule = (engine.database, CommandScopes.DataSetScope, options, Left(WorkflowStatuses.OK))
+        val processed = minimalCreateWithPropsWF(capsule)
+        processed._4 should equal(Left(WorkflowStatuses.OK))
+
+        processed._3.contains(CreatedElementDefinitionId) should equal(true)
+        val ed = engine.onDataSet(dsId).findElementDefinitionById(edId);
+        ed.properties.length should equal(1)
+      }
+
+      //Note: This test does not attempt to enforce uniqueness.
+      it("should create properties on element defintion in user space"){
+        options.reset
+
+        val edId = uuid()
+        options.addOption("mid", edId)
+        options.addOption("name", "box")
+        options.addOption("description", "A container with equal sized dimensions on all axis.")
+        options.addOption("creationTime", time)
+
+        val props = new PropertyDefinitions().addProperty(PropertyDefinition(uuid, "pA", "String", "A property"))
+        options.addOption("properties", props)
+        val capsule = (engine.database, CommandScopes.UserSpaceScope, options, Left(WorkflowStatuses.OK))
+        val processed = minimalCreateWithPropsWF(capsule)
+        processed._4 should equal(Left(WorkflowStatuses.OK))
+
+        processed._3.contains(CreatedElementDefinitionId) should equal(true)
+        val ed = engine.inUserSpace().findElementDefinitionById(edId);
+        ed.properties.length should equal(1)
+      }
+
+      it("should create properties on element defintion in system space"){
+        options.reset
+
+        val edId = uuid()
+        options.addOption("mid", edId)
+        options.addOption("name", "Happy Happy, Joy Joy")
+        options.addOption("description", "Silly saying from a childhood cartoon.")
+        options.addOption("creationTime", time)
+
+        val props = new PropertyDefinitions().addProperty(PropertyDefinition(uuid, "pA", "String", "A property"))
+        options.addOption("properties", props)
+        val capsule = (engine.database, CommandScopes.SystemSpaceScope, options, Left(WorkflowStatuses.OK))
+        val processed = workflow(capsule)
+        processed._4 should equal(Left(WorkflowStatuses.OK))
+        GraphVizHelper.visualize(engine.database)
+
+        processed._3.contains(CreatedElementDefinitionId) should equal(true)
+        val ed = engine.inSystemSpace().findElementDefinitionById(edId);
+        ed.properties.length should equal(1)
+      }
+
     }
   }
 

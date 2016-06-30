@@ -41,7 +41,8 @@ class FindElementDefinitionById(database: GraphDatabaseService,
     val edMatchClause = buildElementDefinitionMatchClause(cmdOptions)
     val scope = buildScope(cmdScope, cmdOptions)
     return """
-      |match (ss:scope)-[:exists_in]->(ed:element_definition ed_match)-[:composed_of]->(pd:property_definition)
+      |match (ss:scope)-[:exists_in]->(ed:element_definition ed_match)
+      |optional match (ed:element_definition ed_match)-[:composed_of]->(pd:property_definition)
       |return ed.mid as elementId,
       |  ed.name as elementName,
       |  ed.description as elementDescription,
