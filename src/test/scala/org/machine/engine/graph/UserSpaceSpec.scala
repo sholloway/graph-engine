@@ -234,19 +234,18 @@ class UserSpaceSpec extends FunSpec with Matchers with EasyMockSugar with Before
             .delete()
             .end
 
-          val expectedIdMsg = "No element with ID: %s could be found in %s".format(archPrinciple.id, "internal_user_space")
+          val expectedIdMsg = "No element definition with ID: %s could be found in %s".format(archPrinciple.id, "internal_user_space")
           the [InternalErrorException] thrownBy{
             engine
               .inUserSpace
               .findElementDefinitionById(archPrinciple.id)
           }should have message expectedIdMsg
 
-          val expectedNameMsg = "No element with Name: %s could be found in %s".format(archPrinciple.name, "internal_user_space")
           the [InternalErrorException] thrownBy{
             engine
               .inUserSpace
               .findElementDefinitionByName(archPrinciple.name)
-          }should have message expectedNameMsg
+          }should have message Engine.EmptyResultErrorMsg
         }
       }
     }
