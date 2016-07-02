@@ -1,0 +1,9 @@
+{
+  "name": "Find an Element Definition by ID",
+  "description": "Find a specific element definition by its ID.",
+  "scope": "internal_data_set",
+  "entityType": "ElementDefinition",
+  "actionType": "Retrieve",
+  "filter": "ID",
+  "decision": "FindElementDefinitionById"
+}
