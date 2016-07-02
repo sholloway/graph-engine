@@ -292,7 +292,38 @@ class WebServerDataSetSpec extends FunSpecLike with Matchers with ScalaFutures w
           }
         }
 
-        it ("should DeleteElementDefintion")(pending)
+        it ("should DeleteElementDefintion"){
+          val dataset = engine.findDataSetByName("Aliens")
+          val edId = engine.onDataSet(dataset.id)
+            .defineElement("Preditor", "Bit of a bully.")
+            .withProperty("Weakness", "String", "Skin Condition")
+          .end
+
+          val request = buildWSRequest(user="Bob",
+            actionType="Delete",
+            scope="DataSet",
+            entityType="ElementDefinition",
+            filter="None",
+            options=Map("dsId" -> dataset.id, "mid" -> edId)
+          )
+
+          val closed:Future[Seq[Message]] = invokeWS(request, enginePath)
+
+          whenReady(closed){ results =>
+            results should have length 2
+            val envelopeMap = validateOkMsg(msgToMap(results.last))
+            val payloadMap = strToMap(envelopeMap("textMessage").asInstanceOf[String])
+            payloadMap.contains("id") should equal(true)
+
+            val expectedIdMsg = "No element definition with ID: %s could be found in dataset: %s".format(edId, dataset.id)
+            the [InternalErrorException] thrownBy{
+              engine
+                .onDataSet(dataset.id)
+                .findElementDefinitionById(edId)
+            }should have message expectedIdMsg
+          }
+        }
+
         it ("should FindElementDefinition")(pending)
         it ("should FindElementDefinitionById")(pending)
         it ("should FindElementDefinitionByName")(pending)
