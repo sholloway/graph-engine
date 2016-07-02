@@ -9,21 +9,57 @@ digraph Neo {
     fontsize = "8"
   ]
   N0 [
-    label = "{Node\[0\]: internal_system_space|'mid' = 'cbf41f47-a4fb-41df-b0da-cffcfddf4a95' : String\l'name' = 'System Space' : String\l}"
+    label = "{Node\[0\]: internal_system_space|'mid' = '5c95b530-2fcd-45fc-87c7-24a808ad868f' : String\l'name' = 'System Space' : String\l}"
   ]
   N1 [
-    label = "{Node\[1\]: internal_user_space|'mid' = 'dcf4604d-ed28-440b-88de-dee1fc9d601b' : String\l'name' = 'User Space' : String\l}"
+    label = "{Node\[1\]: internal_user_space|'mid' = '9bf89a8b-babb-4d93-ad3d-046bc26bb9e6' : String\l'name' = 'User Space' : String\l}"
   ]
-  N1 -> N3 [
+  N1 -> N6 [
     label = "contains\n"
   ]
   N1 -> N2 [
     label = "contains\n"
   ]
   N2 [
-    label = "{Node\[2\]: internal_data_set|'mid' = 'a463acd2-fd3f-49e2-9c7a-b3b15f414dd3' : String\l'name' = 'dsQ' : String\l'creation_time' = 1467462397354 : long\l'description' = 'DS' : String\l}"
+    label = "{Node\[2\]: internal_data_set|'mid' = 'ac7ed960-c633-47bd-ae1a-53c1b9d5cde7' : String\l'name' = 'dsQ' : String\l'creation_time' = 1467465137928 : long\l'description' = 'DS' : String\l}"
+  ]
+  N2 -> N3 [
+    label = "exists_in\n"
   ]
   N3 [
-    label = "{Node\[3\]: internal_data_set|'mid' = 'cd9ec192-0337-4dd7-bc82-6c761954e941' : String\l'name' = 'dsD' : String\l'creation_time' = 1467462397993 : long\l'description' = 'DS' : String\l}"
+    label = "{Node\[3\]: element_definition|'description' = 'A ship that can traverse outer space.' : String\l'mid' = 'dc57e4c3-4c78-4e3b-9673-42f5730c9807' : String\l'name' = 'Space Ship' : String\l'creation_time' = 1467465138090 : long\l}"
+  ]
+  N3 -> N5 [
+    label = "composed_of\n"
+  ]
+  N3 -> N4 [
+    label = "composed_of\n"
+  ]
+  N4 [
+    label = "{Node\[4\]: property_definition|'mid' = 'dfc1e5ec-418c-498e-a7e1-f79c33749f4b' : String\l'name' = 'p1' : String\l'description' = 'p1' : String\l'type' = 'String' : String\l}"
+  ]
+  N5 [
+    label = "{Node\[5\]: property_definition|'mid' = 'b8c47474-8de8-4e00-82ce-5eae69d15400' : String\l'name' = 'p2' : String\l'description' = 'p2' : String\l'type' = 'String' : String\l}"
+  ]
+  N6 [
+    label = "{Node\[6\]: internal_data_set|'mid' = 'a77f586a-3c51-44d8-a7c1-95c01889a0cb' : String\l'name' = 'dsD' : String\l'creation_time' = 1467465138586 : long\l'description' = 'DS' : String\l}"
+  ]
+  N6 -> N7 [
+    label = "exists_in\n"
+  ]
+  N7 [
+    label = "{Node\[7\]: element_definition|'description' = 'A ship that can traverse outer space.' : String\l'mid' = 'd3ed7257-aab4-45f4-9d86-ee84c07dc0d7' : String\l'name' = 'Bullshit' : String\l'creation_time' = 1467465138652 : long\l}"
+  ]
+  N7 -> N9 [
+    label = "composed_of\n"
+  ]
+  N7 -> N8 [
+    label = "composed_of\n"
+  ]
+  N8 [
+    label = "{Node\[8\]: property_definition|'mid' = '724d1a9f-3ba9-4ae2-b01f-b2435f5e08ca' : String\l'name' = 'p1' : String\l'description' = 'p1' : String\l'type' = 'String' : String\l}"
+  ]
+  N9 [
+    label = "{Node\[9\]: property_definition|'mid' = '1c0e0f75-4ef0-4b4c-b3ca-4a1730dbfca7' : String\l'name' = 'p2' : String\l'description' = 'p2' : String\l'type' = 'String' : String\l}"
   ]
 }

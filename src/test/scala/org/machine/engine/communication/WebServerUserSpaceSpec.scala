@@ -229,7 +229,7 @@ class WebServerUserSpaceSpec extends FunSpecLike with Matchers with ScalaFutures
             val payloadMap = strToMap(envelopeMap("textMessage").asInstanceOf[String])
             payloadMap.contains("id") should equal(true)
 
-            val expectedIdMsg = "No element with ID: %s could be found in %s".format(edId, "internal_user_space")
+            val expectedIdMsg = "No element definition with ID: %s could be found in %s".format(edId, "internal_user_space")
             the [InternalErrorException] thrownBy{
               engine
                 .inUserSpace
@@ -427,5 +427,5 @@ class WebServerUserSpaceSpec extends FunSpecLike with Matchers with ScalaFutures
         }
       }
     }
-  }  
+  }
 }
