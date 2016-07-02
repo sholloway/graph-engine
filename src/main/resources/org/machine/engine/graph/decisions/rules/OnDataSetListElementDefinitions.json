@@ -1,0 +1,9 @@
+{
+  "name": "List Element Definitions on a DataSet",
+  "description": "List all element definitions associated with a dataset.",
+  "scope": "internal_data_set",
+  "entityType": "ElementDefinition",
+  "actionType": "Retrieve",
+  "filter": "All",
+  "decision": "ListAllElementDefinitions"
+}

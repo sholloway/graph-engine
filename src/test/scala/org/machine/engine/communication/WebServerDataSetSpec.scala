@@ -99,11 +99,6 @@ class WebServerDataSetSpec extends FunSpecLike with Matchers with ScalaFutures w
           }
         }
 
-        /*
-        FIXME Multiple Element Definitions cannot have the same name.
-        A merge is occuring. They need to be unique by MID not name. It is
-        reasonable that the same ED would exist in multiple datasets.
-        */
         it ("should CreateElementDefinition By DS Name"){
           val dsName = "dsD"
           val datasetId = engine.createDataSet(dsName, "DS")
@@ -130,8 +125,6 @@ class WebServerDataSetSpec extends FunSpecLike with Matchers with ScalaFutures w
             val payloadMap = strToMap(envelopeMap("textMessage").asInstanceOf[String])
             payloadMap.contains("id") should equal(true)
             val edId = payloadMap("id").asInstanceOf[String]
-
-            import org.machine.engine.viz.GraphVizHelper
             try{
               val ed = engine.onDataSet(datasetId).findElementDefinitionById(edId)
               ed.name should equal(edName)
@@ -146,7 +139,30 @@ class WebServerDataSetSpec extends FunSpecLike with Matchers with ScalaFutures w
           }
         }
 
-        it ("should ListAllElementDefinitions")(pending)
+        it ("should ListAllElementDefinitions"){
+          val dataset = engine.findDataSetByName("dsD")
+
+          val opts = Map("dsId" -> dataset.id)
+
+          val request = buildWSRequest(user="Bob",
+            actionType="Retrieve",
+            scope="DataSet",
+            entityType="ElementDefinition",
+            filter="All",
+            options=opts)
+
+          val closed:Future[Seq[Message]] = invokeWS(request, enginePath)
+
+          whenReady(closed){ results =>
+            results should have length 2
+            val envelopeMap = validateOkMsg(msgToMap(results.last))
+            val payloadMap = strToMap(envelopeMap("textMessage").asInstanceOf[String])
+            payloadMap.contains("ElementDefinitions") should equal(true)
+            payloadMap("ElementDefinitions").asInstanceOf[List[Map[String, Any]]].length should be >= 1
+          }
+        }
+
+//  import org.machine.engine.viz.GraphVizHelper
         it ("should EditElementDefintion")(pending)
         it ("should EditElementPropertyDefinition")(pending)
         it ("should RemoveElementPropertyDefinition")(pending)
