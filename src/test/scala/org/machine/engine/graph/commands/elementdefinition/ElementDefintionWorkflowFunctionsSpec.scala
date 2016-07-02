@@ -505,8 +505,7 @@ class ElementDefintionWorkflowFunctionsSpec extends FunSpecLike
         options.addOption("properties", props)
         val capsule = (engine.database, CommandScopes.SystemSpaceScope, options, Left(WorkflowStatuses.OK))
         val processed = workflow(capsule)
-        processed._4 should equal(Left(WorkflowStatuses.OK))
-        GraphVizHelper.visualize(engine.database)
+        processed._4 should equal(Left(WorkflowStatuses.OK))        
 
         processed._3.contains(CreatedElementDefinitionId) should equal(true)
         val ed = engine.inSystemSpace().findElementDefinitionById(edId);

@@ -30,8 +30,6 @@ class FindElementDefinitionByName(database: GraphDatabaseService,
     return QueryCmdResult(elementDefs);
   }
 
-  /* FIXME FindElementDefinitionByName will not find element definitions with no associated properties.
-  */
   protected def buildQuery(cmdScope: CommandScope, cmdOptions: GraphCommandOptions):String = {
     val edMatchClause = buildElementDefinitionMatchClause(cmdOptions)
     val scope = buildScope(cmdScope, cmdOptions)

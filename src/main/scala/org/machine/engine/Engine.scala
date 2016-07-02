@@ -25,6 +25,8 @@ import org.machine.engine.graph.labels._
 import org.machine.engine.graph.internal._
 
 object Engine{
+  val EmptyResultErrorMsg = "Empty Result"
+
   private val config = ConfigFactory.load()
   private val dbPath = config.getString("engine.graphdb.path")
   private var engine:Option[Engine] = None
@@ -263,6 +265,7 @@ class Engine private (dbPath:String, decisionTree: Question) extends GraphDSL wi
     cmdOptions.addOption("mid",uuid)
     cmdOptions.addOption("name",name)
     cmdOptions.addOption("description",description)
+    cmdOptions.addOption("creationTime",time)
     cmdOptions.addOption("properties", new PropertyDefinitions())
     command = EngineCommands.DefineElement
     return this
@@ -289,6 +292,7 @@ class Engine private (dbPath:String, decisionTree: Question) extends GraphDSL wi
     cmdOptions.addOption("mid", id)
     val cmd = new FindElementDefinitionById(database, scope, cmdOptions)
     val result:QueryCmdResult[ElementDefinition] = cmd.execute()
+    handleErrorResult(result)
     return result.results.head
   }
 
@@ -300,7 +304,15 @@ class Engine private (dbPath:String, decisionTree: Question) extends GraphDSL wi
     val cmd = new FindElementDefinitionByName(database, scope, cmdOptions)
     val elements = cmd.execute()
     val result:QueryCmdResult[ElementDefinition] = cmd.execute()
+    handleErrorResult(result)
+    handleEmptyResult[ElementDefinition](result)
     return result.results.head
+  }
+
+  private def handleEmptyResult[T](result: QueryCmdResult[T]){
+    if (result.results.isEmpty){
+      throw new InternalErrorException(Engine.EmptyResultErrorMsg)
+    }
   }
 
   /** Sets the mode to be in edit for an ElementDefintion.
@@ -365,6 +377,7 @@ class Engine private (dbPath:String, decisionTree: Question) extends GraphDSL wi
       Executes the built up command.
       Only used for commands of type Insert, Update, Delete.
       No queries.
+
       TODO: Replace CommandFactory with Decision Tree.
       Do this after all commands have their ancestry updated.
   */
@@ -375,8 +388,17 @@ class Engine private (dbPath:String, decisionTree: Question) extends GraphDSL wi
       scope,
       cmdOptions)
     val result:EngineCmdResult = cmd.execute()
+    handleErrorResult(result)
     val resultId = getResultValue(result)
     return resultId
+  }
+
+  private def handleErrorResult(result: EngineCmdResult){
+    if (result.status != EngineCmdResultStatuses.OK){
+      result.errorMessage.foreach{ msg =>
+        throw new InternalErrorException(msg)
+      }
+    }
   }
 
   private def getResultValue(result: EngineCmdResult):String = result match {

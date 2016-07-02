@@ -15,7 +15,7 @@
     </encoder>
   </appender>
   <!-- Set the log level for all classes in the package org.machine.engine -->
-  <logger name="org.machine.engine" level="DEBUG" />
+  <logger name="org.machine.engine" level="ERROR" />
 
   <root level="DEBUG">
     <appender-ref ref="STDOUT" />

@@ -13,8 +13,6 @@ import org.neo4j.graphdb.GraphDatabaseService
 object ElementDefintionWorkflowFunctions extends LazyLogging{
   import Neo4JHelper._
 
-
-
   sealed trait WorkflowStatus{
     def value:Boolean
   }
@@ -175,7 +173,7 @@ object ElementDefintionWorkflowFunctions extends LazyLogging{
       capsule._4 == Left(WorkflowStatuses.OK) && capsule._3.contains(CreateElementDefintionStmt)
     }
     def apply(capsule:Capsule):Capsule = {
-      if(!isDefinedAt(capsule)) return capsule
+      if(!isDefinedAt(capsule)) return capsule      
       var createdEdIds:Option[List[String]] = None
       var status:Status = null
       try{

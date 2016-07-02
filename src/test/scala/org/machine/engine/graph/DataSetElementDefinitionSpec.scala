@@ -71,22 +71,11 @@ class DataSetElementDefinitionSpec extends FunSpec with Matchers with EasyMockSu
 
         it("should retrieve an ElementDefinition by ID"){
           val datasetName = "Capability Definitions"
-
           val bizCapName = "Business Capability"
           val bizCapDef = """
           The expression or the articulation of the capacity, materials and
           expertise an organization needs in order to perform core functions.
           """
-
-          engine
-            .createDataSet(datasetName, "A collection of business capabilities.")
-
-          engine
-            .onDataSetByName(datasetName)
-            .defineElement(bizCapName, bizCapDef)
-              .withProperty("name", "String", "The name of the business capability.")
-              .withProperty("description", "String", "A short paragraph describing the business capability.")
-            .end
 
           val bizCapByName =
             engine
@@ -259,14 +248,14 @@ class DataSetElementDefinitionSpec extends FunSpec with Matchers with EasyMockSu
             engine
               .onDataSetByName(datasetName)
               .findElementDefinitionById(archPrinciple.id)
+
           }should have message expectedIdMsg
 
-          val expectedNameMsg = "No element definition with Name: %s could be found in dataset: %s".format(archPrinciple.name, datasetName)
           the [InternalErrorException] thrownBy{
             engine
               .onDataSetByName(datasetName)
-              .findElementDefinitionByName(archPrinciple.name)
-          }should have message expectedNameMsg
+              .findElementDefinitionByName(archPrinciple.name)            
+          }should have message Engine.EmptyResultErrorMsg
         }
 
         it("should list all ElementDefintions"){
@@ -298,6 +287,7 @@ class DataSetElementDefinitionSpec extends FunSpec with Matchers with EasyMockSu
 
           elementDefs should have length 3
         }
+
       }
     }
   }
