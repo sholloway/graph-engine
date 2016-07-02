@@ -1,0 +1,9 @@
+{
+  "name": "Remove an Element Definition Property Definition on a dataset",
+  "description": "Delete an element definition's property.",
+  "scope": "internal_data_set",
+  "entityType": "PropertyDefinition",
+  "actionType": "Delete",
+  "filter": "None",
+  "decision": "RemoveElementPropertyDefinition"
+}

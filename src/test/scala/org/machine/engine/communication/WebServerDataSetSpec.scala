@@ -262,7 +262,36 @@ class WebServerDataSetSpec extends FunSpecLike with Matchers with ScalaFutures w
           }
         }
 
-        it ("should RemoveElementPropertyDefinition")(pending)
+        it ("should RemoveElementPropertyDefinition"){
+          val dsId = engine.createDataSet("Aliens", "A collection of alien types.")
+          val propName = "Weakness"
+          val edId = engine.onDataSet(dsId)
+            .defineElement("Xenomorph", "Guy with personal boundry issues.")
+            .withProperty(propName, "String", "Emotionally Insecure")
+          .end
+
+          val request = buildWSRequest(user="Bob",
+            actionType="Delete",
+            scope="DataSet",
+            entityType="PropertyDefinition",
+            filter="None",
+            options=Map("dsId"-> dsId, "mid"->edId, "pname" -> propName)
+          )
+
+          val closed:Future[Seq[Message]] = invokeWS(request, enginePath)
+
+          whenReady(closed){ results =>
+            results should have length 2
+            val envelopeMap = validateOkMsg(msgToMap(results.last))
+            val payloadMap = strToMap(envelopeMap("textMessage").asInstanceOf[String])
+            payloadMap.contains("id") should equal(true)
+
+            //verify with engine that it has changed. :)
+            val ed = engine.onDataSet(dsId).findElementDefinitionById(edId)
+            ed.properties.length should equal(0)
+          }
+        }
+
         it ("should DeleteElementDefintion")(pending)
         it ("should FindElementDefinition")(pending)
         it ("should FindElementDefinitionById")(pending)
