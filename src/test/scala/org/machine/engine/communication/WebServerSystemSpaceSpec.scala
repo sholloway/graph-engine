@@ -83,6 +83,7 @@ class WebServerSystemSpaceSpec extends FunSpecLike with Matchers with ScalaFutur
           val closed:Future[Seq[Message]] = invokeWS(request, enginePath)
 
           whenReady(closed){ results =>
+            println(results)
             results should have length 2
             val envelopeMap = msgToMap(results.last)
             envelopeMap("status") should equal("Ok")
@@ -90,6 +91,7 @@ class WebServerSystemSpaceSpec extends FunSpecLike with Matchers with ScalaFutur
             val payloadMap = strToMap(envelopeMap("textMessage").asInstanceOf[String])
             payloadMap.contains("id") should equal(true)
             val edId = payloadMap("id").asInstanceOf[String]
+            println("The ED ID was: "+edId)
             val ed = engine.inSystemSpace.findElementDefinitionById(edId)
             ed.name should equal("Mobile Device")
             ed.description should equal("A computer that can be carried by the user.")
@@ -272,7 +274,7 @@ class WebServerSystemSpaceSpec extends FunSpecLike with Matchers with ScalaFutur
             val payloadMap = strToMap(envelopeMap("textMessage").asInstanceOf[String])
             payloadMap.contains("id") should equal(true)
 
-            val expectedIdMsg = "No element with ID: %s could be found in %s".format(edId, "internal_system_space")
+            val expectedIdMsg = "No element definition with ID: %s could be found in %s".format(edId, "internal_system_space")
             the [InternalErrorException] thrownBy{
               engine
                 .inSystemSpace

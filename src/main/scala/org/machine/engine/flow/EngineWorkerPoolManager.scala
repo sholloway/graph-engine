@@ -3,7 +3,7 @@ package org.machine.engine.flow
 import org.machine.engine.Engine
 import org.machine.engine.flow.requests.RequestMessage
 import org.machine.engine.graph.Neo4JHelper
-import org.machine.engine.graph.commands.{CommandScopes, EngineCmdResult, QueryCmdResult, UpdateCmdResult, DeleteCmdResult, InsertCmdResult, GraphCommandOptions}
+import org.machine.engine.graph.commands.{CommandScopes, EngineCmdResult, EngineCmdResultStatuses, QueryCmdResult, UpdateCmdResult, DeleteCmdResult, InsertCmdResult, GraphCommandOptions}
 import org.machine.engine.graph.decisions.{ActionTypes, EntityTypes, Filters}
 import org.machine.engine.graph.nodes._
 import org.machine.engine.encoder.json.OutboundJSONSerializer
@@ -24,14 +24,27 @@ object EngineWorkerPoolManager{
       .setOptions(options)
     .run
 
-    val responseStr = OutboundJSONSerializer.serialize(result)
-
-    return new EngineMessageBase(
-      capsule.id,
-      EngineCapsuleStatuses.Ok.name,
-      EngineMessageTypes.CmdResult.name,
-      responseStr
-    )
+    val response = result.status match{
+      case EngineCmdResultStatuses.OK => {
+        val responseStr = OutboundJSONSerializer.serialize(result)
+        new EngineMessageBase(
+          capsule.id,
+          EngineCapsuleStatuses.Ok.name,
+          EngineMessageTypes.CmdResult.name,
+          responseStr
+        )
+      }
+      case EngineCmdResultStatuses.Error => {
+        val responseStr = result.errorMessage.get
+        new EngineMessageBase(
+          capsule.id,
+          EngineCapsuleStatuses.Error.name,
+          EngineMessageTypes.CmdResult.name,
+          responseStr
+        )
+      }
+    }
+    return response
   }
 
   private def buildOptions(request: RequestMessage):GraphCommandOptions = {

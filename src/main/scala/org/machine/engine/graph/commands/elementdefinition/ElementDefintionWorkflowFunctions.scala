@@ -51,6 +51,7 @@ object ElementDefintionWorkflowFunctions extends LazyLogging{
   def workflow(capsule: Capsule):Capsule = {
     val wf = Function.chain(Seq(
       mIdGuard,
+      createTimeGuard,
       verifyRequiredCmdOptions,
       verifyUniqueness,
       createElementDefinitionStmt,
@@ -67,6 +68,18 @@ object ElementDefintionWorkflowFunctions extends LazyLogging{
     def apply(capsule: Capsule):Capsule = {
       if(!isDefinedAt(capsule)) return capsule
       capsule._3.addOption(Mid, uuid)
+      return capsule
+    }
+  }
+
+  val createTimeGuard = new PartialFunction[Capsule, Capsule]{
+    def isDefinedAt(capsule: Capsule):Boolean = {
+      return capsule._4 == Left(WorkflowStatuses.OK) && !capsule._3.contains(CreationTime)
+    }
+
+    def apply(capsule: Capsule):Capsule = {
+      if(!isDefinedAt(capsule)) return capsule
+      capsule._3.addOption(CreationTime, time)
       return capsule
     }
   }
@@ -173,7 +186,7 @@ object ElementDefintionWorkflowFunctions extends LazyLogging{
       capsule._4 == Left(WorkflowStatuses.OK) && capsule._3.contains(CreateElementDefintionStmt)
     }
     def apply(capsule:Capsule):Capsule = {
-      if(!isDefinedAt(capsule)) return capsule      
+      if(!isDefinedAt(capsule)) return capsule
       var createdEdIds:Option[List[String]] = None
       var status:Status = null
       try{

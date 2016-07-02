@@ -10,18 +10,10 @@ import org.machine.engine.graph.commands.{CommandScopes, EngineCmdResult, QueryC
 object OutboundJSONSerializer{
   def serialize(result: EngineCmdResult):String = {
     result match {
-      case query: QueryCmdResult[_] => {
-        findSerializer(query.results)
-      }
-      case update: UpdateCmdResult[_] => {
-        serializeId(update.result)
-      }
-      case delete: DeleteCmdResult[_] => {
-        serializeId(delete.result)
-      }
-      case insert: InsertCmdResult[_] => {
-        serializeId(insert.result)
-      }
+      case query:  QueryCmdResult[_]  => findSerializer(query.results)
+      case update: UpdateCmdResult[_] => serializeId(update.result)
+      case delete: DeleteCmdResult[_] => serializeId(delete.result)
+      case insert: InsertCmdResult[_] => serializeId(insert.result)
       case _ => {
         return throw new InternalErrorException(s"Could not find a matching JSON serializer for type $result")
       }
