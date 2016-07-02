@@ -3,24 +3,12 @@ package org.machine.engine.flow
 import scala.util.{Either, Left, Right}
 import org.machine.engine.flow.requests._
 
-object DeserializeClientMessage{
-  /*
-  Stop immediately if the message is invalid
-  Validate Core
-    Validate User
-    Validate ActionType
-    Validate Scope
-    Validate EntityType
-    Validate Filter
-
-  Validate Command Specific Options
-    At this point, do I traverse the tree and find the Decision?
-  */
+object DeserializeClientMessage{  
   def deserialize(capsule: EngineCapsule):EngineCapsule = {
     val serializedMsg = capsule.message.payload
     val jsonMap = RequestMessage.jsonToMap(serializedMsg)
     val transformedCapsule: EngineCapsule = RequestRuleValidator.validate(Left(jsonMap)) match{
-      case Left(jmap) =>{      
+      case Left(jmap) =>{
         val requestMsg = RequestMessage.parseJSON(serializedMsg)
         capsule.enrich("deserializedMsg", requestMsg, Some("deserializeRequest"))
       }

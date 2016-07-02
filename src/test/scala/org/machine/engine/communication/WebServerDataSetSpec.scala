@@ -377,14 +377,18 @@ class WebServerDataSetSpec extends FunSpecLike with Matchers with ScalaFutures w
           }
         }
 
-        //  import org.machine.engine.viz.GraphVizHelper
+        /*
+        FIXME: Filter out dsName from the properties when creating an ElementDefintion.
+        */
         it ("should CreateElement"){
           val dsId = engine.createDataSet("Bands", "Interesting Music Groups")
+          val edName = "RockBand"
+          val edDesc = "A band that likes to roll..."
           val edId = engine.onDataSet(dsId)
-            .defineElement("RockBand", "A band that likes to roll...")
+            .defineElement(edName, edDesc)
             .withProperty("Name", "String", "The name of the band.")
             .withProperty("Singer", "String", "A person responsible for singing.")
-            .withProperty("Lead Guitarist", "String", "The primary guitarists.")
+            .withProperty("LeadGuitarist", "String", "The primary guitarists.")
           .end
 
           val request = buildWSRequest(user="Bob",
@@ -395,7 +399,7 @@ class WebServerDataSetSpec extends FunSpecLike with Matchers with ScalaFutures w
             options=Map("dsId" -> dsId,
               "edId" -> edId,
               "Singer" -> "Axl Rose",
-              "Lead Guitarist" -> "Slash")
+              "LeadGuitarist" -> "Slash")
           )
 
           val closed:Future[Seq[Message]] = invokeWS(request, enginePath)
@@ -405,12 +409,20 @@ class WebServerDataSetSpec extends FunSpecLike with Matchers with ScalaFutures w
             val envelopeMap = validateOkMsg(msgToMap(results.last))
             val payloadMap = strToMap(envelopeMap("textMessage").asInstanceOf[String])
 
-            println(payloadMap)
-
-            //using the Engine DSL find the Element and verify the fields.
+            payloadMap.contains("id") should equal(true)
+            val eId = payloadMap("id").asInstanceOf[String]
+            val element = engine.onDataSet(dsId).findElement(eId)
+            element.id should equal(eId)
+            element.elementType should equal(edName)
+            element.elementDescription should equal(edDesc)
+            element.fields.size should equal(2)
           }
         }
 
+        /*
+        import org.machine.engine.viz.GraphVizHelper
+        GraphVizHelper.visualize(engine.database)
+        */
         it ("should DeleteAssociation")(pending)
         it ("should DeleteElement")(pending)
 

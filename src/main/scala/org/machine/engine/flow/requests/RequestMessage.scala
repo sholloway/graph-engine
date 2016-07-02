@@ -38,19 +38,17 @@ object RequestMessage{
 
     if(jsonMap.contains("options")){
       val jsonOptions = jsonMap("options").asInstanceOf[Map[String, Any]]
-      fetchString("mid", options, jsonOptions)
-      fetchString("edId", options, jsonOptions)
-      fetchString("dsId", options, jsonOptions)
-      fetchString("dsName", options, jsonOptions)
-      fetchString("pname", options, jsonOptions)
-      fetchString("name", options, jsonOptions)
-      fetchString("description", options, jsonOptions)
+      val excluded = Seq("properties")
+      jsonOptions.foreach(field => {
+        if (!excluded.contains(field._1)){
+          options += (field._1 -> field._2)
+        }
+      })
       if (jsonOptions.contains("properties")){
         val jsonProps = jsonOptions("properties").asInstanceOf[Seq[Map[String, String]]]
         options += ("properties" -> jsonProps)
       }
     }
-
     RequestMessage(user, actionType, scope, entityType, filter, options.toMap)
   }
 

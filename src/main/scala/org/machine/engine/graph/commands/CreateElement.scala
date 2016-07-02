@@ -88,7 +88,7 @@ class CreateElement(database: GraphDatabaseService,
     val exclude = List("dsId", "dsName", "edId", "elementId")
 
     transaction(graphDB, (tx: GraphDatabaseService) => {
-      val node = tx.createNode(DynamicLabel.label(elementDef.name))
+      val node = tx.createNode(DynamicLabel.label(elementDef.name))      
       cmdOptions.foreach(field => {
         if (!exclude.contains(field._1)){
           node.setProperty(field._1, field._2)

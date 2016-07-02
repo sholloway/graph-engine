@@ -19,6 +19,10 @@ import org.machine.engine.graph.internal._
 /*
 This command deviates from the normal path of having cmdOptions:Map[String, AnyRef]
 because a field could be of type AnyVal or AnyRef. Example: Byte & List[Byte]
+
+FIXME: Check for dsId or dsName, mid.
+FIXME: Add better error handling.
+FIXME: Handle field names that contain spaces.
 */
 class FindElementById(database: GraphDatabaseService,
   cmdScope: CommandScope,
@@ -98,13 +102,6 @@ class FindElementById(database: GraphDatabaseService,
     }
   }
 
-  /*
-  TODO:
-  Make this specific to a data set.
-  match(ds:internal_data_set {mid:{dsId}})
-  match (n {mid:{mid}})
-  match (ds)-[:contains]->(n)
-  */
   private def findElementStructure(database: GraphDatabaseService,
     fields: GraphCommandOptions
   ):List[scala.collection.immutable.Map[String, List[String]]] = {
