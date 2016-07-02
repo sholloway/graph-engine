@@ -224,7 +224,44 @@ class WebServerDataSetSpec extends FunSpecLike with Matchers with ScalaFutures w
           }
         }
 
-        it ("should EditElementPropertyDefinition")(pending)
+        it ("should EditElementPropertyDefinition"){
+          val dsName = "Monsters"
+          val dsId = engine.createDataSet(dsName, "A collection of monster types.")
+          val propName = "Weakness"
+          val edId = engine.onDataSet(dsId)
+            .defineElement("Wolfman", "Guy who gets hairy at night.")
+            .withProperty(propName, "String", "Fatal Flay")
+          .end
+
+          val improvedDesc = "Fatal Flaw"
+          val request = buildWSRequest(user="Bob",
+            actionType="Update",
+            scope="DataSet",
+            entityType="PropertyDefinition",
+            filter="None",
+            options=Map("dsId" -> dsId,
+              "mid"->edId,
+              "pname" -> propName,
+              "description" -> improvedDesc)
+          )
+
+          val closed:Future[Seq[Message]] = invokeWS(request, enginePath)
+
+          whenReady(closed){ results =>
+            results should have length 2
+            val envelopeMap = validateOkMsg(msgToMap(results.last))
+            val payloadMap = strToMap(envelopeMap("textMessage").asInstanceOf[String])
+            payloadMap.contains("id") should equal(true)
+
+            //verify with engine that it has changed. :)
+            val ed = engine.onDataSet(dsId).findElementDefinitionById(edId)
+            ed.properties.length should equal(1)
+            val weaknessPropOption = ed.properties.find{ prop => prop.name == propName }
+            weaknessPropOption.isEmpty should equal(false)
+            weaknessPropOption.get.description should equal(improvedDesc)
+          }
+        }
+
         it ("should RemoveElementPropertyDefinition")(pending)
         it ("should DeleteElementDefintion")(pending)
         it ("should FindElementDefinition")(pending)
