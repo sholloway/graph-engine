@@ -137,15 +137,9 @@ class WebServerDataSetSpec extends FunSpecLike with Matchers with ScalaFutures w
               ed.name should equal(edName)
               ed.description should equal(edDesc)
               ed.properties should have length 2
-              GraphVizHelper.visualize(engine.database,
-                s"${GraphVizHelper.wd}/viz",
-                "temp.dot")
             }catch{
               case e: InternalErrorException => {
                 println(e)
-                GraphVizHelper.visualize(engine.database,
-                  s"${GraphVizHelper.wd}/viz",
-                  "temp.dot")
                 fail()
               }
             }
