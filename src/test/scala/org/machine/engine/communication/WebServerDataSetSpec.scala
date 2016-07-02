@@ -333,7 +333,7 @@ class WebServerDataSetSpec extends FunSpecLike with Matchers with ScalaFutures w
             scope="DataSet",
             entityType="ElementDefinition",
             filter="ID",
-            options=Map("dsId" -> dataset.id, "mid"->xenomorph.id)
+            options=Map("dsId" -> dataset.id, "mid" -> xenomorph.id)
           )
 
           val closed:Future[Seq[Message]] = invokeWS(request, enginePath)
@@ -351,7 +351,32 @@ class WebServerDataSetSpec extends FunSpecLike with Matchers with ScalaFutures w
           }
         }
 
-        it ("should FindElementDefinitionByName")(pending)
+        it ("should FindElementDefinitionByName"){
+          val dataset = engine.findDataSetByName("Aliens")
+          val xenomorph = engine.onDataSet(dataset.id).findElementDefinitionByName("Xenomorph")
+
+          val request = buildWSRequest(user="Bob",
+            actionType="Retrieve",
+            scope="DataSet",
+            entityType="ElementDefinition",
+            filter="Name",
+            options=Map("dsId" -> dataset.id, "name" -> xenomorph.name)
+          )
+
+          val closed:Future[Seq[Message]] = invokeWS(request, enginePath)
+
+          whenReady(closed){ results =>
+            results should have length 2
+            val envelopeMap = validateOkMsg(msgToMap(results.last))
+            val payloadMap = strToMap(envelopeMap("textMessage").asInstanceOf[String])
+            payloadMap.contains("ElementDefinitions") should equal(true)
+            val eds = payloadMap("ElementDefinitions").asInstanceOf[List[Map[String, Any]]]
+            eds.length should equal(1)
+            val ed = eds.head
+            ed("name") should equal(xenomorph.name)
+            ed("id") should equal(xenomorph.id)
+          }
+        }
 
         it ("should CreateElement")(pending)
         it ("should DeleteAssociation")(pending)
