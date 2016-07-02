@@ -111,13 +111,6 @@ class SystemSpaceSpec extends FunSpec
         }
 
         it("should retrieve all ElementDefinitions"){
-          engine
-            .inSystemSpace()
-            .defineElement("Note", "A brief record of something, captured to assist the memory or for future reference.")
-            .withProperty("Note Text", "String", "The body of the note.")
-            .withProperty("Title", "String", "A user defined title of the note.")
-            .end()
-
           val elements:Seq[ElementDefinition] = engine
             .inSystemSpace()
             .elementDefinitions()
@@ -126,23 +119,14 @@ class SystemSpaceSpec extends FunSpec
         }
 
         it("should retrieve a specific ElementDefinition by ID"){
-          engine
+          val ed = engine.inSystemSpace.findElementDefinitionByName("Note")
+
+          val noteElement = engine
             .inSystemSpace()
-            .defineElement("Note", "A brief record of something, captured to assist the memory or for future reference.")
-            .withProperty("Note Text", "String", "The body of the note.")
-            .withProperty("Title", "String", "A user defined title of the note.")
-            .end()
+            .findElementDefinitionById(ed.id)
 
-            val elements:Seq[ElementDefinition] = engine
-              .inSystemSpace()
-              .elementDefinitions()
-
-            val noteOption = elements.find(e => {e.name == "Note"})
-            val noteElement = engine
-              .inSystemSpace()
-              .findElementDefinitionById(noteOption.get.id)
-            noteElement.id shouldBe noteOption.get.id
-            noteElement.name shouldBe noteOption.get.name
+          noteElement.id shouldBe ed.id
+          noteElement.name shouldBe ed.name
         }
 
         it("should update both name & defintion"){
@@ -202,7 +186,7 @@ class SystemSpaceSpec extends FunSpec
             .setName(updatedName)
             .setType(updatedType)
             .setDescription(updatedDescription)
-            .end()
+          .end()
 
           val updatedSystem = engine
             .inSystemSpace()
@@ -271,19 +255,18 @@ class SystemSpaceSpec extends FunSpec
             .delete()
           .end
 
-          val expectedIdMsg = "No element with ID: %s could be found in %s".format(archPrinciple.id, "internal_system_space")
+          val expectedIdMsg = "No element definition with ID: %s could be found in %s".format(archPrinciple.id, "internal_system_space")
           the [InternalErrorException] thrownBy{
             engine
               .inSystemSpace
               .findElementDefinitionById(archPrinciple.id)
           }should have message expectedIdMsg
 
-          val expectedNameMsg = "No element with Name: %s could be found in %s".format(archPrinciple.name, "internal_system_space")
           the [InternalErrorException] thrownBy{
             engine
               .inSystemSpace
               .findElementDefinitionByName(archPrinciple.name)
-          }should have message expectedNameMsg
+          }should have message Engine.EmptyResultErrorMsg
         }
       }
     }

@@ -9,57 +9,21 @@ digraph Neo {
     fontsize = "8"
   ]
   N0 [
-    label = "{Node\[0\]: internal_system_space|'mid' = 'c9335b79-73d8-4828-93c7-6cecb43c495d' : String\l'name' = 'System Space' : String\l}"
+    label = "{Node\[0\]: internal_system_space|'mid' = '0b516df5-940f-44b5-a45b-4c8f2b130bae' : String\l'name' = 'System Space' : String\l}"
   ]
   N1 [
-    label = "{Node\[1\]: internal_user_space|'mid' = '1068c28e-0886-4ce2-86ea-1c9cce89ba94' : String\l'name' = 'User Space' : String\l}"
+    label = "{Node\[1\]: internal_user_space|'mid' = '79394f2d-1b08-46d4-958d-631cf9ef283f' : String\l'name' = 'User Space' : String\l}"
   ]
-  N1 -> N6 [
+  N1 -> N3 [
     label = "contains\n"
   ]
   N1 -> N2 [
     label = "contains\n"
   ]
   N2 [
-    label = "{Node\[2\]: internal_data_set|'mid' = '0b4fce04-1d07-44f4-8801-2858c549641c' : String\l'name' = 'dsQ' : String\l'creation_time' = 1467283237882 : long\l'description' = 'DS' : String\l}"
-  ]
-  N2 -> N3 [
-    label = "exists_in\n"
+    label = "{Node\[2\]: internal_data_set|'mid' = '66cc9414-150e-460f-b7f1-e2b51c79a569' : String\l'name' = 'dsQ' : String\l'creation_time' = 1467461663581 : long\l'description' = 'DS' : String\l}"
   ]
   N3 [
-    label = "{Node\[3\]: element_definition|'description' = 'A ship that can traverse outer space.' : String\l'mid' = 'fa1c074f-4089-4329-8b35-3815e966aec2' : String\l'name' = 'Space Ship' : String\l'creation_time' = 1467283237984 : long\l}"
-  ]
-  N3 -> N5 [
-    label = "composed_of\n"
-  ]
-  N3 -> N4 [
-    label = "composed_of\n"
-  ]
-  N4 [
-    label = "{Node\[4\]: property_definition|'type' = 'String' : String\l'mid' = 'b6f10cab-a33c-447a-abf6-1d7e92870e59' : String\l'name' = 'p1' : String\l'creation_time' = 1467283238003 : long\l'description' = 'p1' : String\l}"
-  ]
-  N5 [
-    label = "{Node\[5\]: property_definition|'type' = 'String' : String\l'mid' = 'ab2d0013-b9b9-40d9-83f8-2d525cf3ef58' : String\l'name' = 'p2' : String\l'creation_time' = 1467283238033 : long\l'description' = 'p2' : String\l}"
-  ]
-  N6 [
-    label = "{Node\[6\]: internal_data_set|'mid' = '6fbf3d5e-0ea5-4495-98b4-7afabd9a7922' : String\l'name' = 'dsD' : String\l'creation_time' = 1467283238526 : long\l'description' = 'DS' : String\l}"
-  ]
-  N6 -> N7 [
-    label = "exists_in\n"
-  ]
-  N7 [
-    label = "{Node\[7\]: element_definition|'description' = 'A ship that can traverse outer space.' : String\l'mid' = '92bc51ad-4811-4145-986f-9f50b11fe42c' : String\l'name' = 'Bullshit' : String\l'creation_time' = 1467283238602 : long\l}"
-  ]
-  N7 -> N9 [
-    label = "composed_of\n"
-  ]
-  N7 -> N8 [
-    label = "composed_of\n"
-  ]
-  N8 [
-    label = "{Node\[8\]: property_definition|'type' = 'String' : String\l'mid' = '4b06e206-34c3-4b87-8b9d-13053d3194fa' : String\l'name' = 'p1' : String\l'creation_time' = 1467283238604 : long\l'description' = 'p1' : String\l}"
-  ]
-  N9 [
-    label = "{Node\[9\]: property_definition|'type' = 'String' : String\l'mid' = '7840ec8f-7885-4f0d-836c-31954518a880' : String\l'name' = 'p2' : String\l'creation_time' = 1467283238608 : long\l'description' = 'p2' : String\l}"
+    label = "{Node\[3\]: internal_data_set|'mid' = '1ea82892-2cc5-42e8-baba-438e090e1307' : String\l'name' = 'dsD' : String\l'creation_time' = 1467461664207 : long\l'description' = 'DS' : String\l}"
   ]
 }
