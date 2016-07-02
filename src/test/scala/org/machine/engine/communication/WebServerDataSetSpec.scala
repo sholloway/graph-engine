@@ -102,7 +102,7 @@ class WebServerDataSetSpec extends FunSpecLike with Matchers with ScalaFutures w
         it ("should CreateElementDefinition By DS Name"){
           val dsName = "dsD"
           val datasetId = engine.createDataSet(dsName, "DS")
-          val edName = "Bullshit"
+          val edName = "Tardis"
           val edDesc = "A ship that can traverse outer space."
           val edSpec = Map("dsName"->dsName,
             "name"->edName,
@@ -163,7 +163,67 @@ class WebServerDataSetSpec extends FunSpecLike with Matchers with ScalaFutures w
         }
 
 //  import org.machine.engine.viz.GraphVizHelper
-        it ("should EditElementDefintion")(pending)
+        it ("should EditElementDefintion By DS ID"){
+          val dsId = engine.createDataSet("temp", "A data set.")
+          val edId = engine.onDataSet(dsId)
+            .defineElement("blah", "A poorly named element definition.")
+          .end
+
+          val betterName = "Better Name"
+
+          val request = buildWSRequest(user="Bob",
+            actionType="Update",
+            scope="DataSet",
+            entityType="ElementDefinition",
+            filter="None",
+            options=Map("dsId" -> dsId, "mid"->edId, "name" -> betterName)
+          )
+
+          val closed:Future[Seq[Message]] = invokeWS(request, enginePath)
+
+          whenReady(closed){ results =>
+            results should have length 2
+            val envelopeMap = validateOkMsg(msgToMap(results.last))
+            val payloadMap = strToMap(envelopeMap("textMessage").asInstanceOf[String])
+            payloadMap.contains("id") should equal(true)
+
+            //verify with engine that it has changed. :)
+            val ed = engine.onDataSet(dsId).findElementDefinitionById(edId)
+            ed.name should equal(betterName)
+          }
+        }
+
+        it ("should EditElementDefintion By DS Name"){
+          val dsName = "Murphy"
+          val dsId = engine.createDataSet(dsName, "A data set.")
+          val edId = engine.onDataSet(dsId)
+            .defineElement("blah", "A poorly named element definition.")
+          .end
+
+          val betterName = "Better Name"
+
+          val request = buildWSRequest(user="Bob",
+            actionType="Update",
+            scope="DataSet",
+            entityType="ElementDefinition",
+            filter="None",
+            options=Map("dsName" -> dsName, "mid"->edId, "name" -> betterName)
+          )
+
+          val closed:Future[Seq[Message]] = invokeWS(request, enginePath)
+
+          whenReady(closed){ results =>
+            results should have length 2
+            val envelopeMap = validateOkMsg(msgToMap(results.last))
+            val payloadMap = strToMap(envelopeMap("textMessage").asInstanceOf[String])
+            payloadMap.contains("id") should equal(true)
+
+            //verify with engine that it has changed. :)
+            val ed = engine.onDataSet(dsId).findElementDefinitionById(edId)
+            ed.name should equal(betterName)
+          }
+        }
+
         it ("should EditElementPropertyDefinition")(pending)
         it ("should RemoveElementPropertyDefinition")(pending)
         it ("should DeleteElementDefintion")(pending)
