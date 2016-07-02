@@ -1,0 +1,9 @@
+{
+  "name": "Create Element",
+  "description": "Create an element in a dataset",
+  "scope": "internal_data_set",
+  "entityType": "Element",
+  "actionType": "Create",
+  "filter": "None",
+  "decision": "CreateElement"
+}

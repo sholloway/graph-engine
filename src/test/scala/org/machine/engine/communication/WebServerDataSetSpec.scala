@@ -162,7 +162,6 @@ class WebServerDataSetSpec extends FunSpecLike with Matchers with ScalaFutures w
           }
         }
 
-//  import org.machine.engine.viz.GraphVizHelper
         it ("should EditElementDefintion By DS ID"){
           val dsId = engine.createDataSet("temp", "A data set.")
           val edId = engine.onDataSet(dsId)
@@ -378,7 +377,40 @@ class WebServerDataSetSpec extends FunSpecLike with Matchers with ScalaFutures w
           }
         }
 
-        it ("should CreateElement")(pending)
+        //  import org.machine.engine.viz.GraphVizHelper
+        it ("should CreateElement"){
+          val dsId = engine.createDataSet("Bands", "Interesting Music Groups")
+          val edId = engine.onDataSet(dsId)
+            .defineElement("RockBand", "A band that likes to roll...")
+            .withProperty("Name", "String", "The name of the band.")
+            .withProperty("Singer", "String", "A person responsible for singing.")
+            .withProperty("Lead Guitarist", "String", "The primary guitarists.")
+          .end
+
+          val request = buildWSRequest(user="Bob",
+            actionType="Create",
+            scope="DataSet",
+            entityType="Element",
+            filter="None",
+            options=Map("dsId" -> dsId,
+              "edId" -> edId,
+              "Singer" -> "Axl Rose",
+              "Lead Guitarist" -> "Slash")
+          )
+
+          val closed:Future[Seq[Message]] = invokeWS(request, enginePath)
+
+          whenReady(closed){ results =>
+            results should have length 2
+            val envelopeMap = validateOkMsg(msgToMap(results.last))
+            val payloadMap = strToMap(envelopeMap("textMessage").asInstanceOf[String])
+
+            println(payloadMap)
+
+            //using the Engine DSL find the Element and verify the fields.
+          }
+        }
+
         it ("should DeleteAssociation")(pending)
         it ("should DeleteElement")(pending)
 

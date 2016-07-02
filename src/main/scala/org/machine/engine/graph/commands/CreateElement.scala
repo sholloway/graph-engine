@@ -14,6 +14,11 @@ import org.machine.engine.graph.nodes._
 import org.machine.engine.graph.labels._
 import org.machine.engine.graph.internal._
 
+/*
+FIXME: Element Definitions that contain spaces cannot be uses.
+FIXME: Rewrite to use partial functions and reduce the number of transactions.
+FIXME: Account for failure to create. (e.g. Bad dataset, bad edId.)
+*/
 class CreateElement(database: GraphDatabaseService,
   cmdScope: CommandScope,
   cmdOptions: GraphCommandOptions) extends Neo4InsertCommand[String] with LazyLogging{
@@ -21,9 +26,8 @@ class CreateElement(database: GraphDatabaseService,
 
   def execute():InsertCmdResult[String] = {
     logger.debug("CreateElement: Executing Command")
-
+    generateId(cmdOptions)
     val elementDef = findElementDefinition(database, cmdOptions)
-
     transaction(database, (graphDB:GraphDatabaseService) => {
       createElement(graphDB, cmdOptions, elementDef)
       registerElement(graphDB, cmdOptions, elementDef)
@@ -74,35 +78,6 @@ class CreateElement(database: GraphDatabaseService,
     return new ElementDefinition(elementId, elementName, elementDescription)
   }
 
-  // private def createElement(graphDB:GraphDatabaseService,
-  //   options: Map[String, AnyRef],
-  //   elementDef: ElementDefinition
-  // ):Unit = {
-  //   logger.debug("CreateElement: Creating data set.")
-  //   options.+=("element_description" -> elementDef.description)
-  //   val exclude = List("dsId", "dsName", "edId", "mid")
-  //   val prefix = "e"
-  //   val fields:String = buildSetClause(prefix, options.toMap, exclude)
-  //
-  //   val statement = """
-  //     |merge(e:label
-  //     |{
-  //     |  mid:{mid}
-  //     |})
-  //     |on create set fields, e.creation_time = timestamp()
-  //     |on match set e.last_modified_time = timestamp()
-  //     """.stripMargin
-  //       .replaceAll("label", elementDef.name)
-  //       .replaceAll("fields", fields)
-  //
-  //   run( graphDB,
-  //     statement,
-  //     options,
-  //     emptyResultProcessor[DataSet])
-  // }
-
-  //BUG: Need to set creation_time. Look at Neo4J code and verify how they are calculating it.
-  //This is important since, only elements will use this and the other graph elements are using timestamp()
   private def createElement(graphDB:GraphDatabaseService,
     cmdOptions: GraphCommandOptions,
     elementDef: ElementDefinition
