@@ -24,7 +24,7 @@ class EditElement(database: GraphDatabaseService,
     transaction(database, (graphDB:GraphDatabaseService) => {
       editDataSet(graphDB)
     })
-    return UpdateCmdResult(cmdOptions.option[String]("dsId"))
+    return UpdateCmdResult(cmdOptions.option[String]("elementId"))
   }
 
   private def editDataSet(graphDB:GraphDatabaseService):Unit = {

@@ -486,9 +486,49 @@ class WebServerDataSetSpec extends FunSpecLike with Matchers with ScalaFutures w
           }
         }
 
-        it ("should EditElement")(pending)
+        it ("should EditElement"){
+          val dsId = engine.createDataSet("Un-natural Disasters", "Epic Events of Calamity")
+          val edId = engine.onDataSet(dsId)
+            .defineElement("Disaster", "Oh No!")
+            .withProperty("Name", "String", "The name of the disaster.")
+          .end
+
+          val zaId = engine.onDataSet(dsId).provision(edId).withField("Name", "Zombie Attack!").end()
+          val maId = engine.onDataSet(dsId).provision(edId).withField("Name", "Monster Attack!").end()
+          val zimID = engine.onDataSet(dsId).provision(edId).withField("Name", "Martians!").end()
+
+          val updatedField = "Invader Zim Attack!"
+          val request = buildWSRequest(user="Bob",
+            actionType="Update",
+            scope="DataSet",
+            entityType="Element",
+            filter="None",
+            options=Map("dsId" -> dsId,
+              "elementId" -> zimID,
+              "Name" -> updatedField)
+          )
+
+          val closed:Future[Seq[Message]] = invokeWS(request, enginePath)
+
+          whenReady(closed){ results =>
+            results should have length 2
+            val envelopeMap = validateOkMsg(msgToMap(results.last))
+            val payloadMap = strToMap(envelopeMap("textMessage").asInstanceOf[String])
+            payloadMap.contains("id") should equal(true)
+            payloadMap("id") should equal(zimID)
+
+            //get the ID and verify it is zimID.
+            //Using the engine to get the element and verify it has been updated.
+            val martian = engine.onDataSet(dsId).findElement(zimID)
+            martian.field[String]("Name") should equal(updatedField)
+          }
+        }
+
+
+        it ("should AddElementField")(pending)
         it ("should RemoveElementField")(pending)
         it ("should DeleteElement")(pending)
+        //merge to master...
 
         it ("should AssociateElements")(pending)
         it ("should EditAssociation")(pending)
