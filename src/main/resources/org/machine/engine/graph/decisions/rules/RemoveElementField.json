@@ -1,0 +1,9 @@
+{
+  "name": "Edit an Element",
+  "description": "Change the fields associated to an element.",
+  "scope": "internal_data_set",
+  "entityType": "ElementField",
+  "actionType": "Delete",
+  "filter": "None",
+  "decision": "RemoveElementField"
+}

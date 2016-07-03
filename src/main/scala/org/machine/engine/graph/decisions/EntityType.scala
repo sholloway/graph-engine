@@ -8,7 +8,9 @@ object EntityTypes{
   case object ElementDefinition extends EntityType{val value="ElementDefinition";}
   case object DataSet extends EntityType{val value="DataSet";}
   case object Element extends EntityType{val value="Element";}
+  case object ElementField extends EntityType{val value="ElementField";}
   case object Association extends EntityType{val value="Association";}
+  case object AssociationField extends EntityType{val value="AssociationField";}
   case object PropertyDefinition extends EntityType{val value="PropertyDefinition";}
   case object None extends EntityType{val value="None";}
 
@@ -17,7 +19,9 @@ object EntityTypes{
       case "ElementDefinition" => ElementDefinition
       case "DataSet"           => DataSet
       case "Element"           => Element
+      case "ElementField"      => ElementField
       case "Association"       => Association
+      case "AssociationField"  => AssociationField
       case "PropertyDefinition"=> PropertyDefinition
       case _                   => None
     }
@@ -26,6 +30,9 @@ object EntityTypes{
   def validTypes = Seq("ElementDefinition",
     "DataSet",
     "Element",
+    "ElementField",
     "PropertyDefinition",
-    "Association")
+    "Association",
+    "AssociationField"
+  )
 }

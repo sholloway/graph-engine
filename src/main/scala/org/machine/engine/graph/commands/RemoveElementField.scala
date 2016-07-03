@@ -27,10 +27,7 @@ class RemoveElementField(database: GraphDatabaseService,
     return DeleteCmdResult(cmdOptions.option[String]("elementId"))
   }
 
-  //BUG: This needs to be scoped to be inside the dataset.
-  //(ds:internal_data_set)-[:contains]->(e) is not working.
-  //Probably a bug with Create Element.
-  //|match (ds:internal_data_set {mid:{dsId}})-[:contains]->(startingElement {mid:{startingElementId}})
+  /*FIXME Expand to also support dataset name for the filter.*/
   private def removeField(graphDB: GraphDatabaseService):Unit = {
     logger.debug("RemoveElementField: Removing Field.")
     val prefix = "e"
