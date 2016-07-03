@@ -583,7 +583,34 @@ class WebServerDataSetSpec extends FunSpecLike with Matchers with ScalaFutures w
           }
         }
 
-        it ("should DeleteElement")(pending)
+        it ("should DeleteElement"){
+          val dataset = engine.findDataSetByName("Un-natural Disasters")
+          val elements = engine.onDataSet(dataset.id).elements()
+          elements.length should equal(3)
+          val zombieAttack = elements.find(e => e.field[String]("Name") == "Zombie Attack!").get
+
+          val request = buildWSRequest(user="Bob",
+            actionType="Delete",
+            scope="DataSet",
+            entityType="Element",
+            filter="None",
+            options=Map("dsId" -> dataset.id,
+              "elementId" -> zombieAttack.id)
+          )
+
+          val closed:Future[Seq[Message]] = invokeWS(request, enginePath)
+
+          whenReady(closed){ results =>
+            results should have length 2
+            val envelopeMap = validateOkMsg(msgToMap(results.last))
+            val payloadMap = strToMap(envelopeMap("textMessage").asInstanceOf[String])
+            payloadMap.contains("id") should equal(true)
+            payloadMap("id") should equal(zombieAttack.id)
+            val updatedElementList = engine.onDataSet(dataset.id).elements
+            updatedElementList.length should equal(2)
+          }
+        }
+
         //merge to master...
 
         it ("should AssociateElements")(pending)

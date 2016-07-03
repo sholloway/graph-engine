@@ -64,7 +64,7 @@ class FindElementById(database: GraphDatabaseService,
       val specialFields = List("mid", "element_description", "creation_time", "last_modified_time")
       val labels:List[String] = elementDefintion.get("labels").get.asInstanceOf[List[String]]
       val properties:List[String] = elementDefintion.get("keys").get.asInstanceOf[List[String]]
-      val elementType = labels(0)
+      val elementType = labels.filterNot(l => l == "element").head
 
       //first get the known fields
       val mid = mapString("mid", record, true)
