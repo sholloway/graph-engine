@@ -54,35 +54,36 @@ class FindDownStreamElementsByElementId(database: GraphDatabaseService,
       val keys:List[String] = record.get("keys").asInstanceOf[java.util.List[String]].toList
       val neo4JNodeProxy = record.get("data").asInstanceOf[org.neo4j.kernel.impl.core.NodeProxy]
 
-      val elementId:String = mapString("elementId", record, true)
+      val elementId:String          = mapString("elementId", record, true)
       val elementTypes:List[String] = record.get("elementTypes").asInstanceOf[java.util.List[String]].toList
-      val elementDescription = mapString("element_description", record, true)
-      val creationTime:String = mapString("creation_time", record, true)
-      val lastModifiedTime:String = mapString("last_modified_time", record, false)
+      val elementDescription        = mapString("element_description", record, true)
+      val creationTime:String       = mapString("creation_time", record, true)
+      val lastModifiedTime:String   = mapString("last_modified_time", record, false)
 
       val fields: Map[String, Any] = Map.empty[String, Any]
-      val exclude = List("elementId", "creation_time", "creation_time")
+      val exclude     = List("elementId", "creation_time", "creation_time")
+      val elementType = elementTypes.filterNot(l => l == "element").head
 
       keys.foreach(key => {
         if (!exclude.contains(key)){
           val value: Any = neo4JNodeProxy.getProperty(key)
           val temp = value match {
             case x: Boolean => value.asInstanceOf[Boolean]
-            case x: Byte => value.asInstanceOf[Byte]
-            case x: Short => value.asInstanceOf[Short]
-            case x: Int => value.asInstanceOf[Int]
-            case x: Long => value.asInstanceOf[Long]
-            case x: Float => value.asInstanceOf[Float]
-            case x: Double => value.asInstanceOf[Double]
-            case x: Char => value.asInstanceOf[Char]
-            case x: String => value.asInstanceOf[String]
-            case _ => logger.debug(value.toString)
+            case x: Byte    => value.asInstanceOf[Byte]
+            case x: Short   => value.asInstanceOf[Short]
+            case x: Int     => value.asInstanceOf[Int]
+            case x: Long    => value.asInstanceOf[Long]
+            case x: Float   => value.asInstanceOf[Float]
+            case x: Double  => value.asInstanceOf[Double]
+            case x: Char    => value.asInstanceOf[Char]
+            case x: String  => value.asInstanceOf[String]
+            case _          => logger.debug(value.toString)
           }
           fields += (key -> temp)
         }
       })
 
-    results += new Element(elementId, elementTypes.head, elementDescription, fields.toMap,
+    results += new Element(elementId, elementType, elementDescription, fields.toMap,
       creationTime, lastModifiedTime)
   }
 
