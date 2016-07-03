@@ -373,6 +373,7 @@ class ElementAssociationsSpec extends FunSpec with Matchers with EasyMockSugar w
             .findUpStreamElements
 
           upstreamElements should have length 2
+          println(upstreamElements)
 
           upstreamElements(0) should have(
             'id (noteId)
