@@ -56,92 +56,6 @@ object EngineWorkerPoolManager{
     return options
   }
 
-  // private def fetchStr(str: String,
-  //   request: RequestMessage,
-  //   options: GraphCommandOptions
-  // ) = {
-  //   if (request.options.contains(str)){
-  //     options.addOption(str, request.options(str))
-  //   }
-  // }
-
-  // private val fetchDsId = new PartialFunction[Capsule, Capsule]{
-  //   private val property = "dsId"
-  //   def isDefinedAt(capsule: Capsule):Boolean = capsule._1.options.contains(property)
-  //   def apply(capsule: Capsule):Capsule = {
-  //     if(isDefinedAt(capsule)){
-  //       capsule._2.addOption(property,capsule._1.options(property))
-  //     }
-  //     return capsule
-  //   }
-  // }
-  //
-  // private val fetchElementDefinitionId = new PartialFunction[Capsule, Capsule]{
-  //   private val property = "edId"
-  //   def isDefinedAt(capsule: Capsule):Boolean = capsule._1.options.contains(property)
-  //   def apply(capsule: Capsule):Capsule = {
-  //     if(isDefinedAt(capsule)){
-  //       capsule._2.addOption(property,capsule._1.options(property))
-  //     }
-  //     return capsule
-  //   }
-  // }
-  //
-  // private val fetchDsName = new PartialFunction[Capsule, Capsule]{
-  //   private val property = "dsName"
-  //   def isDefinedAt(capsule: Capsule):Boolean = capsule._1.options.contains(property)
-  //   def apply(capsule: Capsule):Capsule = {
-  //     if(isDefinedAt(capsule)){
-  //       capsule._2.addOption(property,capsule._1.options(property))
-  //     }
-  //     return capsule
-  //   }
-  // }
-  //
-  // private val fetchMid = new PartialFunction[Capsule, Capsule]{
-  //   private val property = "mid"
-  //   def isDefinedAt(capsule: Capsule):Boolean = capsule._1.options.contains(property)
-  //   def apply(capsule: Capsule):Capsule = {
-  //     if(isDefinedAt(capsule)){
-  //       capsule._2.addOption(property,capsule._1.options(property))
-  //     }
-  //     return capsule
-  //   }
-  // }
-  //
-  // private val fetchPName = new PartialFunction[Capsule, Capsule]{
-  //   private val property = "pname"
-  //   def isDefinedAt(capsule: Capsule):Boolean = capsule._1.options.contains(property)
-  //   def apply(capsule: Capsule):Capsule = {
-  //     if(isDefinedAt(capsule)){
-  //       capsule._2.addOption(property,capsule._1.options(property))
-  //     }
-  //     return capsule
-  //   }
-  // }
-  //
-  // private val fetchName = new PartialFunction[Capsule, Capsule]{
-  //   private val property = "name"
-  //   def isDefinedAt(capsule: Capsule):Boolean = capsule._1.options.contains(property)
-  //   def apply(capsule: Capsule):Capsule = {
-  //     if(isDefinedAt(capsule)){
-  //       capsule._2.addOption(property,capsule._1.options(property))
-  //     }
-  //     return capsule
-  //   }
-  // }
-  //
-  // private val fetchDescription = new PartialFunction[Capsule, Capsule]{
-  //   private val property = "description"
-  //   def isDefinedAt(capsule: Capsule):Boolean = capsule._1.options.contains(property)
-  //   def apply(capsule: Capsule):Capsule = {
-  //     if(isDefinedAt(capsule)){
-  //       capsule._2.addOption(property,capsule._1.options(property))
-  //     }
-  //     return capsule
-  //   }
-  // }
-
   private val fetchGenericOptions = new PartialFunction[Capsule, Capsule]{
     def isDefinedAt(capsule: Capsule):Boolean = true
     def apply(capsule: Capsule):Capsule = {
@@ -151,7 +65,7 @@ object EngineWorkerPoolManager{
           if (!excluded.contains(field._1)){
             capsule._2.addOption(field._1, field._2)
           }
-        })      
+        })
       }
       return capsule
     }

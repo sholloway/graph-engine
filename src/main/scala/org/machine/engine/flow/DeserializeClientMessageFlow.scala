@@ -3,13 +3,13 @@ package org.machine.engine.flow
 import scala.util.{Either, Left, Right}
 import org.machine.engine.flow.requests._
 
-object DeserializeClientMessage{  
+object DeserializeClientMessage{
   def deserialize(capsule: EngineCapsule):EngineCapsule = {
     val serializedMsg = capsule.message.payload
     val jsonMap = RequestMessage.jsonToMap(serializedMsg)
     val transformedCapsule: EngineCapsule = RequestRuleValidator.validate(Left(jsonMap)) match{
       case Left(jmap) =>{
-        val requestMsg = RequestMessage.parseJSON(serializedMsg)
+        val requestMsg = RequestMessage.parseJSON(serializedMsg)        
         capsule.enrich("deserializedMsg", requestMsg, Some("deserializeRequest"))
       }
       case Right(errorMsg) => {

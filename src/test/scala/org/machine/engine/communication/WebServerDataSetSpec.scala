@@ -451,15 +451,40 @@ class WebServerDataSetSpec extends FunSpecLike with Matchers with ScalaFutures w
             results should have length 2
             val envelopeMap = validateOkMsg(msgToMap(results.last))
             val payloadMap = strToMap(envelopeMap("textMessage").asInstanceOf[String])
-
-            println(payloadMap)
             payloadMap.contains("Elements") should equal(true)
             val elementsList = payloadMap("Elements").asInstanceOf[List[Map[String, Any]]]
             elementsList.length should equal(1)
           }
         }
 
-        it("should FindAllElements")(pending)
+        it("should FindAllElements"){
+          val dataset = engine.findDataSetByName("Bands")
+          val ed = engine.onDataSet(dataset.id).findElementDefinitionByName("RockBand")
+          engine.onDataSet(dataset.id)
+            .provision(ed.id)
+            .withField("Name", "Daft Punk")
+          .end
+
+          val expectedElementsCount = engine.onDataSet(dataset.id).elements().length
+
+          val request = buildWSRequest(user="Bob",
+            actionType="Retrieve",
+            scope="DataSet",
+            entityType="Element",
+            filter="All",
+            options=Map("dsId" -> dataset.id)
+          )
+
+          val closed:Future[Seq[Message]] = invokeWS(request, enginePath)
+
+          whenReady(closed){ results =>
+            results should have length 2
+            val envelopeMap = validateOkMsg(msgToMap(results.last))
+            val payloadMap = strToMap(envelopeMap("textMessage").asInstanceOf[String])
+            val elementsList = payloadMap("Elements").asInstanceOf[List[Map[String, Any]]]
+            elementsList.length should equal(expectedElementsCount)
+          }
+        }
 
         it ("should EditElement")(pending)
         it ("should RemoveElementField")(pending)
