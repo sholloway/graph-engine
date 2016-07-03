@@ -1,0 +1,9 @@
+{
+  "name": "Find an Element by ID",
+  "description": "Query for a specific element by it's ID.",
+  "scope": "internal_data_set",
+  "entityType": "Element",
+  "actionType": "Retrieve",
+  "filter": "ID",
+  "decision": "FindElementById"
+}

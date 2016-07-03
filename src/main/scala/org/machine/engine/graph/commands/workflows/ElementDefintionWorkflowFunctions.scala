@@ -1,4 +1,4 @@
-package org.machine.engine.graph.commands.elementdefinition
+package org.machine.engine.graph.commands.workflows
 
 import com.typesafe.scalalogging.{LazyLogging}
 import scala.collection.JavaConversions._
@@ -12,41 +12,6 @@ import org.neo4j.graphdb.GraphDatabaseService
 
 object ElementDefintionWorkflowFunctions extends LazyLogging{
   import Neo4JHelper._
-
-  sealed trait WorkflowStatus{
-    def value:Boolean
-  }
-
-  object WorkflowStatuses{
-    case object OK extends WorkflowStatus{val value = true}
-    case object Error extends WorkflowStatus{val value = false}
-  }
-
-  type WorkflowErrorMsg = String
-  type Status           = Either[WorkflowStatus, WorkflowErrorMsg]
-  type Capsule          = (GraphDatabaseService, CommandScope, GraphCommandOptions, Status)
-
-  val ElementDefAlreadyExistsErrorMsg           = "Element Definition already exists with the provided name."
-  val MissingMidErrorMsg                        = "The command CreateElementDefinition requires the option mid."
-  val MissingNameErrorMsg                       = "The command CreateElementDefinition requires the option name."
-  val MissingDescErrorMsg                       = "The command CreateElementDefinition requires the option description."
-  val MissingCreationTimeErrorMsg               = "The command CreateElementDefinition requires the option creationTime."
-  val DataSetFilterRequiredErrorMsg             = "For scope type DataSet, either dsId or dsName must be provided."
-  val ElementDefinitionCreationFailureErrorMsg  = "Internal Error: Element Definition could not be created."
-  val PropertyDefinitionCreationFailureErrorMsg = "Internal Error: Property Definition could not be created."
-
-  val CreateElementDefintionStmt  = "createElementDefinitionStmt"
-  val ElementDefinitionId         = "edId"
-  val Mid                         = "mid"
-  val Name                        = "name"
-  val Description                 = "description"
-  val CreationTime                = "creationTime"
-  val DataSetId                   = "dsId"
-  val DataSetName                 = "dsName"
-  val CreatedElementDefinitionId  = "createdElementDefinitionId"
-  val Empty                       = ""
-  val Properties                  = "properties"
-
 
   def workflow(capsule: Capsule):Capsule = {
     val wf = Function.chain(Seq(
@@ -84,9 +49,6 @@ object ElementDefintionWorkflowFunctions extends LazyLogging{
     }
   }
 
-  /*
-  Used after mIdGuard...
-  */
   val verifyRequiredCmdOptions = new PartialFunction[Capsule, Capsule]{
     def isDefinedAt(capsule: Capsule):Boolean = capsule._4 == Left(WorkflowStatuses.OK)
     def apply(capsule:Capsule):Capsule = {
@@ -160,26 +122,7 @@ object ElementDefintionWorkflowFunctions extends LazyLogging{
       }
       return (capsule._1, capsule._2, capsule._3, status)
     }
-  }
-
-  private def generateScopeFilter(cmdScope: CommandScope, options: GraphCommandOptions):String = {
-    val filter = cmdScope match {
-      case CommandScopes.SystemSpaceScope => Empty
-      case CommandScopes.UserSpaceScope => Empty /*TODO Make User Space an actual User*/
-      case CommandScopes.DataSetScope => {
-        val dsFilter = if(options.contains(DataSetId)){
-          "where ss.mid = {dsId}"
-        }else if(options.contains(DataSetName)){
-          "where ss.name = {dsName}"
-        }else{
-          throw new InternalErrorException(DataSetFilterRequiredErrorMsg)
-        }
-        dsFilter
-      }
-      case _ => throw new InternalErrorException("No Matching Scope Found: "+cmdScope)
-    }
-    return filter
-  }
+  }  
 
   val createElementDefinition = new PartialFunction[Capsule, Capsule]{
     def isDefinedAt(capsule: Capsule):Boolean = {
@@ -271,6 +214,4 @@ object ElementDefintionWorkflowFunctions extends LazyLogging{
       return (capsule._1, capsule._2, capsule._3, status)
     }
   }
-
-  // processResponse
 }

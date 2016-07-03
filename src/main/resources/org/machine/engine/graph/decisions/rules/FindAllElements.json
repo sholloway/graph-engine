@@ -1,0 +1,9 @@
+{
+  "name": "Find all Elements in a DataSet",
+  "description": "Find all elements in a dataset.",
+  "scope": "internal_data_set",
+  "entityType": "Element",
+  "actionType": "Retrieve",
+  "filter": "All",
+  "decision": "ListAllElements"
+}

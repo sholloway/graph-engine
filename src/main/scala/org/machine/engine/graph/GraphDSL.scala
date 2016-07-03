@@ -329,6 +329,7 @@ trait GraphDSL{
   def end():String
 
   def provision(elementDefId: String):GraphDSL
+  def elements():Seq[Element]
   def withField(fieldName: String, fieldValue: Any):GraphDSL
   def findElement(elementId: String):Element
   def onElement(elementId: String):GraphDSL

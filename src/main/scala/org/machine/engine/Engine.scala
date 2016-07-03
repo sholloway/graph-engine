@@ -415,6 +415,17 @@ class Engine private (dbPath:String, decisionTree: Question) extends GraphDSL wi
     return this
   }
 
+  def elements():Seq[Element] = {
+    setActionType(ActionTypes.Retrieve)
+    setFilter(Filters.All)
+    setEntityType(EntityTypes.Element)
+    val results:EngineCmdResult = run
+    if (results.status != EngineCmdResultStatuses.OK){
+      results.errorMessage.foreach(msg => throw new InternalErrorException(msg))
+    }
+    return results.asInstanceOf[QueryCmdResult[Element]].results
+  }
+
   def withField(fieldName: String, fieldValue:Any):GraphDSL = {
     cmdOptions.addField(fieldName, fieldValue)
     return this

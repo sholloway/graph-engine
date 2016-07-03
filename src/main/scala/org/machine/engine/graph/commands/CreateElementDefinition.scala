@@ -14,12 +14,13 @@ import org.machine.engine.graph.nodes._
 import org.machine.engine.graph.labels._
 import org.machine.engine.graph.internal._
 
-import org.machine.engine.graph.commands.elementdefinition.ElementDefintionWorkflowFunctions
+import org.machine.engine.graph.commands.workflows.ElementDefintionWorkflowFunctions
 
 class CreateElementDefintion(database: GraphDatabaseService,
   cmdScope: CommandScope,
   cmdOptions: GraphCommandOptions) extends Neo4InsertCommand[String] with LazyLogging{
   import ElementDefintionWorkflowFunctions._
+  import org.machine.engine.graph.commands.workflows._ 
 
   def execute():InsertCmdResult[String] = {
     logger.debug("CreateElementDefintion: Executing Command")
@@ -27,7 +28,7 @@ class CreateElementDefintion(database: GraphDatabaseService,
     val wfResult = ElementDefintionWorkflowFunctions.workflow((database,
       cmdScope,
       cmdOptions,
-      Left(WorkflowStatuses.OK)))    
+      Left(WorkflowStatuses.OK)))
 
     var result:InsertCmdResult[String] = null
     wfResult._4 match {

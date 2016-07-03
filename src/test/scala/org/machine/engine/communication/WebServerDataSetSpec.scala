@@ -377,9 +377,6 @@ class WebServerDataSetSpec extends FunSpecLike with Matchers with ScalaFutures w
           }
         }
 
-        /*
-        FIXME: Filter out dsName from the properties when creating an ElementDefintion.
-        */
         it ("should CreateElement"){
           val dsId = engine.createDataSet("Bands", "Interesting Music Groups")
           val edName = "RockBand"
@@ -399,7 +396,9 @@ class WebServerDataSetSpec extends FunSpecLike with Matchers with ScalaFutures w
             options=Map("dsId" -> dsId,
               "edId" -> edId,
               "Singer" -> "Axl Rose",
-              "LeadGuitarist" -> "Slash")
+              "LeadGuitarist" -> "Slash",
+              "Name" -> "Guns N' Roses"
+            )
           )
 
           val closed:Future[Seq[Message]] = invokeWS(request, enginePath)
@@ -415,33 +414,64 @@ class WebServerDataSetSpec extends FunSpecLike with Matchers with ScalaFutures w
             element.id should equal(eId)
             element.elementType should equal(edName)
             element.elementDescription should equal(edDesc)
-            element.fields.size should equal(2)
+            element.fields.size should equal(3)
+            element.fields("Singer") should equal("Axl Rose")
+            element.fields("LeadGuitarist") should equal("Slash")
+            element.fields("Name") should equal("Guns N' Roses")
           }
         }
 
         /*
+        FIXME: Filter out dsName from the properties when creating an ElementDefintion.
+        */
+        /*
         import org.machine.engine.viz.GraphVizHelper
         GraphVizHelper.visualize(engine.database)
         */
-        it ("should DeleteAssociation")(pending)
+        ignore ("should FindElementById"){
+          val dataset = engine.findDataSetByName("Bands")
+          val bands = engine.onDataSet(dataset.id).elements()
+          val gnr = bands.find{ prop => prop.fields.contains("Name") &&  prop.fields("Name") == "Guns N' Roses"}
+
+          // val request = buildWSRequest(user="Bob",
+          //   actionType="Retrieve",
+          //   scope="DataSet",
+          //   entityType="Element",
+          //   filter="ID",
+          //   options=Map("dsId" -> dataset.id,
+          //     "mid" -> xenomorph.id)
+          // )
+          //
+          // val closed:Future[Seq[Message]] = invokeWS(request, enginePath)
+          //
+          // whenReady(closed){ results =>
+          //   results should have length 2
+          //   val envelopeMap = validateOkMsg(msgToMap(results.last))
+          //   val payloadMap = strToMap(envelopeMap("textMessage").asInstanceOf[String])
+          //
+          //   println(payloadMap)
+          // }
+        }
+
+        it("should FindAllElements")(pending)
+
+        it ("should EditElement")(pending)
+        it ("should RemoveElementField")(pending)
         it ("should DeleteElement")(pending)
 
         it ("should AssociateElements")(pending)
         it ("should EditAssociation")(pending)
+        it ("should DeleteAssociation")(pending)
+
         it ("should RemoveInboundAssociations")(pending)
         it ("should RemoveOutboundAssociations")(pending)
 
-        it ("should EditElement")(pending)
-
         it ("should FindDownStreamElementsByElementId")(pending)
-        it ("should FindElementById")(pending)
-
         it ("should FindAssociationById")(pending)
         it ("should FindInboundAssociationsByElementId")(pending)
         it ("should FindOutboundAssociationsByElementId")(pending)
         it ("should FindUpStreamElementsByElementId")(pending)
         it ("should RemoveAssociationField")(pending)
-        it ("should RemoveElementField")(pending)
       }
     }
   }
