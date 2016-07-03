@@ -428,29 +428,35 @@ class WebServerDataSetSpec extends FunSpecLike with Matchers with ScalaFutures w
         import org.machine.engine.viz.GraphVizHelper
         GraphVizHelper.visualize(engine.database)
         */
-        ignore ("should FindElementById"){
+        it ("should FindElementById"){
           val dataset = engine.findDataSetByName("Bands")
           val bands = engine.onDataSet(dataset.id).elements()
-          val gnr = bands.find{ prop => prop.fields.contains("Name") &&  prop.fields("Name") == "Guns N' Roses"}
+          val gnrOpt = bands.find{ prop =>
+            prop.fields.contains("Name") &&
+            prop.fields("Name") == "Guns N' Roses"
+          }
 
-          // val request = buildWSRequest(user="Bob",
-          //   actionType="Retrieve",
-          //   scope="DataSet",
-          //   entityType="Element",
-          //   filter="ID",
-          //   options=Map("dsId" -> dataset.id,
-          //     "mid" -> xenomorph.id)
-          // )
-          //
-          // val closed:Future[Seq[Message]] = invokeWS(request, enginePath)
-          //
-          // whenReady(closed){ results =>
-          //   results should have length 2
-          //   val envelopeMap = validateOkMsg(msgToMap(results.last))
-          //   val payloadMap = strToMap(envelopeMap("textMessage").asInstanceOf[String])
-          //
-          //   println(payloadMap)
-          // }
+          val request = buildWSRequest(user="Bob",
+            actionType="Retrieve",
+            scope="DataSet",
+            entityType="Element",
+            filter="ID",
+            options=Map("dsId" -> dataset.id,
+              "mid" -> gnrOpt.get.id)
+          )
+
+          val closed:Future[Seq[Message]] = invokeWS(request, enginePath)
+
+          whenReady(closed){ results =>
+            results should have length 2
+            val envelopeMap = validateOkMsg(msgToMap(results.last))
+            val payloadMap = strToMap(envelopeMap("textMessage").asInstanceOf[String])
+
+            println(payloadMap)
+            payloadMap.contains("Elements") should equal(true)
+            val elementsList = payloadMap("Elements").asInstanceOf[List[Map[String, Any]]]
+            elementsList.length should equal(1)
+          }
         }
 
         it("should FindAllElements")(pending)
