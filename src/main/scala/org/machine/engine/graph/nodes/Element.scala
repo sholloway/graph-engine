@@ -20,7 +20,12 @@ case class Element(val id: String,
   val lastModifiedTime: String){
 
   override def toString():String = {
-    return s"Element: $id $elementType"
+    val str = s"""
+    |Element: $id $elementType
+    |Fields: ${fields.size}
+    |${fields.map{case (k,v) => s"\t$k: $v"}.mkString("\n")}
+    """.stripMargin
+    return str
   }
 
   /** Convience method for working with the element's fields.
