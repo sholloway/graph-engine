@@ -1,0 +1,9 @@
+{
+  "name": "Edit Association",
+  "description": "Update an existing association between two elements.",
+  "scope": "internal_data_set",
+  "entityType": "Association",
+  "actionType": "Update",
+  "filter": "None",
+  "decision": "EditAssociation"
+}

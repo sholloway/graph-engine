@@ -666,7 +666,7 @@ class WebServerDataSetSpec extends FunSpecLike with Matchers with ScalaFutures w
             entityType="Association",
             filter="ID",
             options=Map(
-              "associationId"  -> friendsWith.id
+              "associationId" -> friendsWith.id
             )
           )
 
@@ -683,12 +683,48 @@ class WebServerDataSetSpec extends FunSpecLike with Matchers with ScalaFutures w
             foundAssociation("startingElementId")        should equal(hanOpt.get.id)
             foundAssociation.contains("endingElementId") should equal(true)
             foundAssociation("associationType")          should equal(friendsWith.associationType)
-            foundAssociation("id")                       should equal(friendsWith.id)            
+            foundAssociation("id")                       should equal(friendsWith.id)
             foundAssociation("fields").asInstanceOf[List[Map[String, Any]]].size should equal(1)
           }
         }
 
-        it ("should EditAssociation")(pending)
+        it ("should EditAssociation"){
+          val dataset = engine.findDataSetByName("Star Wars")
+          val characters = engine.onDataSet(dataset.id).elements()
+          val hanOpt = characters.find(c => c.field[String]("Name") == "Han Solo")
+          val associations = engine.onDataSet(dataset.id)
+            .onElement(hanOpt.get.id)
+            .findOutboundAssociations()
+          associations.length should equal(1)
+          val friendsWith = associations.head
+
+          val request = buildWSRequest(user="Bob",
+            actionType="Update",
+            scope="DataSet",
+            entityType="Association",
+            filter="None",
+            options=Map(
+              "associationId"  -> friendsWith.id,
+              "friendshipType" -> "meaningful",
+              "duration"       -> "A long time."
+            )
+          )
+
+          val closed:Future[Seq[Message]] = invokeWS(request, enginePath)
+
+          whenReady(closed){ results =>
+            results should have length 2
+            val envelopeMap = validateOkMsg(msgToMap(results.last))
+            val payloadMap  = strToMap(envelopeMap("textMessage").asInstanceOf[String])
+            payloadMap.contains("id") should equal(true)
+            payloadMap("id") should equal(friendsWith.id)
+            val updatedAssoc = engine.onDataSet(dataset.id).findAssociation(friendsWith.id)
+            updatedAssoc.fields.size should equal(2)
+            updatedAssoc.field[String]("friendshipType") should equal("meaningful")
+            updatedAssoc.field[String]("duration") should equal("A long time.")
+          }
+        }
+
         it ("should RemoveAssociationField")(pending)
         it ("should DeleteAssociation")(pending)
         //merge to master
