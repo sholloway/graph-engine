@@ -761,7 +761,41 @@ class WebServerDataSetSpec extends FunSpecLike with Matchers with ScalaFutures w
           }
         }
 
-        it ("should DeleteAssociation")(pending)
+        it ("should DeleteAssociation"){
+          val dataset = engine.findDataSetByName("Star Wars")
+          val characters = engine.onDataSet(dataset.id).elements()
+          val hanOpt = characters.find(c => c.field[String]("Name") == "Han Solo")
+          val associations = engine.onDataSet(dataset.id)
+            .onElement(hanOpt.get.id)
+            .findOutboundAssociations()
+          associations.length should equal(1)
+          val friendsWith = associations.head
+
+          val request = buildWSRequest(user="Bob",
+            actionType="Delete",
+            scope="DataSet",
+            entityType="Association",
+            filter="None",
+            options=Map(
+              "associationId"  -> friendsWith.id
+            )
+          )
+
+          val closed:Future[Seq[Message]] = invokeWS(request, enginePath)
+
+          whenReady(closed){ results =>
+            results should have length 2
+            val envelopeMap = validateOkMsg(msgToMap(results.last))
+            val payloadMap  = strToMap(envelopeMap("textMessage").asInstanceOf[String])
+            payloadMap.contains("id") should equal(true)
+            payloadMap("id") should equal(friendsWith.id)
+
+            val expectedMsg = "No association with associationId: %s could be found.".format(friendsWith.id)
+            the [InternalErrorException] thrownBy{
+              engine.findAssociation(friendsWith.id)
+            }should have message expectedMsg
+          }
+        }
         //merge to master
 
         it ("should RemoveInboundAssociations")(pending)

@@ -1,0 +1,9 @@
+{
+  "name": "Delete Association",
+  "description": "Remove an association between two elements in a dataset.",
+  "scope": "internal_data_set",
+  "entityType": "Association",
+  "actionType": "Delete",
+  "filter": "None",
+  "decision": "DeleteAssociation"
+}
