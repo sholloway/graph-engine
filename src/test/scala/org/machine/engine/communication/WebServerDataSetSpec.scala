@@ -725,7 +725,42 @@ class WebServerDataSetSpec extends FunSpecLike with Matchers with ScalaFutures w
           }
         }
 
-        it ("should RemoveAssociationField")(pending)
+        it ("should RemoveAssociationField"){
+          val dataset = engine.findDataSetByName("Star Wars")
+          val characters = engine.onDataSet(dataset.id).elements()
+          val hanOpt = characters.find(c => c.field[String]("Name") == "Han Solo")
+          val associations = engine.onDataSet(dataset.id)
+            .onElement(hanOpt.get.id)
+            .findOutboundAssociations()
+          associations.length should equal(1)
+          val friendsWith = associations.head
+          friendsWith.fields.size should equal(2)
+
+          val request = buildWSRequest(user="Bob",
+            actionType="Delete",
+            scope="DataSet",
+            entityType="AssociationField",
+            filter="None",
+            options=Map(
+              "associationId"  -> friendsWith.id,
+              "duration"       -> "duration"
+            )
+          )
+
+          val closed:Future[Seq[Message]] = invokeWS(request, enginePath)
+
+          whenReady(closed){ results =>
+            results should have length 2
+            val envelopeMap = validateOkMsg(msgToMap(results.last))
+            val payloadMap  = strToMap(envelopeMap("textMessage").asInstanceOf[String])
+            payloadMap.contains("id") should equal(true)
+            payloadMap("id") should equal(friendsWith.id)
+            val updatedAssoc = engine.onDataSet(dataset.id).findAssociation(friendsWith.id)
+            updatedAssoc.fields.size should equal(1)
+            updatedAssoc.field[String]("friendshipType") should equal("meaningful")
+          }
+        }
+
         it ("should DeleteAssociation")(pending)
         //merge to master
 

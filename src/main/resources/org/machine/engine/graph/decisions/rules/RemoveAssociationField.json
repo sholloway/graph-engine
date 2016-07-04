@@ -1,0 +1,9 @@
+{
+  "name": "Remove Association Field",
+  "description": "Remove a field from an association.",
+  "scope": "internal_data_set",
+  "entityType": "AssociationField",
+  "actionType": "Delete",
+  "filter": "None",
+  "decision": "RemoveAssociationField"
+}
