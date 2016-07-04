@@ -30,7 +30,7 @@ class EditElementDefintion(database: GraphDatabaseService,
   private def editElementDefinition(graphDB:GraphDatabaseService):Unit = {
     logger.debug("EditElementDefintion: Editing element definition.")
     val prefix = "ed"
-    val exclude = List("mid")
+    val exclude = List("mid", "dsId", "dsName")
     val setClause = buildSetClause(prefix, cmdOptions.keys, exclude)
     val scope = buildScope(cmdScope, cmdOptions)
 

@@ -25,6 +25,10 @@ class AssociateElements(database:GraphDatabaseService,
 
   def execute():InsertCmdResult[String] = {
     logger.debug("CreateDataSet: Executing Command")
+    if (!cmdOptions.contains("associationId")){
+      cmdOptions.addOption("associationId", uuid)
+    }
+    cmdOptions.addOption("association_time", time)
     transaction(database, (graphDB:GraphDatabaseService) => {
       associateElements(graphDB)
     })
@@ -41,7 +45,6 @@ class AssociateElements(database:GraphDatabaseService,
     logger.debug("AssociateElements: Associating elements.")
     val associationType = buildAssociationLabel(cmdOptions)
     val exclude = List("dsId", "startingElementId", "endingElementId", "associationName")
-    cmdOptions.addOption("association_time", time)
     val setClause = buildRelationshipClause(cmdOptions.keys, exclude)
     val statement = """
       |match (ds:internal_data_set {mid:{dsId}})-[:contains]->(startingElement {mid:{startingElementId}})

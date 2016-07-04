@@ -421,13 +421,6 @@ class WebServerDataSetSpec extends FunSpecLike with Matchers with ScalaFutures w
           }
         }
 
-        /*
-        FIXME: Filter out dsName from the properties when creating an ElementDefintion.
-        */
-        /*
-        import org.machine.engine.viz.GraphVizHelper
-        GraphVizHelper.visualize(engine.database)
-        */
         it ("should FindElementById"){
           val dataset = engine.findDataSetByName("Bands")
           val bands = engine.onDataSet(dataset.id).elements()
@@ -524,7 +517,6 @@ class WebServerDataSetSpec extends FunSpecLike with Matchers with ScalaFutures w
           }
         }
 
-
         it ("should AddElementField"){
           val dataset = engine.findDataSetByName("Un-natural Disasters")
           val elements = engine.onDataSet(dataset.id).elements()
@@ -611,21 +603,69 @@ class WebServerDataSetSpec extends FunSpecLike with Matchers with ScalaFutures w
           }
         }
 
-        //merge to master...
+        it ("should AssociateElements"){
+          val dsId = engine.createDataSet("Star Wars", "Space Opera")
+          val edId = engine.onDataSet(dsId)
+            .defineElement("Character", "A person in the movie.")
+            .withProperty("Name", "String", "The name of the character.")
+          .end
 
-        it ("should AssociateElements")(pending)
+          val hanId = engine.onDataSet(dsId).provision(edId).withField("Name", "Han Solo").end
+          val chewieId = engine.onDataSet(dsId).provision(edId).withField("Name", "Chewbacca").end
+          val associationType = "friends_with"
+
+          val request = buildWSRequest(user="Bob",
+            actionType="Create",
+            scope="DataSet",
+            entityType="Association",
+            filter="None",
+            options=Map("dsId"    -> dsId,
+              "startingElementId" -> hanId,
+              "endingElementId"   -> chewieId,
+              "associationName"   -> associationType,
+              "friendshipType"    -> "best buds"
+            )
+          )
+
+          val closed:Future[Seq[Message]] = invokeWS(request, enginePath)
+
+          whenReady(closed){ results =>
+            results should have length 2
+            val envelopeMap = validateOkMsg(msgToMap(results.last))
+            val payloadMap  = strToMap(envelopeMap("textMessage").asInstanceOf[String])
+
+            payloadMap.contains("id") should equal(true)
+            val assocId           = payloadMap("id").toString
+            val friendshipEternal = engine.onDataSet(dsId).findAssociation(assocId)
+
+            friendshipEternal.id                should equal(assocId)
+            friendshipEternal.associationType   should equal(associationType)
+            friendshipEternal.startingElementId should equal(hanId)
+            friendshipEternal.endingElementId   should equal(chewieId)
+            friendshipEternal.fields.size       should equal(1)
+          }
+        }
+
+        /*
+        FIXME: Filter out dsName from the properties when creating an ElementDefintion.
+        */
+        /*
+        import org.machine.engine.viz.GraphVizHelper
+        GraphVizHelper.visualize(engine.database)
+        */
+        it ("should FindAssociationById")(pending)
         it ("should EditAssociation")(pending)
+        it ("should RemoveAssociationField")(pending)
         it ("should DeleteAssociation")(pending)
+        //merge to master
 
         it ("should RemoveInboundAssociations")(pending)
         it ("should RemoveOutboundAssociations")(pending)
 
         it ("should FindDownStreamElementsByElementId")(pending)
-        it ("should FindAssociationById")(pending)
         it ("should FindInboundAssociationsByElementId")(pending)
         it ("should FindOutboundAssociationsByElementId")(pending)
         it ("should FindUpStreamElementsByElementId")(pending)
-        it ("should RemoveAssociationField")(pending)
       }
     }
   }

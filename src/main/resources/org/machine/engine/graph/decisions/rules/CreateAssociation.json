@@ -1,0 +1,9 @@
+{
+  "name": "Create Association",
+  "description": "Associate two elements in a dataset.",
+  "scope": "internal_data_set",
+  "entityType": "Association",
+  "actionType": "Create",
+  "filter": "None",
+  "decision": "AssociateElements"
+}
