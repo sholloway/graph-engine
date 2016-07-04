@@ -1,0 +1,9 @@
+{
+  "name": "Find Association",
+  "description": "Find an association by its ID.",
+  "scope": "internal_data_set",
+  "entityType": "Association",
+  "actionType": "Retrieve",
+  "filter": "ID",
+  "decision": "FindAssociationById"
+}

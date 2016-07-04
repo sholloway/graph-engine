@@ -647,13 +647,47 @@ class WebServerDataSetSpec extends FunSpecLike with Matchers with ScalaFutures w
         }
 
         /*
-        FIXME: Filter out dsName from the properties when creating an ElementDefintion.
-        */
-        /*
         import org.machine.engine.viz.GraphVizHelper
         GraphVizHelper.visualize(engine.database)
         */
-        it ("should FindAssociationById")(pending)
+        it ("should FindAssociationById"){
+          val dataset = engine.findDataSetByName("Star Wars")
+          val characters = engine.onDataSet(dataset.id).elements()
+          val hanOpt = characters.find(c => c.field[String]("Name") == "Han Solo")
+          val associations = engine.onDataSet(dataset.id)
+            .onElement(hanOpt.get.id)
+            .findOutboundAssociations()
+          associations.length should equal(1)
+          val friendsWith = associations.head
+
+          val request = buildWSRequest(user="Bob",
+            actionType="Retrieve",
+            scope="DataSet",
+            entityType="Association",
+            filter="ID",
+            options=Map(
+              "associationId"  -> friendsWith.id
+            )
+          )
+
+          val closed:Future[Seq[Message]] = invokeWS(request, enginePath)
+
+          whenReady(closed){ results =>
+            results should have length 2
+            val envelopeMap = validateOkMsg(msgToMap(results.last))
+            val payloadMap  = strToMap(envelopeMap("textMessage").asInstanceOf[String])
+            payloadMap.contains("Associations") should equal(true)
+            val foundAssociations    = payloadMap("Associations").asInstanceOf[List[Map[String, Any]]]
+            foundAssociations.length should equal(1)
+            val foundAssociation     = foundAssociations.head
+            foundAssociation("startingElementId")        should equal(hanOpt.get.id)
+            foundAssociation.contains("endingElementId") should equal(true)
+            foundAssociation("associationType")          should equal(friendsWith.associationType)
+            foundAssociation("id")                       should equal(friendsWith.id)            
+            foundAssociation("fields").asInstanceOf[List[Map[String, Any]]].size should equal(1)
+          }
+        }
+
         it ("should EditAssociation")(pending)
         it ("should RemoveAssociationField")(pending)
         it ("should DeleteAssociation")(pending)
