@@ -1,13 +1,17 @@
 package org.machine.engine.encoder.json
 
+import org.machine.engine.graph.commands.EngineCmdResult
 import org.machine.engine.graph.nodes.ElementDefinition
 
 object ElementDefinitionJSONSerializer extends JSONSerializer[ElementDefinition]{
   import net.liftweb.json._
   import net.liftweb.json.JsonDSL._
-  def serialize(results: Seq[ElementDefinition]): String = {
+  def serialize(result: EngineCmdResult, results: Seq[ElementDefinition]): String = {
     val json =
-      ("ElementDefinitions" ->
+      (
+        ("status" -> result.status.value) ~
+        ("errorMessage" -> result.errorMessage) ~
+        ("ElementDefinitions" ->
         results.map{ ed =>
           (
             ("id" -> ed.id) ~
@@ -24,7 +28,7 @@ object ElementDefinitionJSONSerializer extends JSONSerializer[ElementDefinition]
               }
             )
           )
-        }
+        })
       )
     return prettyRender(json)
   }

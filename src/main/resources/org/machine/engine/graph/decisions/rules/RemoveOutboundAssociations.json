@@ -1,0 +1,9 @@
+{
+  "name": "Remove Outbound Associations",
+  "description": "Remove all outbound associations from an element.",
+  "scope": "internal_data_set",
+  "entityType": "OutboundAssociation",
+  "actionType": "Delete",
+  "filter": "None",
+  "decision": "RemoveOutboundAssociations"
+}

@@ -3,6 +3,7 @@ package org.machine.engine.encoder.json
 import org.scalatest._
 import org.scalatest.mock._
 
+import org.machine.engine.graph.commands.QueryCmdResult
 import org.machine.engine.graph.nodes.{Element}
 
 class ElementJSONSerializerSpec extends FunSpec with Matchers with EasyMockSugar{
@@ -12,9 +13,11 @@ class ElementJSONSerializerSpec extends FunSpec with Matchers with EasyMockSugar
         Element("2", "e2", "e2 desc", Map.empty[String,Any], "yesterday", "today"),
         Element("3", "e3", "e3 desc", Map.empty[String,Any], "yesterday", "today"))
 
-      val json = ElementJSONSerializer.serialize(elements)
+      val result = QueryCmdResult[Element](elements)
+      val json = ElementJSONSerializer.serialize(result, elements)
       val expected = """
       |{
+      |  "status": "OK",
       |  "Elements":[
       |    {
       |      "id":"1",
@@ -52,9 +55,11 @@ class ElementJSONSerializerSpec extends FunSpec with Matchers with EasyMockSugar
         Element("2", "e2", "e2 desc", Map.empty[String,Any], "yesterday", "today"),
         Element("3", "e3", "e3 desc", Map.empty[String,Any], "yesterday", "today"))
 
-      val json = ElementJSONSerializer.serialize(elements)
+      val result = QueryCmdResult[Element](elements)
+      val json = ElementJSONSerializer.serialize(result, elements)
       val expected = """
       |{
+      |  "status": "OK",
       |  "Elements":[
       |    {
       |      "id":"1",

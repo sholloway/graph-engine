@@ -2,7 +2,7 @@ package org.machine.engine.encoder.json
 
 import org.scalatest._
 import org.scalatest.mock._
-
+import org.machine.engine.graph.commands.QueryCmdResult
 import org.machine.engine.graph.nodes.{Association}
 
 class AssociationJSONSerializerSpec extends FunSpec with Matchers with EasyMockSugar{
@@ -12,9 +12,11 @@ class AssociationJSONSerializerSpec extends FunSpec with Matchers with EasyMockS
         Association("2", "a2", Map.empty[String,Any], "start","stop", "yesterday", "today"),
         Association("3", "a3", Map.empty[String,Any], "start","stop", "yesterday", "today"))
 
-      val json = AssociationJSONSerializer.serialize(elements)
+      val result = QueryCmdResult[Association](elements)
+      val json = AssociationJSONSerializer.serialize(result, elements)
       val expected = """
       |{
+      |  "status": "OK",
       |  "Associations":[
       |    {
       |      "id":"1",
@@ -55,7 +57,8 @@ class AssociationJSONSerializerSpec extends FunSpec with Matchers with EasyMockS
         Association("2", "a2", Map.empty[String,Any], "start","stop", "yesterday", "today"),
         Association("3", "a3", Map.empty[String,Any], "start","stop", "yesterday", "today"))
 
-      val json = AssociationJSONSerializer.serialize(elements)
+      val result = QueryCmdResult[Association](elements)
+      val json = AssociationJSONSerializer.serialize(result, elements)
       val expected = """
       |{
       |  "Associations":[
@@ -101,7 +104,7 @@ class AssociationJSONSerializerSpec extends FunSpec with Matchers with EasyMockS
       |    }
       |  ]
       |}
-      """      
+      """
       strip(json) should equal(strip(expected))
     }
   }

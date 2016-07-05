@@ -20,7 +20,7 @@ class CreateElementDefintion(database: GraphDatabaseService,
   cmdScope: CommandScope,
   cmdOptions: GraphCommandOptions) extends Neo4InsertCommand[String] with LazyLogging{
   import ElementDefintionWorkflowFunctions._
-  import org.machine.engine.graph.commands.workflows._ 
+  import org.machine.engine.graph.commands.workflows._
 
   def execute():InsertCmdResult[String] = {
     logger.debug("CreateElementDefintion: Executing Command")

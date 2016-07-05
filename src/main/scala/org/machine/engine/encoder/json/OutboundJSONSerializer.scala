@@ -5,27 +5,48 @@ import scala.reflect.runtime.universe._
 
 import org.machine.engine.exceptions._
 import org.machine.engine.graph.nodes._
-import org.machine.engine.graph.commands.{CommandScopes, EngineCmdResult, QueryCmdResult, UpdateCmdResult, DeleteCmdResult, InsertCmdResult}
+import org.machine.engine.graph.commands.{CommandScopes, EngineCmdResult,
+  EngineCmdResultStatuses, QueryCmdResult, UpdateCmdResult, DeleteCmdResult,
+  InsertCmdResult, DeleteSetCmdResult}
 
 object OutboundJSONSerializer{
+  import net.liftweb.json._
+  import net.liftweb.json.JsonDSL._
+
   def serialize(result: EngineCmdResult):String = {
-    result match {
-      case query:  QueryCmdResult[_]  => findSerializer(query.results)
-      case update: UpdateCmdResult[_] => serializeId(update.result)
-      case delete: DeleteCmdResult[_] => serializeId(delete.result)
-      case insert: InsertCmdResult[_] => serializeId(insert.result)
-      case _ => {
-        return throw new InternalErrorException(s"Could not find a matching JSON serializer for type $result")
+    if (result.status != EngineCmdResultStatuses.OK){
+      return serializeStatus(result)
+    }else{
+      result match {
+        case query:  QueryCmdResult[_]  => findSerializer(query, query.results)
+        case update: UpdateCmdResult[_] => serializeResult(update, update.result)
+        case delete: DeleteCmdResult[_] => serializeResult(delete, delete.result)
+        case insert: InsertCmdResult[_] => serializeResult(insert, insert.result)
+        case deleteSet: DeleteSetCmdResult => serializeStatus(deleteSet)
+        case _ => {
+          return throw new InternalErrorException(s"Could not find a matching JSON serializer for type $result")
+        }
       }
     }
   }
 
-  private def serializeId(result: Any) = {
-    s"""
-    |{
-    |  "id": "${result.toString}"
-    |}
-    """.stripMargin
+  private def serializeResult(result: EngineCmdResult, resultValue: Any):String = {
+    val json =
+      (
+        ("status" -> result.status.value) ~
+        ("errorMessage" -> result.errorMessage) ~
+        ("id" -> resultValue.toString)
+      )
+      return prettyRender(json)
+  }
+
+  private def serializeStatus(result: EngineCmdResult):String = {
+    val json =
+      (
+        ("status" -> result.status.value) ~
+        ("errorMessage" -> result.errorMessage)
+      )
+    return prettyRender(json)
   }
 
   /*
@@ -49,19 +70,19 @@ object OutboundJSONSerializer{
     }
   }
 
-  private def findSerializer(result: Seq[_]):String = {
-    if (result.isEmpty){
-      return ""
+  private def findSerializer(result: EngineCmdResult, resultValues: Seq[_]):String = {
+    if (resultValues.isEmpty){
+      return serializeStatus(result)
     }
-    val resultType = findType(result.head)
+    val resultType = findType(resultValues.head)
     val response:String = if(typeOf[DataSet] =:= resultType){
-      DataSetJSONSerializer.serialize(result.asInstanceOf[Seq[DataSet]])
+      DataSetJSONSerializer.serialize(result, resultValues.asInstanceOf[Seq[DataSet]])
     }else if(typeOf[ElementDefinition] =:= resultType){
-      ElementDefinitionJSONSerializer.serialize(result.asInstanceOf[Seq[ElementDefinition]])
+      ElementDefinitionJSONSerializer.serialize(result, resultValues.asInstanceOf[Seq[ElementDefinition]])
     }else if(typeOf[Element] =:= resultType){
-      ElementJSONSerializer.serialize(result.asInstanceOf[Seq[Element]])
+      ElementJSONSerializer.serialize(result, resultValues.asInstanceOf[Seq[Element]])
     }else if(typeOf[Association] =:= resultType){
-      AssociationJSONSerializer.serialize(result.asInstanceOf[Seq[Association]])
+      AssociationJSONSerializer.serialize(result, resultValues.asInstanceOf[Seq[Association]])
     }else{
       throw new InternalErrorException(s"Could not find a matching JSON serializer for type $resultType")
     }

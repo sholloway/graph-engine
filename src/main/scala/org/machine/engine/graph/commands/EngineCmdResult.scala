@@ -10,8 +10,8 @@ Value is of type String here due to we might expand to an HTTP style
 of codes
 */
 object EngineCmdResultStatuses{
-  case object OK extends EngineCmdResultStatus{val value = "ok"}
-  case object Error extends EngineCmdResultStatus{val value = "error"}
+  case object OK extends EngineCmdResultStatus{val value = "OK"}
+  case object Error extends EngineCmdResultStatus{val value = "ERROR"}
 }
 
 trait EngineCmdResult{
@@ -32,5 +32,9 @@ case class DeleteCmdResult[T](val result: T,
   val errorMessage:Option[String] = None) extends EngineCmdResult
 
 case class InsertCmdResult[T](val result: T,
+  val status: EngineCmdResultStatus = EngineCmdResultStatuses.OK,
+  val errorMessage:Option[String] = None) extends EngineCmdResult
+
+case class DeleteSetCmdResult(
   val status: EngineCmdResultStatus = EngineCmdResultStatuses.OK,
   val errorMessage:Option[String] = None) extends EngineCmdResult

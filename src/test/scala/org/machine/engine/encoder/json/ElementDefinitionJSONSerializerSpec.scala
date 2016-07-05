@@ -3,6 +3,7 @@ package org.machine.engine.encoder.json
 import org.scalatest._
 import org.scalatest.mock._
 
+import org.machine.engine.graph.commands.QueryCmdResult
 import org.machine.engine.graph.nodes.{ElementDefinition, PropertyDefinition}
 
 class ElementDefinitionJSONSerializerSpec extends FunSpec with Matchers with EasyMockSugar{
@@ -12,9 +13,11 @@ class ElementDefinitionJSONSerializerSpec extends FunSpec with Matchers with Eas
         ElementDefinition("2", "ed2", "ed2 desc"),
         ElementDefinition("3", "ed3", "ed3 desc"))
 
-      val json = ElementDefinitionJSONSerializer.serialize(defs)
+      val result = QueryCmdResult[ElementDefinition](defs)
+      val json = ElementDefinitionJSONSerializer.serialize(result, defs)
       val expected = """
       |{
+      |  "status": "OK",
       |  "ElementDefinitions":[
       |    {
       |      "id":"1",
@@ -47,10 +50,12 @@ class ElementDefinitionJSONSerializerSpec extends FunSpec with Matchers with Eas
         ElementDefinition("2", "ed2", "ed2 desc"),
         ElementDefinition("3", "ed3", "ed3 desc"))
 
-      val json = ElementDefinitionJSONSerializer.serialize(defs)
+      val result = QueryCmdResult[ElementDefinition](defs)
+      val json = ElementDefinitionJSONSerializer.serialize(result, defs)
 
       val expected = """
       |{
+      |  "status": "OK",
       |  "ElementDefinitions":[
       |    {
       |      "id":"1",

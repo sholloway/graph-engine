@@ -347,7 +347,7 @@ trait GraphDSL{
   def findDownStreamElements():Seq[Element]
   def findUpStreamElements():Seq[Element]
 
-  def removeInboundAssociations():Seq[Association]
+  def removeInboundAssociations()
   def removeOutboundAssociations():Seq[Association]
 }
 

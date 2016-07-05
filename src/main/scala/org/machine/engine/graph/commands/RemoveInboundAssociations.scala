@@ -4,7 +4,7 @@ import com.typesafe.scalalogging._
 import org.neo4j.graphdb._
 
 import scala.collection.JavaConversions._
-import scala.collection.mutable.{ArrayBuffer, Map}
+import scala.collection.mutable
 
 
 import org.machine.engine.exceptions._
@@ -13,33 +13,25 @@ import org.machine.engine.graph.commands._
 import org.machine.engine.graph.nodes._
 import org.machine.engine.graph.labels._
 import org.machine.engine.graph.internal._
+import org.machine.engine.graph.commands.workflows.RemoveAssociationsWorkflows
 
 class RemoveInboundAssociations(database: GraphDatabaseService,
   cmdScope: CommandScope,
-  cmdOptions: GraphCommandOptions,
-  associationIds: List[String]) extends LazyLogging{
-  import Neo4JHelper._
+  cmdOptions: GraphCommandOptions) extends InternalEngineCommand with LazyLogging{
+  import org.machine.engine.graph.commands.workflows._
+  import RemoveAssociationsWorkflows._
 
-  def execute():Unit = {
+  def execute():DeleteSetCmdResult = {
     logger.debug("RemoveInboundAssociations: Executing Command")
-    transaction(database, (graphDB: GraphDatabaseService) => {
-      deleteAssociation(graphDB, cmdOptions)
-    })
-  }
-
-  private def deleteAssociation(graphDB: GraphDatabaseService, cmdOptions: GraphCommandOptions):Unit = {
-    logger.debug("RemoveInboundAssociations: Deleting association.")
-    val statement = """
-    |match (x)-[association]->(y)
-    |where association.associationId in {existingInBoundAssociationIds}
-    | and y.mid = {elementId}
-    |delete association
-    """.stripMargin
-    val options = cmdOptions.toJavaMap
-    options.put("existingInBoundAssociationIds", associationIds)
-    run( graphDB,
-      statement,
-      options,
-      emptyResultProcessor[Association])
+    val wfResult = removeInboundAssociations((database,
+      cmdScope,
+      cmdOptions,
+      mutable.Map.empty[String, Any],
+      Left(WorkflowStatuses.OK)
+    ))
+    return wfResult._5 match {
+      case Left(status)    => DeleteSetCmdResult()
+      case Right(errorMsg) => DeleteSetCmdResult(EngineCmdResultStatuses.Error, Some(errorMsg.toString))
+    }
   }
 }
