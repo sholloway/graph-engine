@@ -1,0 +1,9 @@
+{
+  "name": "Find Inbound Association",
+  "description": "Find all inbound associations associated with a given element.",
+  "scope": "internal_data_set",
+  "entityType": "InboundAssociation",
+  "actionType": "Retrieve",
+  "filter": "None",
+  "decision": "FindInboundAssociationsByElementId"
+}

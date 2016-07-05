@@ -45,6 +45,11 @@ class WebServerDataSetSpec extends FunSpecLike with Matchers with ScalaFutures w
   val enginePath = s"ws://$host:$port/ws"
   val echoPath = s"ws://$host:$port/ws/ping"
 
+  var starwarsDsId:String = null
+  var hanId:String = null
+  var chewieId:String = null
+  var leiaId:String = null
+
   /*
   TODO Test the WebServer
   1. Get an instance of the engine.
@@ -55,6 +60,7 @@ class WebServerDataSetSpec extends FunSpecLike with Matchers with ScalaFutures w
     Engine.shutdown
     FileUtils.deleteRecursively(dbFile)
     engine = Engine.getInstance
+    createStarWarsSet()
     server.start()
   }
 
@@ -62,6 +68,20 @@ class WebServerDataSetSpec extends FunSpecLike with Matchers with ScalaFutures w
     server.stop()
     Engine.shutdown
     FileUtils.deleteRecursively(dbFile)
+  }
+
+  def createStarWarsSet() = {
+    starwarsDsId = engine.createDataSet("Star Wars", "Space Opera")
+    val charEDId = engine.onDataSet(starwarsDsId)
+      .defineElement("Character", "A person in the movie.")
+      .withProperty("Name", "String", "The name of the character.")
+    .end
+
+    hanId = engine.onDataSet(starwarsDsId).provision(charEDId).withField("Name", "Han Solo").end
+    chewieId = engine.onDataSet(starwarsDsId).provision(charEDId).withField("Name", "Chewbacca").end
+    leiaId = engine.onDataSet(starwarsDsId).provision(charEDId).withField("Name", "Princess Leia Organa").end
+    engine.inDataSet(starwarsDsId).attach(leiaId).to(hanId).as("married_to").withField("wears_the_pants", true).end
+    engine.inDataSet(starwarsDsId).attach(hanId).to(leiaId).as("married_to").end
   }
 
   describe("Receiving Requests"){
@@ -604,22 +624,13 @@ class WebServerDataSetSpec extends FunSpecLike with Matchers with ScalaFutures w
         }
 
         it ("should AssociateElements"){
-          val dsId = engine.createDataSet("Star Wars", "Space Opera")
-          val edId = engine.onDataSet(dsId)
-            .defineElement("Character", "A person in the movie.")
-            .withProperty("Name", "String", "The name of the character.")
-          .end
-
-          val hanId = engine.onDataSet(dsId).provision(edId).withField("Name", "Han Solo").end
-          val chewieId = engine.onDataSet(dsId).provision(edId).withField("Name", "Chewbacca").end
           val associationType = "friends_with"
-
           val request = buildWSRequest(user="Bob",
             actionType="Create",
             scope="DataSet",
             entityType="Association",
             filter="None",
-            options=Map("dsId"    -> dsId,
+            options=Map("dsId"    -> starwarsDsId,
               "startingElementId" -> hanId,
               "endingElementId"   -> chewieId,
               "associationName"   -> associationType,
@@ -636,7 +647,7 @@ class WebServerDataSetSpec extends FunSpecLike with Matchers with ScalaFutures w
 
             payloadMap.contains("id") should equal(true)
             val assocId           = payloadMap("id").toString
-            val friendshipEternal = engine.onDataSet(dsId).findAssociation(assocId)
+            val friendshipEternal = engine.onDataSet(starwarsDsId).findAssociation(assocId)
 
             friendshipEternal.id                should equal(assocId)
             friendshipEternal.associationType   should equal(associationType)
@@ -647,14 +658,9 @@ class WebServerDataSetSpec extends FunSpecLike with Matchers with ScalaFutures w
         }
 
         it ("should FindAssociationById"){
-          val dataset = engine.findDataSetByName("Star Wars")
-          val characters = engine.onDataSet(dataset.id).elements()
-          val hanOpt = characters.find(c => c.field[String]("Name") == "Han Solo")
-          val associations = engine.onDataSet(dataset.id)
-            .onElement(hanOpt.get.id)
-            .findOutboundAssociations()
-          associations.length should equal(1)
-          val friendsWith = associations.head
+          val associations = engine.onDataSet(starwarsDsId).onElement(hanId).findOutboundAssociations()
+          associations.length should equal(2)
+          val friendsWith = associations.find({a => a.associationType == "friends_with"}).get
 
           val request = buildWSRequest(user="Bob",
             actionType="Retrieve",
@@ -676,7 +682,7 @@ class WebServerDataSetSpec extends FunSpecLike with Matchers with ScalaFutures w
             val foundAssociations    = payloadMap("Associations").asInstanceOf[List[Map[String, Any]]]
             foundAssociations.length should equal(1)
             val foundAssociation     = foundAssociations.head
-            foundAssociation("startingElementId")        should equal(hanOpt.get.id)
+            foundAssociation("startingElementId")        should equal(hanId)
             foundAssociation.contains("endingElementId") should equal(true)
             foundAssociation("associationType")          should equal(friendsWith.associationType)
             foundAssociation("id")                       should equal(friendsWith.id)
@@ -685,14 +691,9 @@ class WebServerDataSetSpec extends FunSpecLike with Matchers with ScalaFutures w
         }
 
         it ("should EditAssociation"){
-          val dataset = engine.findDataSetByName("Star Wars")
-          val characters = engine.onDataSet(dataset.id).elements()
-          val hanOpt = characters.find(c => c.field[String]("Name") == "Han Solo")
-          val associations = engine.onDataSet(dataset.id)
-            .onElement(hanOpt.get.id)
-            .findOutboundAssociations()
-          associations.length should equal(1)
-          val friendsWith = associations.head
+          val associations = engine.onDataSet(starwarsDsId).onElement(hanId).findOutboundAssociations()
+          associations.length should equal(2)
+          val friendsWith = associations.find({a => a.associationType == "friends_with"}).get
 
           val request = buildWSRequest(user="Bob",
             actionType="Update",
@@ -714,7 +715,7 @@ class WebServerDataSetSpec extends FunSpecLike with Matchers with ScalaFutures w
             val payloadMap  = strToMap(envelopeMap("textMessage").asInstanceOf[String])
             payloadMap.contains("id") should equal(true)
             payloadMap("id") should equal(friendsWith.id)
-            val updatedAssoc = engine.onDataSet(dataset.id).findAssociation(friendsWith.id)
+            val updatedAssoc = engine.onDataSet(starwarsDsId).findAssociation(friendsWith.id)
             updatedAssoc.fields.size should equal(2)
             updatedAssoc.field[String]("friendshipType") should equal("meaningful")
             updatedAssoc.field[String]("duration") should equal("A long time.")
@@ -722,14 +723,9 @@ class WebServerDataSetSpec extends FunSpecLike with Matchers with ScalaFutures w
         }
 
         it ("should RemoveAssociationField"){
-          val dataset = engine.findDataSetByName("Star Wars")
-          val characters = engine.onDataSet(dataset.id).elements()
-          val hanOpt = characters.find(c => c.field[String]("Name") == "Han Solo")
-          val associations = engine.onDataSet(dataset.id)
-            .onElement(hanOpt.get.id)
-            .findOutboundAssociations()
-          associations.length should equal(1)
-          val friendsWith = associations.head
+          val associations = engine.onDataSet(starwarsDsId).onElement(hanId).findOutboundAssociations()
+          associations.length should equal(2)
+          val friendsWith = associations.find({a => a.associationType == "friends_with"}).get
           friendsWith.fields.size should equal(2)
 
           val request = buildWSRequest(user="Bob",
@@ -751,21 +747,16 @@ class WebServerDataSetSpec extends FunSpecLike with Matchers with ScalaFutures w
             val payloadMap  = strToMap(envelopeMap("textMessage").asInstanceOf[String])
             payloadMap.contains("id") should equal(true)
             payloadMap("id") should equal(friendsWith.id)
-            val updatedAssoc = engine.onDataSet(dataset.id).findAssociation(friendsWith.id)
+            val updatedAssoc = engine.onDataSet(starwarsDsId).findAssociation(friendsWith.id)
             updatedAssoc.fields.size should equal(1)
             updatedAssoc.field[String]("friendshipType") should equal("meaningful")
           }
         }
 
         it ("should DeleteAssociation"){
-          val dataset = engine.findDataSetByName("Star Wars")
-          val characters = engine.onDataSet(dataset.id).elements()
-          val hanOpt = characters.find(c => c.field[String]("Name") == "Han Solo")
-          val associations = engine.onDataSet(dataset.id)
-            .onElement(hanOpt.get.id)
-            .findOutboundAssociations()
-          associations.length should equal(1)
-          val friendsWith = associations.head
+          val associations = engine.onDataSet(starwarsDsId).onElement(hanId).findOutboundAssociations()
+          associations.length should equal(2)
+          val friendsWith = associations.find({a => a.associationType == "friends_with"}).get
 
           val request = buildWSRequest(user="Bob",
             actionType="Delete",
@@ -793,34 +784,45 @@ class WebServerDataSetSpec extends FunSpecLike with Matchers with ScalaFutures w
           }
         }
 
+        it ("should FindInboundAssociationsByElementId"){
+          val associations = engine.onDataSet(starwarsDsId).onElement(hanId).findInboundAssociations()
+          associations.length should equal(1) //From Leia
+
+          val request = buildWSRequest(user="Bob",
+            actionType="Retrieve",
+            scope="DataSet",
+            entityType="InboundAssociation",
+            filter="None",
+            options=Map(
+              "elementId"  -> hanId
+            )
+          )
+
+          val closed:Future[Seq[Message]] = invokeWS(request, enginePath)
+
+          whenReady(closed){ results =>
+            results should have length 2
+            val envelopeMap = validateOkMsg(msgToMap(results.last))
+            val payloadMap  = strToMap(envelopeMap("textMessage").asInstanceOf[String])
+            println(payloadMap)
+          }
+        }
+
         /*
         import org.machine.engine.viz.GraphVizHelper
         GraphVizHelper.visualize(engine.database)
         */
-        /*
-        The Problem:
-        On RemoveInboundAssociations & RemoveOutboundAssociations
-        I have put myself in a corner due to the fact that I cannot
-        add a List[String] to GraphCommandOptions.
+        ignore ("should RemoveInboundAssociations"){
+          val associations = engine.onDataSet(starwarsDsId).onElement(hanId).findInboundAssociations()
+          associations.length should equal(1)
 
-        Currently, the two commands are breaking from the convention of
-        only having three parameters. This approach is not compatible with
-        the implementation of DynamicCmdLoader.
-
-        Options:
-        - Change GraphCommandOptions to allow storing List[String].
-          This might be complicated due to erasure.
-          Wrap or assign a type for Seq[String]
-        - [X] I don't like the fact that the two commands require first looking up
-          existing associations. The command should encapsulate that.
-          As an alternative, I could rewrite the commands to do that work.
-        */
-        it ("should RemoveInboundAssociations")(pending)
+        }
 
         it ("should RemoveOutboundAssociations")(pending)
+        //Merge /w master
 
         it ("should FindDownStreamElementsByElementId")(pending)
-        it ("should FindInboundAssociationsByElementId")(pending)
+
         it ("should FindOutboundAssociationsByElementId")(pending)
         it ("should FindUpStreamElementsByElementId")(pending)
       }
