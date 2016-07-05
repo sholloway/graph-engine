@@ -515,16 +515,10 @@ class Engine private (dbPath:String, decisionTree: Question) extends GraphDSL wi
   }
 
   def removeInboundAssociations() = {
-    new RemoveInboundAssociations(database, scope, cmdOptions).execute()    
+    new RemoveInboundAssociations(database, scope, cmdOptions).execute()
   }
 
-  def removeOutboundAssociations():Seq[Association] = {
-    val result:QueryCmdResult[Association] = new FindOutboundAssociationsByElementId(database, scope, cmdOptions).execute()
-    val existingOutboundAssociations = result.results
-
-    val ids = ArrayBuffer.empty[String]
-    existingOutboundAssociations.foreach(a => ids += a.id)
-    new RemoveOutboundAssociations(database, scope, cmdOptions, ids.toList).execute()
-    return existingOutboundAssociations
+  def removeOutboundAssociations() = {
+    new RemoveOutboundAssociations(database, scope, cmdOptions).execute()    
   }
 }

@@ -4,8 +4,7 @@ import com.typesafe.scalalogging._
 import org.neo4j.graphdb._
 
 import scala.collection.JavaConversions._
-import scala.collection.mutable.{ArrayBuffer, Map}
-
+import scala.collection.mutable
 
 import org.machine.engine.exceptions._
 import org.machine.engine.graph._
@@ -13,33 +12,26 @@ import org.machine.engine.graph.commands._
 import org.machine.engine.graph.nodes._
 import org.machine.engine.graph.labels._
 import org.machine.engine.graph.internal._
+import org.machine.engine.graph.commands.workflows.RemoveAssociationsWorkflows
 
 class RemoveOutboundAssociations(database: GraphDatabaseService,
   cmdScope: CommandScope,
-  cmdOptions: GraphCommandOptions,
-  associationIds: List[String]) extends LazyLogging{
-  import Neo4JHelper._
+  cmdOptions: GraphCommandOptions) extends InternalEngineCommand with LazyLogging{
+  import org.machine.engine.graph.commands.workflows._
+  import RemoveAssociationsWorkflows._
 
-  def execute():Unit = {
+  def execute():DeleteSetCmdResult = {
     logger.debug("RemoveOutboundAssociations: Executing Command")
-    transaction(database, (graphDB: GraphDatabaseService) => {
-      deleteAssociation(graphDB, cmdOptions)
-    })
-  }
-
-  private def deleteAssociation(graphDB: GraphDatabaseService, cmdOptions: GraphCommandOptions):Unit = {
-    logger.debug("RemoveOutboundAssociations: Deleting association.")
-    val statement = """
-    |match (x)-[association]->(y)
-    |where association.associationId in {existingOutboundAssociationIds}
-    | and x.mid = {elementId}
-    |delete association
-    """.stripMargin
-    val options = cmdOptions.toJavaMap
-    options.put("existingOutboundAssociationIds", associationIds)
-    run( graphDB,
-      statement,
-      options,
-      emptyResultProcessor[Association])
+    logger.debug("RemoveInboundAssociations: Executing Command")
+    val wfResult = removeOutboundAssociations((database,
+      cmdScope,
+      cmdOptions,
+      mutable.Map.empty[String, Any],
+      Left(WorkflowStatuses.OK)
+    ))
+    return wfResult._5 match {
+      case Left(status)    => DeleteSetCmdResult()
+      case Right(errorMsg) => DeleteSetCmdResult(EngineCmdResultStatuses.Error, Some(errorMsg.toString))
+    }
   }
 }

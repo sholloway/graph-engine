@@ -838,10 +838,6 @@ class WebServerDataSetSpec extends FunSpecLike with Matchers with ScalaFutures w
           }
         }
 
-        /*
-        import org.machine.engine.viz.GraphVizHelper
-        GraphVizHelper.visualize(engine.database)
-        */
         it ("should RemoveInboundAssociations"){
           engine.onDataSet(starwarsDsId).onElement(hanId)
             .findInboundAssociations().length should equal(1)
@@ -869,7 +865,36 @@ class WebServerDataSetSpec extends FunSpecLike with Matchers with ScalaFutures w
           }
         }
 
-        it ("should RemoveOutboundAssociations")(pending)
+        /*
+        import org.machine.engine.viz.GraphVizHelper
+        GraphVizHelper.visualize(engine.database)
+        */
+        it ("should RemoveOutboundAssociations"){
+          engine.onDataSet(starwarsDsId).onElement(hanId)
+            .findOutboundAssociations().length should equal(1) //To Leia
+
+          val request = buildWSRequest(user="Bob",
+            actionType="Delete",
+            scope="DataSet",
+            entityType="OutboundAssociation",
+            filter="None",
+            options=Map(
+              "elementId"  -> hanId
+            )
+          )
+
+          val closed:Future[Seq[Message]] = invokeWS(request, enginePath)
+
+          whenReady(closed){ results =>
+            results should have length 2
+            val envelopeMap = validateOkMsg(msgToMap(results.last))
+            val payloadMap  = strToMap(envelopeMap("textMessage").asInstanceOf[String])
+            payloadMap.contains("status") should equal(true)
+            payloadMap("status").toString should equal("OK")
+            engine.onDataSet(starwarsDsId).onElement(hanId)
+              .findOutboundAssociations().length should equal(0)
+          }
+        }
         //Merge /w master
 
         it ("should FindDownStreamElementsByElementId")(pending)

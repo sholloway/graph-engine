@@ -348,7 +348,7 @@ trait GraphDSL{
   def findUpStreamElements():Seq[Element]
 
   def removeInboundAssociations()
-  def removeOutboundAssociations():Seq[Association]
+  def removeOutboundAssociations()
 }
 
 trait CmdResult{
