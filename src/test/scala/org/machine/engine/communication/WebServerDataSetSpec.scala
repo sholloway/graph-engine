@@ -851,8 +851,8 @@ class WebServerDataSetSpec extends FunSpecLike with Matchers with ScalaFutures w
         it ("should FindDownStreamElementsByElementId"){
           val downstream = engine.onDataSet(starwarsDsId).onElement(lukeId).findDownStreamElements()
           downstream.length should equal(1)
-          val r2Id = downstream.head
-          r2Id.field[String]("Name") should equal("R2D2")
+          val r2 = downstream.head
+          r2.field[String]("Name") should equal("R2D2")
 
           val request = buildWSRequest(user="Bob",
             actionType="Retrieve",
@@ -875,11 +875,40 @@ class WebServerDataSetSpec extends FunSpecLike with Matchers with ScalaFutures w
             payloadMap.contains("Elements") should equal(true)
             val elements = payloadMap("Elements").asInstanceOf[List[Map[String, Any]]]
             elements.length should equal(1)
-            elements.head("id") should equal(r2Id.id)
+            elements.head("id") should equal(r2.id)
           }
         }
 
-        it ("should FindUpStreamElementsByElementId")(pending)
+        it ("should FindUpStreamElementsByElementId"){
+          val upstream = engine.onDataSet(starwarsDsId).onElement(lukeId).findUpStreamElements()
+          upstream.length should equal(1)
+          val leia = upstream.head
+          leia.field[String]("Name") should equal("Princess Leia Organa")
+
+          val request = buildWSRequest(user="Bob",
+            actionType="Retrieve",
+            scope="DataSet",
+            entityType="Element",
+            filter="Upstream",
+            options=Map(
+              "elementId"  -> lukeId
+            )
+          )
+
+          val closed:Future[Seq[Message]] = invokeWS(request, enginePath)
+
+          whenReady(closed){ results =>
+            results should have length 2
+            val envelopeMap = validateOkMsg(msgToMap(results.last))
+            val payloadMap  = strToMap(envelopeMap("textMessage").asInstanceOf[String])
+            payloadMap.contains("status") should equal(true)
+            payloadMap("status").toString should equal("OK")
+            payloadMap.contains("Elements") should equal(true)
+            val elements = payloadMap("Elements").asInstanceOf[List[Map[String, Any]]]
+            elements.length should equal(1)
+            elements.head("id") should equal(leia.id)
+          }
+        }
 
         it ("should RemoveInboundAssociations"){
           engine.onDataSet(starwarsDsId).onElement(hanId)

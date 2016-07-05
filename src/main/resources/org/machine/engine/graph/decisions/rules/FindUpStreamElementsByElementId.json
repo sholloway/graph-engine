@@ -5,5 +5,5 @@
   "entityType": "Element",
   "actionType": "Retrieve",
   "filter": "Upstream",
-  "decision": "FindDownStreamElementsByElementId"
+  "decision": "FindUpStreamElementsByElementId"
 }
