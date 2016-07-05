@@ -29,6 +29,7 @@ package object workflows{
   val DataSetFilterRequiredErrorMsg             = "For scope type DataSet, either dsId or dsName must be provided."
   val ElementDefinitionCreationFailureErrorMsg  = "Internal Error: Element Definition could not be created."
   val PropertyDefinitionCreationFailureErrorMsg = "Internal Error: Property Definition could not be created."
+  val ElementIdMissingErrorMsg                  = "The option elementId is required."
 
   val CreateElementDefintionStmt  = "createElementDefinitionStmt"
   val ElementDefinitionId         = "edId"
@@ -44,6 +45,7 @@ package object workflows{
   val ElementDescriptionField     = "element_description"
   val CreationTimeField           = "creation_time"
   val LastModifiedTimeField       = "last_modified_time"
+  val ElementId                   = "elementId"
 
   def generateScopeFilter(cmdScope: CommandScope, options: GraphCommandOptions):String = {
     val filter = cmdScope match {

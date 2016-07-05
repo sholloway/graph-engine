@@ -646,10 +646,6 @@ class WebServerDataSetSpec extends FunSpecLike with Matchers with ScalaFutures w
           }
         }
 
-        /*
-        import org.machine.engine.viz.GraphVizHelper
-        GraphVizHelper.visualize(engine.database)
-        */
         it ("should FindAssociationById"){
           val dataset = engine.findDataSetByName("Star Wars")
           val characters = engine.onDataSet(dataset.id).elements()
@@ -796,9 +792,31 @@ class WebServerDataSetSpec extends FunSpecLike with Matchers with ScalaFutures w
             }should have message expectedMsg
           }
         }
-        //merge to master
 
+        /*
+        import org.machine.engine.viz.GraphVizHelper
+        GraphVizHelper.visualize(engine.database)
+        */
+        /*
+        The Problem:
+        On RemoveInboundAssociations & RemoveOutboundAssociations
+        I have put myself in a corner due to the fact that I cannot
+        add a List[String] to GraphCommandOptions.
+
+        Currently, the two commands are breaking from the convention of
+        only having three parameters. This approach is not compatible with
+        the implementation of DynamicCmdLoader.
+
+        Options:
+        - Change GraphCommandOptions to allow storing List[String].
+          This might be complicated due to erasure.
+          Wrap or assign a type for Seq[String]
+        - [X] I don't like the fact that the two commands require first looking up
+          existing associations. The command should encapsulate that.
+          As an alternative, I could rewrite the commands to do that work.
+        */
         it ("should RemoveInboundAssociations")(pending)
+
         it ("should RemoveOutboundAssociations")(pending)
 
         it ("should FindDownStreamElementsByElementId")(pending)

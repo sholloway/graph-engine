@@ -309,6 +309,7 @@ trait GraphDSL{
   def createDataSet(name:String, description:String):String
   def datasets():Seq[DataSet]
   def onDataSet(id: String):GraphDSL
+  def inDataSet(id: String):GraphDSL = onDataSet(id)
   def onDataSetByName(name: String):GraphDSL
   def findDataSetByName(name:String):DataSet
   def findDataSetById(id: String):DataSet
