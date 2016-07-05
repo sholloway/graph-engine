@@ -83,15 +83,13 @@ class WebServerSystemSpaceSpec extends FunSpecLike with Matchers with ScalaFutur
           val closed:Future[Seq[Message]] = invokeWS(request, enginePath)
 
           whenReady(closed){ results =>
-            println(results)
             results should have length 2
             val envelopeMap = msgToMap(results.last)
             envelopeMap("status") should equal("Ok")
             envelopeMap("messageType") should equal("CmdResult")
             val payloadMap = strToMap(envelopeMap("textMessage").asInstanceOf[String])
             payloadMap.contains("id") should equal(true)
-            val edId = payloadMap("id").asInstanceOf[String]
-            println("The ED ID was: "+edId)
+            val edId = payloadMap("id").asInstanceOf[String]            
             val ed = engine.inSystemSpace.findElementDefinitionById(edId)
             ed.name should equal("Mobile Device")
             ed.description should equal("A computer that can be carried by the user.")
@@ -141,8 +139,10 @@ class WebServerSystemSpaceSpec extends FunSpecLike with Matchers with ScalaFutur
             val envelopeMap = msgToMap(results.last)
             envelopeMap("status") should equal("Ok")
             envelopeMap("messageType") should equal("CmdResult")
-            val payload = envelopeMap("textMessage").asInstanceOf[String]
-            payload.isEmpty should equal(true)
+            val payloadMap = strToMap(envelopeMap("textMessage").asInstanceOf[String])
+            payloadMap.contains("ElementDefinitions") should equal(false)
+            payloadMap.contains("status") should equal(true)
+            payloadMap("status").toString should equal("OK")
           }
         }
 

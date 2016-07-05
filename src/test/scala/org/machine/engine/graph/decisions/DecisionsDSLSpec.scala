@@ -107,14 +107,14 @@ class DecisionsDSLSpec extends FunSpec with Matchers with EasyMockSugar with Bef
     /* FIXME Replace this.
     This is a a worthless test.
     */
-    it("should draw the tree"){
+    ignore("should draw the tree"){
       DecisionDSL.drawTree(tree,0, new ConsolePlotter())
     }
 
     /* FIXME Replace this.
     This is a a worthless test.
     */
-    it("should build the tree from the rules"){
+    ignore("should build the tree from the rules"){
       val diagram = DecisionDSL.createDotFile(tree)
       Console.println(diagram)
       val expected = """

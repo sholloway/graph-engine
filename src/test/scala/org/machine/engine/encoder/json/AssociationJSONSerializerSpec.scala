@@ -61,6 +61,7 @@ class AssociationJSONSerializerSpec extends FunSpec with Matchers with EasyMockS
       val json = AssociationJSONSerializer.serialize(result, elements)
       val expected = """
       |{
+      |  "status": "OK",
       |  "Associations":[
       |    {
       |      "id":"1",

@@ -16,6 +16,7 @@ class OutboundJSONSerializerSpec extends FunSpec with Matchers with EasyMockSuga
       val json = OutboundJSONSerializer.serialize(QueryCmdResult[Association](elements))
       val expected = """
       |{
+      |  "status": "OK",
       |  "Associations":[
       |    {
       |      "id":"1",
@@ -54,6 +55,7 @@ class OutboundJSONSerializerSpec extends FunSpec with Matchers with EasyMockSuga
       val json = OutboundJSONSerializer.serialize(UpdateCmdResult[String]("identifier"))
       val expected = """
       |{
+      | "status": "OK",
       | "id": "identifier"
       |}
       """
@@ -64,6 +66,7 @@ class OutboundJSONSerializerSpec extends FunSpec with Matchers with EasyMockSuga
       val json = OutboundJSONSerializer.serialize(DeleteCmdResult[String]("identifier"))
       val expected = """
       |{
+      | "status": "OK",
       | "id": "identifier"
       |}
       """
@@ -74,6 +77,7 @@ class OutboundJSONSerializerSpec extends FunSpec with Matchers with EasyMockSuga
       val json = OutboundJSONSerializer.serialize(InsertCmdResult[String]("identifier"))
       val expected = """
       |{
+      | "status": "OK",
       | "id": "identifier"
       |}
       """
