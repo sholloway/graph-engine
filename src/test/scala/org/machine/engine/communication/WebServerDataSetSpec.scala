@@ -804,7 +804,37 @@ class WebServerDataSetSpec extends FunSpecLike with Matchers with ScalaFutures w
             results should have length 2
             val envelopeMap = validateOkMsg(msgToMap(results.last))
             val payloadMap  = strToMap(envelopeMap("textMessage").asInstanceOf[String])
-            println(payloadMap)
+            payloadMap.contains("Associations") should equal(true)
+            val assocs = payloadMap("Associations").asInstanceOf[List[Map[String, Any]]]
+            assocs.length should equal(1)
+            assocs.head("associationType").toString should equal("married_to")
+          }
+        }
+
+        it ("should FindOutboundAssociationsByElementId"){
+          val associations = engine.onDataSet(starwarsDsId).onElement(leiaId).findInboundAssociations()
+          associations.length should equal(1) //To Han
+
+          val request = buildWSRequest(user="Bob",
+            actionType="Retrieve",
+            scope="DataSet",
+            entityType="OutboundAssociation",
+            filter="None",
+            options=Map(
+              "elementId"  -> leiaId
+            )
+          )
+
+          val closed:Future[Seq[Message]] = invokeWS(request, enginePath)
+
+          whenReady(closed){ results =>
+            results should have length 2
+            val envelopeMap = validateOkMsg(msgToMap(results.last))
+            val payloadMap  = strToMap(envelopeMap("textMessage").asInstanceOf[String])
+            payloadMap.contains("Associations") should equal(true)
+            val assocs = payloadMap("Associations").asInstanceOf[List[Map[String, Any]]]
+            assocs.length should equal(1)
+            assocs.head("associationType").toString should equal("married_to")
           }
         }
 
@@ -823,7 +853,6 @@ class WebServerDataSetSpec extends FunSpecLike with Matchers with ScalaFutures w
 
         it ("should FindDownStreamElementsByElementId")(pending)
 
-        it ("should FindOutboundAssociationsByElementId")(pending)
         it ("should FindUpStreamElementsByElementId")(pending)
       }
     }
