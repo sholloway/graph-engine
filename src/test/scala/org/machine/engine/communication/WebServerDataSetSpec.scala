@@ -49,6 +49,8 @@ class WebServerDataSetSpec extends FunSpecLike with Matchers with ScalaFutures w
   var hanId:String = null
   var chewieId:String = null
   var leiaId:String = null
+  var lukeId:String = null
+  var r2Id:String = null
 
   /*
   TODO Test the WebServer
@@ -80,8 +82,13 @@ class WebServerDataSetSpec extends FunSpecLike with Matchers with ScalaFutures w
     hanId = engine.onDataSet(starwarsDsId).provision(charEDId).withField("Name", "Han Solo").end
     chewieId = engine.onDataSet(starwarsDsId).provision(charEDId).withField("Name", "Chewbacca").end
     leiaId = engine.onDataSet(starwarsDsId).provision(charEDId).withField("Name", "Princess Leia Organa").end
+    lukeId = engine.onDataSet(starwarsDsId).provision(charEDId).withField("Name", "Luke Skywalker").end
+    r2Id = engine.onDataSet(starwarsDsId).provision(charEDId).withField("Name", "R2D2").end
+
     engine.inDataSet(starwarsDsId).attach(leiaId).to(hanId).as("married_to").withField("wears_the_pants", true).end
     engine.inDataSet(starwarsDsId).attach(hanId).to(leiaId).as("married_to").end
+    engine.inDataSet(starwarsDsId).attach(leiaId).to(lukeId).as("related_to").withField("wears_the_pants", true).end
+    engine.inDataSet(starwarsDsId).attach(lukeId).to(r2Id).as("friends_with").end
   }
 
   describe("Receiving Requests"){
@@ -812,8 +819,8 @@ class WebServerDataSetSpec extends FunSpecLike with Matchers with ScalaFutures w
         }
 
         it ("should FindOutboundAssociationsByElementId"){
-          val associations = engine.onDataSet(starwarsDsId).onElement(leiaId).findInboundAssociations()
-          associations.length should equal(1) //To Han
+          val associations = engine.onDataSet(starwarsDsId).onElement(leiaId).findOutboundAssociations()
+          associations.length should equal(2) //To Han & Luke
 
           val request = buildWSRequest(user="Bob",
             actionType="Retrieve",
@@ -833,10 +840,46 @@ class WebServerDataSetSpec extends FunSpecLike with Matchers with ScalaFutures w
             val payloadMap  = strToMap(envelopeMap("textMessage").asInstanceOf[String])
             payloadMap.contains("Associations") should equal(true)
             val assocs = payloadMap("Associations").asInstanceOf[List[Map[String, Any]]]
-            assocs.length should equal(1)
-            assocs.head("associationType").toString should equal("married_to")
+            assocs.length should equal(2) //Han & Luke
           }
         }
+
+        /*
+        import org.machine.engine.viz.GraphVizHelper
+        GraphVizHelper.visualize(engine.database)
+        */
+        it ("should FindDownStreamElementsByElementId"){
+          val downstream = engine.onDataSet(starwarsDsId).onElement(lukeId).findDownStreamElements()
+          downstream.length should equal(1)
+          val r2Id = downstream.head
+          r2Id.field[String]("Name") should equal("R2D2")
+
+          val request = buildWSRequest(user="Bob",
+            actionType="Retrieve",
+            scope="DataSet",
+            entityType="Element",
+            filter="Downstream",
+            options=Map(
+              "elementId"  -> lukeId
+            )
+          )
+
+          val closed:Future[Seq[Message]] = invokeWS(request, enginePath)
+
+          whenReady(closed){ results =>
+            results should have length 2
+            val envelopeMap = validateOkMsg(msgToMap(results.last))
+            val payloadMap  = strToMap(envelopeMap("textMessage").asInstanceOf[String])
+            payloadMap.contains("status") should equal(true)
+            payloadMap("status").toString should equal("OK")
+            payloadMap.contains("Elements") should equal(true)
+            val elements = payloadMap("Elements").asInstanceOf[List[Map[String, Any]]]
+            elements.length should equal(1)
+            elements.head("id") should equal(r2Id.id)
+          }
+        }
+
+        it ("should FindUpStreamElementsByElementId")(pending)
 
         it ("should RemoveInboundAssociations"){
           engine.onDataSet(starwarsDsId).onElement(hanId)
@@ -865,10 +908,6 @@ class WebServerDataSetSpec extends FunSpecLike with Matchers with ScalaFutures w
           }
         }
 
-        /*
-        import org.machine.engine.viz.GraphVizHelper
-        GraphVizHelper.visualize(engine.database)
-        */
         it ("should RemoveOutboundAssociations"){
           engine.onDataSet(starwarsDsId).onElement(hanId)
             .findOutboundAssociations().length should equal(1) //To Leia
@@ -895,11 +934,6 @@ class WebServerDataSetSpec extends FunSpecLike with Matchers with ScalaFutures w
               .findOutboundAssociations().length should equal(0)
           }
         }
-        //Merge /w master
-
-        it ("should FindDownStreamElementsByElementId")(pending)
-
-        it ("should FindUpStreamElementsByElementId")(pending)
       }
     }
   }

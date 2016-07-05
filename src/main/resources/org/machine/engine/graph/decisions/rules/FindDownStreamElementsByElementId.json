@@ -1,0 +1,9 @@
+{
+  "name": "Find Downstream Elements",
+  "description": "Find all elements that are one association downstream.",
+  "scope": "internal_data_set",
+  "entityType": "Element",
+  "actionType": "Retrieve",
+  "filter": "Downstream",
+  "decision": "FindDownStreamElementsByElementId"
+}
