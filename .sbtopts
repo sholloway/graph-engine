@@ -1,0 +1,42 @@
+# Because the test suite makes heavy use of Neo4J, the tests are not run in
+# parallel. This in turn requires that JVM options be configured at a project
+# level rather than per fork.
+
+# Resources
+# http://blog.sokolenko.me/2014/11/javavm-options-production.html
+
+# Enable profiler on SBT.
+#-J-Xprof
+
+# Specify minimal and maximal heap size.
+# -J-Xms<heap size>[g|m|k] -Xmx<heap size>[g|m|k]
+
+# By default Metaspace in Java VM 8 is not limited, though for the sake of
+# system stability it makes sense to limit it with some finite value.
+# -J-XX:MaxMetaspaceSize=<metaspace size>[g|m|k]
+
+# Explicitely define size of the young generation.
+# -J-Xmn<young size>[g|m|k]
+
+# Ratio which determines size of the survivour space relatively to eden size.
+# Ratio can be calculated using following formula:
+# 𝚜𝚞𝚛𝚟𝚒𝚟𝚘𝚛 𝚛𝚊𝚝𝚒𝚘 = 𝚢𝚘𝚞𝚗𝚐 𝚜𝚒𝚣𝚎/(𝚜𝚞𝚛𝚟𝚒𝚟𝚘𝚛 𝚜𝚒𝚣𝚎−2)
+# http://www.oracle.com/technetwork/java/javase/gc-tuning-6-140523.html
+# http://javaeesupportpatterns.blogspot.com/2013/02/java-8-from-permgen-to-metaspace.html
+# -J-XX:SurvivorRatio=<ratio>
+
+# Tune the GC
+# http://docs.oracle.com/javase/8/docs/technotes/guides/vm/gctuning/index.html
+# -J-XX:+UseConcMarkSweepGC -XX:+CMSParallelRemarkEnabled
+# -J-XX:+UseCMSInitiatingOccupancyOnly -XX:CMSInitiatingOccupancyFraction=<percent>
+# -J-XX:+ScavengeBeforeFullGC -XX:+CMSScavengeBeforeRemark
+
+# GC Logging
+# http://www.oracle.com/technetwork/java/javase/tech/vmoptions-jsp-140102.html
+# http://176.34.122.30/blog/2010/05/26/human-readable-jvm-gc-timestamps/
+# -J-XX:+PrintGCDateStamps -verbose:gc -XX:+PrintGCDetails -Xloggc:"<path to log>"
+# -J-XX:+UseGCLogFileRotation -XX:NumberOfGCLogFiles=10 -XX:GCLogFileSize=100M
+
+
+# Dump on out of memory
+-J-XX:+HeapDumpOnOutOfMemoryError -XX:HeapDumpPath=/tmp/machine-engine/heap-dump/`date`.hprof

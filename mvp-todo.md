@@ -14,7 +14,6 @@ The list of features that version 0.1.0 shall be composed of.
 ## Supporting Tasks
 The list of general tasks that must be completed for version 0.1.0 to be considered done.
 * [ ] Fix Akka Streams memory leak. (http://www.cubrid.org/blog/dev-platform/how-to-monitor-java-garbage-collection/)
-* [ ] Add license file and license headers.
 * [ ] Change Akka Streams to be asynchronous.
 * [ ] Change Akka Streams to leverage the worker pool pattern.
 * [ ] Leverage sbt assembly to create an executable self contained jar.
@@ -25,7 +24,7 @@ The list of general tasks that must be completed for version 0.1.0 to be conside
 * [ ] Add TLS support for WebSocket connection.
 * [ ] Register the Neo4J shutdown with the JVM shutdown like in the example.
 * [ ] Upgrade to Neo4J 3.
-* [ ] Travis.CI integration.
+* [ ] Travis.CI integration. (http://www.scala-sbt.org/0.13/docs/Travis-CI-with-sbt.html)
 * [ ] Document WebSocket protocol.
 * [ ] Scaladoc documentation for all classes.
 * [ ] Host scaladocs. Potentially leverage sbt plugin: sbt-ghpages
@@ -47,6 +46,7 @@ The list of general tasks that must be completed for version 0.1.0 to be conside
 * [ ] Leverage https://www.scalacheck.org/ for testing the API.
 * [ ] Consider using https://github.com/os72/protoc-jar or something similar to remove protoc dependency.
 * [ ] Update diagrams to show concurrency. (ActorSystem, ActorRef, EventBus...)
+* [X] Add license file and license headers.
 * [X] Define outbound protocol contract.
 * [X] Implement finding associations on a given Element.
 * [X] Code Coverage above 80%.
