@@ -13,11 +13,11 @@ The list of features that version 0.1.0 shall be composed of.
 
 ## Supporting Tasks
 The list of general tasks that must be completed for version 0.1.0 to be considered done.
-* [ ] Leverage sbt assembly to create an executable self contained jar.
-* [ ] Create Main class.
+* [X] Leverage sbt assembly to create an executable self contained jar.
+* [X] Create Main class.
 * [ ] Create WebSocket shutdown command to allow the Master client to shut the server down.
   * Note: This should only be allowed for initiating client.
-* [ ] Fix Akka Streams memory leak. (http://www.cubrid.org/blog/dev-platform/how-to-monitor-java-garbage-collection/)
+* [X] Fix Akka Streams memory leak. (http://www.cubrid.org/blog/dev-platform/how-to-monitor-java-garbage-collection/)
 * [ ] Change Akka Streams to be asynchronous.
 * [ ] Change Akka Streams to leverage the worker pool pattern.
 * [ ] Put creationTime & lastModifiedTime on ElementDefintion.
