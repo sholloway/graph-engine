@@ -14,6 +14,7 @@ import scala.collection.JavaConversions._
 import scala.collection.mutable.{ArrayBuffer, Map}
 
 import org.machine.engine.Engine
+import org.machine.engine.TestUtils
 import org.machine.engine.graph._
 import org.machine.engine.exceptions._
 import org.machine.engine.graph.nodes._
@@ -21,7 +22,7 @@ import org.machine.engine.graph.nodes._
 
 class ElementAssociationsSpec extends FunSpec with Matchers with EasyMockSugar with BeforeAndAfterAll{
   import Neo4JHelper._
-  val dbFile = new File(Engine.databasePath)
+  import TestUtils._
   var engine:Engine = null
   var systemsDataSetId:String = null
   var noteElementDefininitionId:String = null
@@ -35,9 +36,8 @@ class ElementAssociationsSpec extends FunSpec with Matchers with EasyMockSugar w
   var bizCapId:String = null
 
   override def beforeAll(){
-    Engine.shutdown
-    FileUtils.deleteRecursively(dbFile)
     engine = Engine.getInstance
+    perge
     systemsDataSetId = engine.createDataSet("System Under Review", "System that need to be reviewed.")
     noteElementDefininitionId = engine
       .onDataSet(systemsDataSetId)
@@ -105,8 +105,7 @@ class ElementAssociationsSpec extends FunSpec with Matchers with EasyMockSugar w
   }
 
   override def afterAll(){
-    Engine.shutdown
-    FileUtils.deleteRecursively(dbFile)
+    perge
   }
 
   describe("Machine Engine"){

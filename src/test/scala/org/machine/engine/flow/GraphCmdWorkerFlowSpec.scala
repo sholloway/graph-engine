@@ -19,29 +19,27 @@ import org.neo4j.io.fs.FileUtils
 import com.typesafe.config._
 
 import org.machine.engine.Engine
+import org.machine.engine.TestUtils
 import org.machine.engine.flow.requests._
 
 class GraphCmdWorkerFlowSpec extends TestKit(ActorSystem("GraphCmdWorkerFlowSpec")) with ImplicitSender
   with FunSpecLike with Matchers with BeforeAndAfterAll{
+  import TestUtils._
   private val config = ConfigFactory.load()
-  val dbPath = config.getString("engine.graphdb.path")
-  val dbFile = new File(dbPath)
   var engine:Engine = null
   var notesDataSetId:String = null
   var noteElementDefininitionId:String = null
 
 
   override def beforeAll(){
-    Engine.shutdown
-    FileUtils.deleteRecursively(dbFile)
     engine = Engine.getInstance
+    perge
     notesDataSetId = engine.createDataSet("notes", "My collection of notes.")
   }
 
   override def afterAll(){
     TestKit.shutdownActorSystem(system)
-    Engine.shutdown
-    FileUtils.deleteRecursively(dbFile)
+    perge
   }
 
   describe("Graph Command Worker Flow"){

@@ -21,6 +21,7 @@ import scala.concurrent.{ExecutionContext, Future}
 
 import com.typesafe.config._
 import org.machine.engine.Engine
+import org.machine.engine.TestUtils
 import org.machine.engine.exceptions._
 import org.machine.engine.graph.commands.CommandScopes
 import org.machine.engine.graph.nodes._
@@ -28,7 +29,8 @@ import org.machine.engine.flow.requests._
 
 class WebServerUserSpaceSpec extends FunSpecLike with Matchers with ScalaFutures with BeforeAndAfterAll{
   import WSHelper._
-
+  import TestUtils._
+  
   //Configure the whenReady for how long to wait.
   implicit val defaultPatience = PatienceConfig(timeout = Span(5, Seconds), interval = Span(500, Millis))
 
@@ -45,23 +47,15 @@ class WebServerUserSpaceSpec extends FunSpecLike with Matchers with ScalaFutures
   val enginePath = s"ws://$host:$port/ws"
   val echoPath = s"ws://$host:$port/ws/ping"
 
-  /*
-  TODO Test the WebServer
-  1. Get an instance of the engine.
-  2. Create a set of data that can be used for all 36 commands.
-  3. Test the execution of all 41 rules (36 commands).
-  */
   override def beforeAll(){
-    Engine.shutdown
-    FileUtils.deleteRecursively(dbFile)
     engine = Engine.getInstance
+    perge
     server.start()
   }
 
   override def afterAll(){
     server.stop()
-    Engine.shutdown
-    FileUtils.deleteRecursively(dbFile)
+    perge
   }
 
   describe("Receiving Requests"){

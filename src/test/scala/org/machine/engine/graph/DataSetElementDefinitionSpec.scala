@@ -14,24 +14,23 @@ import scala.collection.JavaConversions._
 import scala.collection.mutable.{ArrayBuffer, Map}
 
 import org.machine.engine.Engine
+import org.machine.engine.TestUtils
 import org.machine.engine.graph._
 import org.machine.engine.exceptions._
 import org.machine.engine.graph.nodes._
 
 class DataSetElementDefinitionSpec extends FunSpec with Matchers with EasyMockSugar with BeforeAndAfterAll{
   import Neo4JHelper._
-  val dbFile = new File(Engine.databasePath)
+  import TestUtils._
   var engine:Engine = null
 
   override def beforeAll(){
-    Engine.shutdown
-    FileUtils.deleteRecursively(dbFile)
     engine = Engine.getInstance
+    perge
   }
 
   override def afterAll(){
-    Engine.shutdown
-    FileUtils.deleteRecursively(dbFile)
+    perge
   }
 
   describe("Machine Engine"){
@@ -254,7 +253,7 @@ class DataSetElementDefinitionSpec extends FunSpec with Matchers with EasyMockSu
           the [InternalErrorException] thrownBy{
             engine
               .onDataSetByName(datasetName)
-              .findElementDefinitionByName(archPrinciple.name)            
+              .findElementDefinitionByName(archPrinciple.name)
           }should have message Engine.EmptyResultErrorMsg
         }
 

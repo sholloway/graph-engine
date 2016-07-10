@@ -20,6 +20,7 @@ import scala.concurrent.duration._
 import scala.concurrent.{ExecutionContext, Future}
 
 import com.typesafe.config._
+import org.machine.engine.TestUtils
 import org.machine.engine.Engine
 import org.machine.engine.exceptions._
 import org.machine.engine.graph.commands.{CommandScopes}
@@ -28,6 +29,7 @@ import org.machine.engine.flow.requests._
 
 class WebServerDataSetSpec extends FunSpecLike with Matchers with ScalaFutures with BeforeAndAfterAll{
   import WSHelper._
+  import TestUtils._
 
   //Configure the whenReady for how long to wait.
   implicit val defaultPatience = PatienceConfig(timeout = Span(5, Seconds), interval = Span(500, Millis))
@@ -59,17 +61,15 @@ class WebServerDataSetSpec extends FunSpecLike with Matchers with ScalaFutures w
   3. Test the execution of all 41 rules (36 commands).
   */
   override def beforeAll(){
-    Engine.shutdown
-    FileUtils.deleteRecursively(dbFile)
     engine = Engine.getInstance
+    perge
     createStarWarsSet()
     server.start()
   }
 
   override def afterAll(){
     server.stop()
-    Engine.shutdown
-    FileUtils.deleteRecursively(dbFile)
+    perge
   }
 
   def createStarWarsSet() = {

@@ -29,7 +29,7 @@ object Engine{
 
   private val config = ConfigFactory.load()
   private val dbPath = config.getString("engine.graphdb.path")
-  private var engine:Option[Engine] = None
+  private implicit var engine:Option[Engine] = None
 
   def getInstance: Engine = {
     if(engine == None){
@@ -37,14 +37,16 @@ object Engine{
       val path = url.getPath()
       val decisionTree = DecisionDSL.buildDecisionTreeFromRules(path)
       engine = Some(new Engine(dbPath, decisionTree))
+      sys.addShutdownHook(shutdown)
     }
     engine.get
   }
 
   /*
-  TODO Remove shutdown method to force singleton use.
+  TODO Make private to force singleton use.
   */
-  def shutdown = {
+  private def shutdown = {
+    Console.println("Neo4J Shutting Down")
     engine.foreach(_.shutdown())
     engine = None
   }
@@ -102,14 +104,6 @@ class Engine private (dbPath:String, decisionTree: Question) extends GraphDSL wi
     }
   }
 
-  /*
-  TODO: Configure DB
-  https://stackoverflow.com/questions/13087054/neo4j-log-level-in-embedded-mode
-  Remove Init code from the Engine class. Rather create an Engine object that
-  in it's apply method intialized the database and keeps a reference to the
-  GraphDatabaseService instance. Use the singleton pattern. There should only
-  be one running instance of the GraphDatabaseService.
-  */
   private def initializeDatabase(dbPath: String) = {
     logger.debug("Engine: Initializing Database")
     val dbFile = new File(dbPath)
@@ -519,6 +513,6 @@ class Engine private (dbPath:String, decisionTree: Question) extends GraphDSL wi
   }
 
   def removeOutboundAssociations() = {
-    new RemoveOutboundAssociations(database, scope, cmdOptions).execute()    
+    new RemoveOutboundAssociations(database, scope, cmdOptions).execute()
   }
 }

@@ -18,6 +18,16 @@ lazy val sbtAssemblySettings = Seq(
 	assemblyJarName in assembly := s"${name.value}"
 )
 
+//skip tests during assembly process
+test in assembly := {}
+
+assemblyMergeStrategy in assembly := {
+	case PathList("META-INF", "LICENSES.txt")  => MergeStrategy.discard
+	case x =>
+		val oldStrategy = (assemblyMergeStrategy in assembly).value
+		oldStrategy(x)
+}
+
 import sbtprotobuf.{ProtobufPlugin=>PB}
 PB.protobufSettings
 
@@ -26,7 +36,7 @@ parallelExecution in Test := false
 
 resolvers += "Typesafe Repository" at "http://repo.typesafe.com/typesafe/releases/"
 resolvers += Resolver.bintrayRepo("commercetools", "maven") //For sphere-json
-libraryDependencies += "com.eed3si9n" % "sbt-assembly" % "0.14.1" from "http://dl.bintray.com/sbt/sbt-plugin-releases/com.eed3si9n/sbt-assembly/scala_2.10/sbt_0.13/0.14.1/jars/sbt-assembly.jar"
+// libraryDependencies += "com.eed3si9n" % "sbt-assembly" % "0.14.3" from "https://dl.bintray.com/sbt/sbt-plugin-releases/com.eed3si9n/sbt-assembly/scala_2.11/sbt_1.0.0-M4/0.14.3/jars/sbt-assembly.jar"
 
 //Load everything and set project settings
 lazy val root = (project in file(".")).

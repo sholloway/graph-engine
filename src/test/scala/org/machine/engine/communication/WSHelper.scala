@@ -9,22 +9,59 @@ import akka.http.scaladsl.model._
 import akka.http.scaladsl.model.ws._
 import akka.http.scaladsl.unmarshalling.Unmarshal
 import akka.http.scaladsl.model.headers.{ BasicHttpCredentials, Authorization }
+import akka.util.ByteString
 import net.liftweb.json._
 import net.liftweb.json.DefaultFormats
 
 import org.scalatest._
+import org.scalatest.concurrent.ScalaFutures
 import scala.concurrent.{ExecutionContext, Future}
+import scala.concurrent.duration._
 
 import org.machine.engine.Engine
 import org.machine.engine.flow.requests._
+import org.machine.engine.graph.Neo4JHelper
 import org.machine.engine.graph.commands.{CommandScope, CommandScopes}
 
 object WSHelper{
   import Matchers._
+  import ScalaFutures._
+  import HttpMethods._
+  import Neo4JHelper._
+
   implicit val system = ActorSystem()
   implicit val materializer = ActorMaterializer()
   // implicit val ec: ExecutionContext = scala.concurrent.ExecutionContext.Implicits.global
   import system.dispatcher
+
+  def getHTTP(url:String):Future[HttpResponse] = {
+    return Http().singleRequest(HttpRequest(GET, uri = url))
+  }
+
+  def normalize(msg: String):String = {
+    msg.replaceAll("\t","").replaceAll("\n","").replaceAll(" ", "")
+  }
+
+  def verifyHTTPRequest(responseFuture: Future[HttpResponse],
+    expected: String, timeout: FiniteDuration, log: Boolean = false) = {
+    whenReady(responseFuture) { response =>
+      response match {
+        case HttpResponse(StatusCodes.OK, headers, entity, _) => {
+          val bs: Future[ByteString] = entity.toStrict(timeout).map { _.data }
+          val s: Future[String] = bs.map(_.utf8String)
+          whenReady(s){ payload =>
+            if(log){
+              println(payload)
+            }
+            normalize(payload) should equal(normalize(expected))
+          }
+        }
+        case HttpResponse(code, _, _, _) =>
+          println("Request failed, response code: " + code)
+          fail()
+      }
+    }
+  }
 
   def buildWSRequest(user: String,
     actionType: String,
@@ -91,7 +128,7 @@ object WSHelper{
       println(e)
       Matchers.fail()
     }
-  }
+  }  
 
   /*
   Deletes all element definitions.

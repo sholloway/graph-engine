@@ -39,4 +39,5 @@
 
 
 # Dump on out of memory
--J-XX:+HeapDumpOnOutOfMemoryError -XX:HeapDumpPath=/tmp/machine-engine/heap-dump/`date`.hprof
+-J-XX:+HeapDumpOnOutOfMemoryError
+-J-XX:HeapDumpPath=/tmp/engine/heapDump/failure.hprof

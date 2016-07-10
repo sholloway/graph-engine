@@ -1,4 +1,4 @@
-package org.machine.engine
+package org.machine.engine.flow
 
 import org.scalatest._
 import scala.util.{Either, Left, Right}

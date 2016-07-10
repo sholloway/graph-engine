@@ -19,12 +19,13 @@ import org.neo4j.io.fs.FileUtils
 import com.typesafe.config._
 
 import org.machine.engine.Engine
+import org.machine.engine.TestUtils
 
 class WebSocketFlowSpec extends TestKit(ActorSystem("WebSocketFlowSpec")) with ImplicitSender
   with FunSpecLike with Matchers with BeforeAndAfterAll{
+  import TestUtils._
+
   private val config = ConfigFactory.load()
-  val dbPath = config.getString("engine.graphdb.path")
-  val dbFile = new File(dbPath)
   var engine:Engine = null
   var notesDataSetId:String = null
   implicit val materializer = ActorMaterializer()
@@ -32,19 +33,17 @@ class WebSocketFlowSpec extends TestKit(ActorSystem("WebSocketFlowSpec")) with I
   val sink = Sink.seq[Message]
 
   override def beforeAll(){
-    Engine.shutdown
-    FileUtils.deleteRecursively(dbFile)
     engine = Engine.getInstance
+    perge
     notesDataSetId = engine.createDataSet("notes", "My collection of notes.")
   }
 
   override def afterAll(){
     TestKit.shutdownActorSystem(system)
-    Engine.shutdown
-    FileUtils.deleteRecursively(dbFile)
+    perge
   }
 
-  describe("Websocket Flow"){    
+  describe("Websocket Flow"){
     it("should process the list of datasets associated with a user"){
       val cmd = """
       |{

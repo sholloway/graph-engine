@@ -14,6 +14,7 @@ import scala.util.{Either, Left, Right}
 
 import org.neo4j.graphdb.GraphDatabaseService
 import org.machine.engine.Engine
+import org.machine.engine.TestUtils
 import org.machine.engine.graph.Neo4JHelper
 import org.machine.engine.graph.commands.{CommandScope, CommandScopes, GraphCommandOptions}
 import org.machine.engine.graph.nodes.{Element, PropertyDefinition, PropertyDefinitions}
@@ -26,20 +27,16 @@ class ListAllElementsWorkflowSpec extends FunSpecLike
   import Neo4JHelper._
 
   private val config = ConfigFactory.load()
-  val dbPath = config.getString("engine.graphdb.path")
-  val dbFile = new File(dbPath)
   var engine:Engine = null
   val options = GraphCommandOptions()
 
   override def beforeAll(){
-    Engine.shutdown
-    FileUtils.deleteRecursively(dbFile)
     engine = Engine.getInstance
+    perge
   }
 
   override def afterAll(){
-    Engine.shutdown
-    FileUtils.deleteRecursively(dbFile)
+    perge
   }
 
   describe("List Element Workflow Functions"){

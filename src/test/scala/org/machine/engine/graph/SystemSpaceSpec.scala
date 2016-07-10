@@ -24,18 +24,16 @@ class SystemSpaceSpec extends FunSpec
   with EasyMockSugar
   with BeforeAndAfterAll{
   import Neo4JHelper._
-  val dbFile = new File(Engine.databasePath)
+  import TestUtils._
   var engine:Engine = null
 
   override def beforeAll(){
-    Engine.shutdown
-    FileUtils.deleteRecursively(dbFile)
     engine = Engine.getInstance
+    perge
   }
 
   override def afterAll(){
-    Engine.shutdown
-    FileUtils.deleteRecursively(dbFile)
+    perge
   }
 
   def elementDefAndPropDefQueryMapper( results: ArrayBuffer[(ElementDefinition, PropertyDefinition)],

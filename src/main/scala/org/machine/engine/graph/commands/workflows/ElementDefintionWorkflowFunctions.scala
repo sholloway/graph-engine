@@ -122,7 +122,7 @@ object ElementDefintionWorkflowFunctions extends LazyLogging{
       }
       return (capsule._1, capsule._2, capsule._3, status)
     }
-  }  
+  }
 
   val createElementDefinition = new PartialFunction[Capsule, Capsule]{
     def isDefinedAt(capsule: Capsule):Boolean = {

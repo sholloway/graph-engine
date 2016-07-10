@@ -10,6 +10,7 @@ import org.neo4j.graphdb.factory.GraphDatabaseFactory
 import org.neo4j.io.fs.FileUtils
 
 import org.machine.engine.Engine
+import org.machine.engine.TestUtils
 import org.machine.engine.graph._
 import org.machine.engine.graph.utilities.DynamicCmdLoader
 import org.machine.engine.graph.decisions._
@@ -19,17 +20,15 @@ import org.machine.engine.graph.nodes._
 
 class EngineStatementBuilderSpec extends FunSpec with Matchers with EasyMockSugar with BeforeAndAfterAll{
   import Neo4JHelper._
-  val dbFile = new File(Engine.databasePath)
+  import TestUtils._
   var engine:Engine = null
   override def beforeAll(){
-    Engine.shutdown
-    FileUtils.deleteRecursively(dbFile)
     engine = Engine.getInstance
+    perge
   }
 
   override def afterAll(){
-    Engine.shutdown
-    FileUtils.deleteRecursively(dbFile)
+    perge
   }
 
   /*

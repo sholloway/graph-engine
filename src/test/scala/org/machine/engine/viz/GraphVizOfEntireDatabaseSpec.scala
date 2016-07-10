@@ -19,12 +19,7 @@ class GraphVizOfEntireDatabaseSpec extends FunSpecLike
   var engine:Engine = null
 
   override def beforeAll(){
-    Engine.shutdown
     engine = Engine.getInstance
-  }
-
-  override def afterAll(){
-    Engine.shutdown
   }
 
   describe("Visualize all Connections"){

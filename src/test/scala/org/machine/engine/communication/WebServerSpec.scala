@@ -21,13 +21,15 @@ import scala.concurrent.{ExecutionContext, Future}
 
 import com.typesafe.config._
 import org.machine.engine.Engine
+import org.machine.engine.TestUtils
 import org.machine.engine.exceptions._
 import org.machine.engine.graph.nodes._
 import org.machine.engine.flow.requests._
 
 class WebServerSpec extends FunSpecLike with Matchers with ScalaFutures with BeforeAndAfterAll{
   import WSHelper._
-
+  import TestUtils._
+  
   //Configure the whenReady for how long to wait.
   implicit val defaultPatience = PatienceConfig(timeout = Span(5, Seconds), interval = Span(500, Millis))
 
@@ -51,17 +53,14 @@ class WebServerSpec extends FunSpecLike with Matchers with ScalaFutures with Bef
   3. Test the execution of all 41 rules (36 commands).
   */
   override def beforeAll(){
-    Engine.shutdown
-    FileUtils.deleteRecursively(dbFile)
     engine = Engine.getInstance
+    perge
     server.start()
   }
 
   override def afterAll(){
     server.stop()
-    // TestKit.shutdownActorSystem(system)
-    Engine.shutdown
-    FileUtils.deleteRecursively(dbFile)
+    perge
   }
 
   describe("Receiving Requests"){

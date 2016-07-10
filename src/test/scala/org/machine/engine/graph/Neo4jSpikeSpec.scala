@@ -13,22 +13,22 @@ import org.neo4j.io.fs.FileUtils
 import scala.collection.JavaConversions._
 import scala.collection.mutable.{ArrayBuffer, Map}
 
-class Neo4jSpikeSpec extends FunSpec with Matchers with EasyMockSugar with BeforeAndAfterAll{
-  import Neo4JHelper._
+import org.machine.engine.{Engine, TestUtils}
 
-  val dbPath = "target/Neo4jSpikeSpec.graph"
-  var graphDBOption: Option[GraphDatabaseService] = None
+class Neo4jSpikeSpec extends FunSpecLike with Matchers with EasyMockSugar with BeforeAndAfterAll{
+  import Neo4JHelper._
+  import TestUtils._
+  var engine:Engine = null
 
   override def beforeAll(){
-    val dbFile = new File(dbPath)
-    FileUtils.deleteRecursively(dbFile)
-    val graphDBFactory = new GraphDatabaseFactory()
-    val graphDB = graphDBFactory.newEmbeddedDatabase(dbFile)
-    graphDBOption = Some(graphDB)
+    engine = Engine.getInstance
+    perge
+    cleanup
   }
 
   override def afterAll(){
-    graphDBOption.foreach(graphDB => graphDB.shutdown())
+    perge
+    cleanup
   }
 
   class Book(_id: Long, _title: String){
@@ -63,8 +63,7 @@ class Neo4jSpikeSpec extends FunSpec with Matchers with EasyMockSugar with Befor
 
   describe("Neo4J Database Integration"){
     it ("should persist and query nodes"){
-      val db = graphDBOption.getOrElse(null)
-      transaction(db, (graphDB: GraphDatabaseService) => {
+      transaction(engine.database, (graphDB: GraphDatabaseService) => {
         val aBook: Node = graphDB.createNode()
         aBook.setProperty("title", "The Left Hand of Darkness")
         aBook.addLabel(LibraryLabels.Book)
@@ -79,15 +78,14 @@ class Neo4jSpikeSpec extends FunSpec with Matchers with EasyMockSugar with Befor
       })
 
       val cypher = "match (b:Book) return b.title as title, id(b) as id"
-      val books = query[Book](db, cypher, null, bookMapper)
+      val books = query[Book](engine.database, cypher, null, bookMapper)
 
       books.length shouldBe(3)
     }
 
     /*Get queries with parameters working...*/
     it ("should associate nodes"){
-      val db = graphDBOption.getOrElse(null)
-      transaction(db, (graphDB:GraphDatabaseService)=>{
+      transaction(engine.database, (graphDB:GraphDatabaseService)=>{
         val firstBook: Node = graphDB.createNode()
         firstBook.setProperty("title", "The Mote in God's Eye")
         firstBook.addLabel(LibraryLabels.Book)
@@ -103,29 +101,18 @@ class Neo4jSpikeSpec extends FunSpec with Matchers with EasyMockSugar with Befor
       //Find the sequel
       val cypher = "match (b:Book {title:{title}})-[:continued]-(a:Book) return a.title as title, id(b) as id"
       val params = Map("title"->"The Mote in God's Eye")
-      val sequels = query[Book](db, cypher, params, bookMapper)
+      val sequels = query[Book](engine.database, cypher, params, bookMapper)
 
       sequels.length shouldBe(1)
       sequels(0).title shouldBe("The Gripping Hand")
     }
+  }
 
-    /*
-    Problem: I would like to have a strongly type definition of the nodes in a graph.
-    A cypher query could return a subgraph that contains multipe types of nodes.
-
-    Consider that:
-      - Ultimately the results of a query must be communicated back to the client.
-      - Communication between Client/Server will be over 0MQ serialied with Protocol Buffers.
-      - I want to have a meta model that allows fluid definitions.
-      - I WILL NOT expose the Neo4J types to the client.
-
-    Possible Solutions:
-    */
-    it ("should be able to map queries of multiple node types")(pending)
-
-    //beyound just Neo4J...
-    it("should convert a google protobuf object to a node")(pending)
-    it("should have a CQRS persist command")(pending)
-    it("should have a CQRS query command")(pending)
+  private def cleanup() = {
+    val delete_books = "match (b:Book) detach delete b"
+    val delete_authors = "match (a:Author) detach delete a"
+    val map = new java.util.HashMap[java.lang.String, Object]()
+    Neo4JHelper.run(engine.database, delete_books, map, Neo4JHelper.emptyResultProcessor[Book])
+    Neo4JHelper.run(engine.database, delete_authors, map, Neo4JHelper.emptyResultProcessor[Author])
   }
 }

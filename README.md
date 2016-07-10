@@ -16,7 +16,9 @@ brew install protobuf
 |-------|----------------------------------------------------------------------------------------------------------------------------|
 | tasks | Displays the list of available sbt tasks.                                                                                  |
 | test  | Compiles the project and runs the tests.                                                                                   |
-| test-only *TestClassName  | Only runs a specific test. Gotta use in sbt interactive mode.                                          |
+| test-only *TestClassName  | Only runs a specific test.                                                                             |
+| sbt "test-only *TestClassName"  | Only runs a specific test.                                                                       |
+| assembly | Create executable fat jar.                                                                                              |
 | cov   | Compiles the project, runs the tests, generates the code coverage metric and then opens the report in the default browser. |
 | doc   | Generates the Scaladoc site.                                                                                               |
 

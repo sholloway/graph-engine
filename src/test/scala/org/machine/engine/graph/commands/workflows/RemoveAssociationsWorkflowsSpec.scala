@@ -14,6 +14,7 @@ import scala.util.{Either, Left, Right}
 
 import org.neo4j.graphdb.GraphDatabaseService
 import org.machine.engine.Engine
+import org.machine.engine.TestUtils
 import org.machine.engine.graph.Neo4JHelper
 import org.machine.engine.graph.commands.{CommandScope, CommandScopes, GraphCommandOptions}
 import org.machine.engine.graph.nodes.Association
@@ -26,8 +27,6 @@ class RemoveAssociationsWorkflowsSpec extends FunSpecLike
   import Neo4JHelper._
 
   private val config = ConfigFactory.load()
-  val dbPath = config.getString("engine.graphdb.path")
-  val dbFile = new File(dbPath)
   var engine:Engine = null
   val options = GraphCommandOptions()
   val emptyCapsule = (null, null, options, mutable.Map.empty[String, Any], Left(WorkflowStatuses.OK))
@@ -38,9 +37,8 @@ class RemoveAssociationsWorkflowsSpec extends FunSpecLike
   var leiaId:String = null
 
   override def beforeAll(){
-    Engine.shutdown
-    FileUtils.deleteRecursively(dbFile)
     engine = Engine.getInstance
+    perge
     val sw = buildDataset()
     dsId = sw._1
     edId = sw._2
@@ -50,8 +48,7 @@ class RemoveAssociationsWorkflowsSpec extends FunSpecLike
   }
 
   override def afterAll(){
-    Engine.shutdown
-    FileUtils.deleteRecursively(dbFile)
+    perge
   }
 
   def buildDataset():(String, String, String, String, String) = {
