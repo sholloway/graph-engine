@@ -10,6 +10,7 @@ object ActionTypes{
   case object Update extends ActionType{val value="Update";}
   case object Delete extends ActionType{val value="Delete";}
   case object None extends ActionType{val value="None";}
+  case object Shutdown extends ActionType{val value="Shutdown";}
 
   def pickAction(alias: String):ActionType = {
     alias match {
@@ -17,6 +18,8 @@ object ActionTypes{
       case "Retrieve" => Retrieve
       case "Update"   => Update
       case "Delete"   => Delete
+      case "Shutdown" => Shutdown
+      case "None"     => None
       case _          => None
     }
   }
@@ -24,5 +27,8 @@ object ActionTypes{
   def validTypes = Seq("Create",
     "Retrieve",
     "Update",
-    "Delete")
+    "Delete",
+    "None",
+    "Engine"
+  )
 }

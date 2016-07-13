@@ -1,7 +1,7 @@
 lazy val projectSettings = Seq(
 	name := "machine-engine",
 	version := "0.1.0",
-	scalaVersion := "2.11.7"
+	scalaVersion := "2.11.8"
 )
 
 scalacOptions ++= Seq("" +
@@ -45,21 +45,21 @@ lazy val root = (project in file(".")).
 
 //Maven Format: groupID % artifactID % revision
 libraryDependencies ++= Seq(
-	"org.scalatest" % "scalatest_2.11" % "2.2.4" % Test,
+	"org.scalatest" % "scalatest_2.11" % "2.2.6" % Test,
 	"org.easymock" % "easymock" % "3.3.1" % Test,
-	 "com.typesafe.akka" %% "akka-actor" % "2.4.3",
-	 "com.typesafe.akka" %% "akka-testkit" % "2.4.3" % Test,
-	 "com.typesafe.akka" %% "akka-slf4j" % "2.4.3",
-	 "com.typesafe.akka" %% "akka-http-core" % "2.4.4",
-	 "com.typesafe.akka" %% "akka-http-experimental" % "2.4.4",
+	 "com.typesafe.akka" %% "akka-actor" % "2.4.8",
+	 "com.typesafe.akka" %% "akka-testkit" % "2.4.8" % Test,
+	 "com.typesafe.akka" %% "akka-slf4j" % "2.4.8",
+	 "com.typesafe.akka" %% "akka-http-core" % "2.4.8",
+	 "com.typesafe.akka" %% "akka-http-experimental" % "2.4.8",
 	 "com.typesafe.scala-logging" %% "scala-logging" % "3.1.0",
 	 "ch.qos.logback" % "logback-classic" % "1.1.7",
 	 "com.typesafe" % "config" % "1.3.0",
 	 "org.zeromq" % "jeromq" % "0.3.5",
-	 "org.neo4j" % "neo4j" % "2.3.3",
-	 "org.neo4j" % "neo4j-slf4j" % "2.3.3",
-	 "org.neo4j" % "neo4j-graphviz" % "2.3.3" % Test,
-	 "org.neo4j" % "neo4j-io" % "2.3.3" % Test,
+	 "org.neo4j" % "neo4j" % "3.0.3",
+	 "org.neo4j" % "neo4j-slf4j" % "3.0.3",
+	 "org.neo4j" % "neo4j-graphviz" % "3.0.3" % Test,
+	 "org.neo4j" % "neo4j-io" % "3.0.3" % Test,
 	 "net.liftweb" %% "lift-json" % "3.0-RC3"
 )
 

@@ -1,0 +1,9 @@
+{
+  "name": "Shutdown",
+  "description": "Shuts the engine down.",
+  "scope": "internal_system",
+  "entityType": "Engine",
+  "actionType": "Shutdown",
+  "filter": "None",
+  "decision": "Shutdown"
+}

@@ -5,6 +5,7 @@ sealed trait CommandScope{
 }
 
 object CommandScopes{
+  case object SystemScope extends CommandScope{ val scope = "internal_system";}
   case object SystemSpaceScope extends CommandScope{ val scope = "internal_system_space";}
   case object UserSpaceScope extends CommandScope{ val scope = "internal_user_space";}
   case object DataSetScope extends CommandScope{ val scope = "internal_data_set";}
@@ -13,10 +14,13 @@ object CommandScopes{
     alias match{
       case "UserSpace"   => UserSpaceScope
       case "SystemSpace" => SystemSpaceScope
+      case "System"      => SystemScope
       case "DataSet"     => DataSetScope
     }
   }
 
   def validScopes = Seq("UserSpace",
-    "SystemSpace", "DataSet")
+    "SystemSpace",
+    "System",
+    "DataSet")
 }

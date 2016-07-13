@@ -15,6 +15,7 @@ object EntityTypes{
   case object OutboundAssociation extends EntityType{val value="OutboundAssociation";}
   case object PropertyDefinition extends EntityType{val value="PropertyDefinition";}
   case object None extends EntityType{val value="None";}
+  case object Engine extends EntityType{val value="Engine";}
 
   def pickEntity(alias: String):EntityType = {
     alias match {
@@ -27,6 +28,7 @@ object EntityTypes{
       case "InboundAssociation"   => InboundAssociation
       case "OutboundAssociation"  => OutboundAssociation
       case "PropertyDefinition"   => PropertyDefinition
+      case "Engine"               => Engine
       case _                      => None
     }
   }
@@ -39,6 +41,8 @@ object EntityTypes{
     "Association",
     "AssociationField",
     "InboundAssociation",
-    "OutboundAssociation"
+    "OutboundAssociation",
+    "None",
+    "Engine"
   )
 }

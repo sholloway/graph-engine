@@ -38,3 +38,7 @@ case class InsertCmdResult[T](val result: T,
 case class DeleteSetCmdResult(
   val status: EngineCmdResultStatus = EngineCmdResultStatuses.OK,
   val errorMessage:Option[String] = None) extends EngineCmdResult
+
+case class SystemCmdResult(
+  val status: EngineCmdResultStatus = EngineCmdResultStatuses.OK,
+  val errorMessage:Option[String] = None) extends EngineCmdResult

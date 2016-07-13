@@ -15,8 +15,11 @@ import net.liftweb.json.DefaultFormats
 
 import org.scalatest._
 import org.scalatest.concurrent.ScalaFutures
+import org.scalatest.time.{Millis, Seconds, Span}
+import org.scalatest.concurrent.PatienceConfiguration.Interval
+
 import scala.concurrent.{ExecutionContext, Future}
-import scala.concurrent.duration._
+import scala.concurrent.duration.FiniteDuration
 
 import org.machine.engine.Engine
 import org.machine.engine.flow.requests._
@@ -43,11 +46,11 @@ object WSHelper{
   }
 
   def verifyHTTPRequest(responseFuture: Future[HttpResponse],
-    expected: String, timeout: FiniteDuration, log: Boolean = false) = {
-    whenReady(responseFuture) { response =>
+    expected: String, timeout: Span, log: Boolean = false) = {
+    whenReady(responseFuture, new Interval(timeout)) { response =>
       response match {
         case HttpResponse(StatusCodes.OK, headers, entity, _) => {
-          val bs: Future[ByteString] = entity.toStrict(timeout).map { _.data }
+          val bs: Future[ByteString] = entity.toStrict(FiniteDuration(5, "seconds")).map { _.data }
           val s: Future[String] = bs.map(_.utf8String)
           whenReady(s){ payload =>
             if(log){
@@ -128,7 +131,7 @@ object WSHelper{
       println(e)
       Matchers.fail()
     }
-  }  
+  }
 
   /*
   Deletes all element definitions.

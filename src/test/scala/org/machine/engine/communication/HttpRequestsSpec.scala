@@ -27,10 +27,11 @@ import org.machine.engine.TestUtils
 
 import akka.http.scaladsl.unmarshalling.Unmarshal
 
-class HttpRequestsSpec extends FunSpecLike with Matchers with ScalaFutures with BeforeAndAfterAll{
+class HttpRequestsSpec extends FunSpecLike
+  with Matchers with ScalaFutures with BeforeAndAfterAll{
   import WSHelper._
   import TestUtils._
-  implicit val defaultPatience = PatienceConfig(timeout = Span(5, Seconds), interval = Span(500, Millis))
+  // implicit val defaultPatience = PatienceConfig(timeout = Span(5, Seconds), interval = Span(500, Millis))
   private val config           = ConfigFactory.load()
   val server                   = new WebServer()
   var engine:Engine            = null
@@ -62,13 +63,13 @@ class HttpRequestsSpec extends FunSpecLike with Matchers with ScalaFutures with 
       it ("should return static message for root"){
         val responseFuture = getHTTP(s"$scheme://$host:$port")
         val expected = "<html><body>This is a private channel for engine communication.</body></html>"
-        verifyHTTPRequest(responseFuture, expected, 1.second)
+        verifyHTTPRequest(responseFuture, expected, Span(5, Seconds))
       }
 
       it ("should return static message for /"){
         val responseFuture = getHTTP(s"$scheme://$host:$port/")
         val expected = "<html><body>This is a private channel for engine communication.</body></html>"
-        verifyHTTPRequest(responseFuture, expected, 1.second)
+        verifyHTTPRequest(responseFuture, expected, Span(5, Seconds))
       }
 
       it ("should provide usage stats for /stats")(pending)
@@ -76,7 +77,7 @@ class HttpRequestsSpec extends FunSpecLike with Matchers with ScalaFutures with 
       it ("should provide configuration for /configuration"){
         val responseFuture = getHTTP(s"$scheme://$host:$port/configuration")
         val expected = s"<html><body><h1>Engine</h1><hr/>Version:$engineVersion</body></html>"
-        verifyHTTPRequest(responseFuture, expected, 1.second)
+        verifyHTTPRequest(responseFuture, expected, Span(5, Seconds))
       }
 
       it ("should provide the diagram of the in memory decision tree for /rules")(pending)

@@ -11,10 +11,10 @@ import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.Relationship;
 import org.neo4j.graphdb.RelationshipType;
-import org.neo4j.graphdb.ReturnableEvaluator;
-import org.neo4j.graphdb.StopEvaluator;
+// import org.neo4j.graphdb.ReturnableEvaluator;
+// import org.neo4j.graphdb.StopEvaluator;
 import org.neo4j.graphdb.Transaction;
-import org.neo4j.graphdb.Traverser.Order;
+// import org.neo4j.graphdb.Traverser.Order;
 import org.neo4j.walk.Walker;
 
 import java.io.ByteArrayOutputStream;

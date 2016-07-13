@@ -38,6 +38,7 @@ brew install protobuf
 ### Neo4J
 * [Documentation](http://neo4j.com/docs/)
 * [Java Docs](http://neo4j.com/docs/2.3.3/javadocs/)
+* [Stored Procedures](https://github.com/neo4j-contrib/neo4j-apoc-procedures)
 
 ### Misc
 * [Google Protocol Buffers](https://developers.google.com/protocol-buffers/)
