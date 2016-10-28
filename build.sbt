@@ -52,6 +52,8 @@ libraryDependencies ++= Seq(
 	 "com.typesafe.akka" %% "akka-slf4j" % "2.4.8",
 	 "com.typesafe.akka" %% "akka-http-core" % "2.4.8",
 	 "com.typesafe.akka" %% "akka-http-experimental" % "2.4.8",
+	 "com.typesafe.akka" %% "akka-camel" % "2.4.8",
+	 "org.apache.camel" % "camel-stream" % "2.17.2",
 	 "com.typesafe.scala-logging" %% "scala-logging" % "3.1.0",
 	 "ch.qos.logback" % "logback-classic" % "1.1.7",
 	 "com.typesafe" % "config" % "1.3.0",
@@ -62,6 +64,10 @@ libraryDependencies ++= Seq(
 	 "org.neo4j" % "neo4j-io" % "3.0.3" % Test,
 	 "net.liftweb" %% "lift-json" % "3.0-RC3"
 )
+
+//Split the project and dependencies.
+//https://github.com/sbt/sbt-assembly#splitting-your-project-and-deps-jars
+assemblyOption in assembly := (assemblyOption in assembly).value.copy(includeScala = false, includeDependency = false)
 
 lazy val displayCoverage = taskKey[Unit]("blah...")
 displayCoverage := {

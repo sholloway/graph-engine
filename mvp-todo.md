@@ -4,26 +4,25 @@ The list of stuff that must be accomplished for version 0.1.0.
 
 ## Features
 The list of features that version 0.1.0 shall be composed of.
-* [X] WebSocket Protocol
 * [ ] Akka based concurrent statement execution.
-* [X] Internal Neo4J DSL
 * [ ] Export a dataset to a file.
 * [ ] Import a dataset from a file.
+* [X] WebSocket Protocol
+* [X] Internal Neo4J DSL
 * [X] Internal Decision Tree
 
 ## Supporting Tasks
 The list of general tasks that must be completed for version 0.1.0 to be considered done.
 * [ ] Create WebSocket shutdown command to allow the Master client to shut the server down.
   * Note: This should only be allowed for initiating client.
+* [ ] Add the concept of a User to the data model. This will require the DSL change.
 * [ ] Change Akka Streams to be asynchronous.
 * [ ] Change Akka Streams to leverage the worker pool pattern.
 * [ ] Adopt the apoc.data.format Neo4J Proc (https://neo4j.com/blog/intro-user-defined-procedures-apoc/)
 * [ ] Put creationTime & lastModifiedTime on ElementDefintion.
-* [ ] Add the concept of a User to the data model. This will require the DSL change.
 * [ ] Add on demand SVG file of dataset.
 * [ ] Add on demand SVG file of decision tree.
 * [ ] Add TLS support for WebSocket connection.
-* [ ] Add something to detect outdated dependencies. (https://stackoverflow.com/questions/18430745/how-do-i-find-outdated-libraries-with-sbt)
 * [ ] Travis.CI integration. (http://www.scala-sbt.org/0.13/docs/Travis-CI-with-sbt.html)
 * [ ] Split out integration tests to have their own task.
 * [ ] Add clean up task for integration tests to delete TestDB.graph file.
@@ -49,6 +48,8 @@ The list of general tasks that must be completed for version 0.1.0 to be conside
 * [ ] Leverage https://www.scalacheck.org/ for testing the API.
 * [ ] Consider using https://github.com/os72/protoc-jar or something similar to remove protoc dependency.
 * [ ] Update diagrams to show concurrency. (ActorSystem, ActorRef, EventBus...)
+* [ ] Code Coverage above 80%.
+* [X] Add something to detect outdated dependencies. (https://stackoverflow.com/questions/18430745/how-do-i-find-outdated-libraries-with-sbt)
 * [X] Upgrade to Akka 2.4.8
 * [X] Upgrade to Neo4J 3.
 * [X] Register the Neo4J shutdown with the JVM shutdown.
@@ -58,7 +59,6 @@ The list of general tasks that must be completed for version 0.1.0 to be conside
 * [X] Add license file and license headers.
 * [X] Define outbound protocol contract.
 * [X] Implement finding associations on a given Element.
-* [X] Code Coverage above 80%.
 * [X] Remove all warnings
 * [X] Add GraphDSL.removeOutboundAssociations() for a given element.
 * [X] Re-write the README.md to use a table for the sbt tasks.

@@ -18,9 +18,11 @@ brew install protobuf
 | test  | Compiles the project and runs the tests.                                                                                   |
 | test-only *TestClassName  | Only runs a specific test.                                                                             |
 | sbt "test-only *TestClassName"  | Only runs a specific test.                                                                       |
-| assembly | Create executable fat jar.                                                                                              |
+| assembly | Create executable jar.                                                                                                  |
+| assemblyPackageDependency | make a JAR file containing only the external dependencies                                              |
 | cov   | Compiles the project, runs the tests, generates the code coverage metric and then opens the report in the default browser. |
 | doc   | Generates the Scaladoc site.                                                                                               |
+| dependencyUpdates  | Show a list of project dependencies that can be updated                                                       |
 
 ## Related Resources
 ### Scala
@@ -30,6 +32,8 @@ brew install protobuf
 * [Scala Quick Reference](http://www.tutorialspoint.com/scala/index.htm)
 * [Scala Doc](http://docs.scala-lang.org/style/scaladoc.html)
 * [Scala Code Coverage](https://github.com/scoverage/sbt-scoverage)
+* [Apache Camel Stream](https://camel.apache.org/stream.html)
+* [Akka Stdin Example](https://searler.github.io/scala/akka/camel/reactive/2015/01/11/Simple-Akka-Stream-Camel-Integration.html)
 
 ### ZeroMQ
 * [ZeroMQ Node](https://github.com/JustinTulloss/zeromq.node)

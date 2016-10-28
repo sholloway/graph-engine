@@ -1,0 +1,21 @@
+{
+  "name": "machine-engine-harness",
+  "version": "0.1.0",
+  "description": "Controls the Machine Engine as child process. Not intended for independent distribution.",
+  "main": "index.js",
+  "scripts": {
+    "start": "NODE_PATH=. node lib/index.js",
+    "test": "test"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/sholloway/graph-engine.git"
+  },
+  "author": "Samuel D. Holloway",
+  "license": "MIT",
+  "private": true,
+  "bugs": {
+    "url": "https://github.com/sholloway/graph-engine/issues"
+  },
+  "homepage": "https://github.com/sholloway/graph-engine#readme"
+}

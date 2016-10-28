@@ -160,6 +160,19 @@ object DecisionDSL{
     val labels = adjacencyList.keys.map(_.display)
     val dot = s"""
       |digraph EngineDecisionTree{
+      |\tgraph [
+      |\t\tfontname = "Helvetica",
+      |\t\tfontsize = 10,
+      |\t\tsplines = true,
+      |\t\toverlap = true,
+      |\t\tranksep = 2.5,
+      |\t\tbgcolor = black
+      |\t];
+      |\tnode [shape = note,
+      |\t\tstyle=filled,
+      |\t\tfontname = "Helvetica",
+      |\t];
+      |\tedge [color = white];
       |\t${graph.mkString("\n\t")}
       |\t${labels.mkString("\n\t")}
       |}
@@ -201,7 +214,7 @@ object ColorMapper{
     "entityType" -> "yellow",
     "actionType" -> "orange",
     "filter" -> "red",
-    "decision" -> "green").withDefaultValue("black")
+    "decision" -> "green").withDefaultValue("blue")
   def color(query:String):String = map(query)
 }
 
