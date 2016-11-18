@@ -28,6 +28,7 @@ assemblyMergeStrategy in assembly := {
 		oldStrategy(x)
 }
 
+//Set up the Protobuf plugin.
 import sbtprotobuf.{ProtobufPlugin=>PB}
 PB.protobufSettings
 

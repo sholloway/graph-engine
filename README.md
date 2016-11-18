@@ -11,6 +11,12 @@ Status: Under active development working towards version 0.1.0. Not stable. Do n
 brew install protobuf
 ```
 
+* Install Scala and SBT.
+```
+brew install scala
+brew install sbt
+```
+
 ### SBT Tasks
 | Name  | Description                                                                                                                |
 |-------|----------------------------------------------------------------------------------------------------------------------------|
