@@ -33,10 +33,20 @@ sbt assemblyPackageDependency
 sbt assembly
 ```
 
-4. Start the Machine Engine
+4. (Option 1) Start the Machine Engine via Node.js.
 ```
-???
+cd ./src/test/node
+npm install
+npm start
 ```
+
+5. (Option 2) Start the Machine Engine as a stand alone service.
+```
+cd target/scala-2.11
+java -cp machine-engine-assembly-0.1.0-deps.jar:machine-engine-assembly-0.1.0.jar org.machine.engine.Main
+```
+
+6. The Web Socket Engine API is hosted at: http://localhost:2324/ws
 
 ### Controlling the Engine Through Node.js
 
