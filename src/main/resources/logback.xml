@@ -6,15 +6,15 @@
     </encoder>
   </appender>
   <appender name="FILE" class="ch.qos.logback.core.FileAppender">
-    <!-- Need to think through the place to write these to. -->
-    <file>/Users/sholloway/Documents/Code/machine-desktop/machine-engine/logs/app.log</file>
+    <!-- Ideally we want to use /var/log. Need to figure out permissios. Perhaps the bundled PID file. -->
+    <file>/tmp/log/machine-engine.log</file>
     <append>false</append>
     <encoder>
       <pattern>%d{HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n</pattern>
     </encoder>
   </appender>
   <root level="debug">
-    <appender-ref ref="STDOUT" />
+    <!-- <appender-ref ref="STDOUT" /> -->
     <appender-ref ref="FILE" />
   </root>
 </configuration>

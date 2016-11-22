@@ -17,6 +17,30 @@ brew install scala
 brew install sbt
 ```
 
+### Running the Engine
+1. Run the tests.
+```
+sbt test
+```
+
+2. Build Dependencies Jar
+```
+sbt assemblyPackageDependency
+```
+
+3. Build Machine Engine Jar
+```
+sbt assembly
+```
+
+4. Start the Machine Engine
+```
+???
+```
+
+### Controlling the Engine Through Node.js
+
+
 ### SBT Tasks
 | Name  | Description                                                                                                                |
 |-------|----------------------------------------------------------------------------------------------------------------------------|
