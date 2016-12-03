@@ -4,6 +4,7 @@ import org.scalatest._
 import org.scalatest.mock._
 
 import java.security.SecureRandom
+import java.util.Base64
 import javax.crypto.SecretKeyFactory
 import javax.crypto.spec.PBEKeySpec
 
@@ -19,8 +20,19 @@ class PasswordSpec extends FunSpecLike with Matchers{
       val hashB = generateHash(password, salt, PBKDF2_ITERATIONS, HASH_BYTE_SIZE)
       val hashEquality:Boolean = java.util.Arrays.equals(hashA, hashB)
       hashEquality should be(true)
+    }
 
-// convert hash and salt to hex and store in DB as CHAR(64)...
+    it ("should be able to encode and decode to base64"){
+      val HASH_BYTE_SIZE = 64 // 512 bits
+      val SALT_BYTE_SIZE = 64 // 512 bits
+      val PBKDF2_ITERATIONS = 20000
+      val password="hello world"
+      val salt = generateSeed(SALT_BYTE_SIZE)
+      val originalHash = generateHash(password, salt, PBKDF2_ITERATIONS, HASH_BYTE_SIZE)
+      val encodedHash:String = Base64.getEncoder().encodeToString(originalHash)
+      val decodedHash:Array[Byte] = Base64.getDecoder().decode(encodedHash)
+      val hashEquality:Boolean = java.util.Arrays.equals(originalHash, decodedHash)
+      hashEquality should be(true)
     }
   }
 
