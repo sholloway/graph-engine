@@ -13,9 +13,18 @@ The list of features that version 0.1.0 shall be composed of.
 
 ## Supporting Tasks
 The list of general tasks that must be completed for version 0.1.0 to be considered done.
-* [ ] Create WebSocket shutdown command to allow the Master client to shut the server down.
-  * Note: This should only be allowed for initiating client.
+* [ ] Add the ability to provide configurations at start up time. (e.g. Port, Logging Level)
+  * java -Dengine.communication.inbound.port=80
+  * java -Dlog-level=ERROR
+  * Where should the DB be created?
+    * java -Dengine.graphdb.path=/Applications/Mod89\ Machine.app/Contents/db
+  * I need to think through the best place for a config.json file to live due to
+    babel and WebPack. I'm suprised I don't have one already.
+    Options: root of src, root of project, create a resources dir parallel to src.
+* [ ] Dig into electron-compile. This has the potential to radically simplify
+      the boot process. https://www.youtube.com/watch?v=Eqg_IqVeI5s
 * [ ] Add the concept of a User to the data model. This will require the DSL change.
+* [ ] Add ability to store visualization data in a the dataset. (e.g. X, Y coordinates.)
 * [ ] Change Akka Streams to be asynchronous.
 * [ ] Change Akka Streams to leverage the worker pool pattern.
 * [ ] Adopt the apoc.data.format Neo4J Proc (https://neo4j.com/blog/intro-user-defined-procedures-apoc/)
@@ -49,6 +58,7 @@ The list of general tasks that must be completed for version 0.1.0 to be conside
 * [ ] Consider using https://github.com/os72/protoc-jar or something similar to remove protoc dependency.
 * [ ] Update diagrams to show concurrency. (ActorSystem, ActorRef, EventBus...)
 * [ ] Code Coverage above 80%.
+* [X] Create a harness over STDIN to control the startup and shutdown of the engine.
 * [X] Add something to detect outdated dependencies. (https://stackoverflow.com/questions/18430745/how-do-i-find-outdated-libraries-with-sbt)
 * [X] Upgrade to Akka 2.4.8
 * [X] Upgrade to Neo4J 3.

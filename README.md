@@ -48,7 +48,21 @@ java -cp machine-engine-assembly-0.1.0-deps.jar:machine-engine-assembly-0.1.0.ja
 
 6. The Web Socket Engine API is hosted at: http://localhost:2324/ws
 
-### Controlling the Engine Through Node.js
+### Integrating with the Engine
+The engine has two channels for communication. A Web Socket endpoint for
+business domain functions (i.e. manipulating graphs) and a STDIN/STDOUT endpoint
+for doing administration (i.e. pausing, shutdown).
+
+#### Communicating via Web Sockets
+* ?
+
+#### Communicating via STDIN/STDOUT
+A complete example of communicating with the Engine via it's STDIN endpoint
+can be seen in the code base at src/test/node/index.js.
+Supported Commands:
+* SIGHUP: Shutdown command issued by the client.
+* ENGINE_READY: Sent to STDOUT by the Engine once the engine is ready to receive
+  commands on the WebSocket endpoint.
 
 
 ### SBT Tasks
