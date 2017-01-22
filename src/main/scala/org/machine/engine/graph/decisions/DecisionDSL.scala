@@ -2,15 +2,16 @@ package org.machine.engine.graph.decisions
 
 import org.machine.engine.exceptions._
 import org.machine.engine.graph.commands._
+import java.io.{ByteArrayOutputStream, File, InputStream}
+import java.nio.file.{Files, Paths}
+import java.util.jar.JarFile
+import scala.collection.mutable
+import scala.io.Source
 
 object DecisionDSL{
   def findDecision(question: Question, request: DecisionRequest, trace:Boolean = false):Decision = {
     if(trace){Console.println(question)}
     val option = question.evaluate(request.toMap)
-
-    /*
-    FIXME Could result in no return.
-    */
     if (!option.decision.isEmpty){
       return option.decision.get
     }else if(!option.question.isEmpty){
@@ -37,11 +38,10 @@ object DecisionDSL{
     return whatsTheScope
   }
 
-  import scala.collection.mutable
-  def buildDecisionTreeFromRules(dir: String):Question = {
+  def buildDecisionTreeFromRules():Question = {
     val scope = Question("scope")
     scope.id = NodeIdentityGenerator.id
-    val rules = loadRules(dir)
+    val rules = loadRules()
     var counter:Short = 0
     rules.foreach{ rule =>
       registerRule(scope, rule, counter)
@@ -82,19 +82,60 @@ object DecisionDSL{
     filterOption.getOrElseUpdateDecision(rule.decision)
   }
 
-  private def loadRules(dir:String):Seq[Rule] = {
-    val files = getListOfFiles(dir, List("json"))
+  /*
+  Redesign to accomidate two ways of loading the files.
+  1. Change findRuleFiles to return an array of the loaded files.
+  2.
+  */
+  private def loadRules():Seq[Rule] = {
+    val files:Seq[Option[String]] = findRuleFiles()
     val rules = mutable.ArrayBuffer.empty[Rule]
-    files.foreach(file => {
-      val json:Option[String] = readFileToString(file)
-      json.foreach{
+    files.foreach(fileOption => {
+      fileOption.foreach{
         rules += Rule.fromJSON(_)
       }
     })
     return rules
   }
 
-  import java.io.File
+  private def findRuleFiles():Seq[Option[String]] = {
+    val rulesDir = "org/machine/engine/graph/decisions/rules"
+    val jarFile = new File(getClass().getProtectionDomain().getCodeSource().getLocation().getPath());
+    val fsJsonFiles = mutable.ArrayBuffer.empty[Option[String]]
+    val loadedFiles:List[Option[String]] = if(jarFile.isFile()) {
+      val filePaths:Seq[String] = getListOfFilesFromJar(jarFile, rulesDir)
+      val jarJsonFiles = mutable.ArrayBuffer.empty[Option[String]]
+      filePaths.foreach(path => {
+        fsJsonFiles += readResourceToString(path)
+      })
+      fsJsonFiles.toList
+    } else { // Run with file system. (e.g. Unit Tests)
+      val url = getClass.getResource("/"+rulesDir)
+      val path = url.getPath()
+      val files = getListOfFiles(path, List("json"))
+      //Iterate over the files and load them.
+      files.foreach(file =>{
+        fsJsonFiles += readFileToString(file)
+      })
+      fsJsonFiles.toList
+    }
+    return loadedFiles;
+  }
+
+  private def getListOfFilesFromJar(jarFile: File, rulesDir: String):Seq[String] = {
+    val jar = new JarFile(jarFile);
+    val entries = jar.entries()
+    val filesAB = mutable.ArrayBuffer.empty[String]
+    while(entries.hasMoreElements()) {
+      val name = entries.nextElement().getName()
+      if (name.startsWith(rulesDir + "/") && name.endsWith("json")) {
+        filesAB += name
+      }
+    }
+    jar.close()
+    return filesAB.toList
+  }
+
   private def getListOfFiles(path: String, extensions: List[String]):List[File] = {
     // val path = getClass.getClassLoader.getResource(dir).getPath
     val d = new File(path)
@@ -107,7 +148,6 @@ object DecisionDSL{
     }
   }
 
-  import scala.io.Source
   private def readFileToString(file: File):Option[String] = {
     val bufferedFile = Source.fromFile(file)
     var contents:Option[String] = None
@@ -117,6 +157,36 @@ object DecisionDSL{
       bufferedFile.close
     }
     return contents
+  }
+
+  private def readResourceToString(path: String):Option[String] = {
+    var json:Option[String] = None;
+    try{
+      val inputStream: InputStream = getClass().getResourceAsStream("/"+path)
+      if(inputStream != null){
+        try{
+          val str = scala.io.Source.fromInputStream(inputStream).mkString("")
+          json = Some(str)
+        }catch{
+          case e: Exception =>{
+            Console.println(s"An error occured attempting to parse the rule: ${path}")
+            Console.println(e.getMessage());
+            e.printStackTrace()
+          }
+        }finally{
+          inputStream.close()
+        }
+      }else{
+        Console.println(s"Failed to load the resource: ${path}")
+      }
+    }catch{
+      case e: Exception =>{
+        Console.println(s"An error occured attempting to parse the rule: ${path}")
+        Console.println(e.getMessage());
+        e.printStackTrace()
+      }
+    }
+    return json
   }
 
   def drawTree(node: Node, depth: Int, plotter: Plotter):Unit = {

@@ -33,9 +33,11 @@ object Engine{
 
   def getInstance: Engine = {
     if(engine == None){
-      val url = getClass.getResource("/org/machine/engine/graph/decisions/rules")
-      val path = url.getPath()
-      val decisionTree = DecisionDSL.buildDecisionTreeFromRules(path)
+      val decisionTree = DecisionDSL.buildDecisionTreeFromRules()
+      Console.println("########################################################")
+      Console.println("Printing the Engine Decision Tree")
+      DecisionDSL.drawTree(decisionTree,0, new ConsolePlotter())
+      Console.println("########################################################")
       engine = Some(new Engine(dbPath, decisionTree))
       sys.addShutdownHook(shutdown)
     }
