@@ -1,28 +1,51 @@
 package org.machine.engine.authentication
-/*
-What I need is ways to:
-* Register a User
-    * Fname, lastname, password.
-    * Creates a User node.
-    * Creates a Credential node.
-    * Associates nodes to each other and the User to the System Space.
-* Authenticate a User
-* Change a User's Password.
-*/
+
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom
 import java.util.Base64
+import java.util.Random;
 import javax.crypto.SecretKeyFactory
 import javax.crypto.spec.PBEKeySpec
-/** Set of helper functions for working with hashes and byte arrays for user authentication.
+
+/** Set of helper functions for working with hashes and byte arrays for user
+  authentication and identity management.
 */
 object PasswordTools{
+  def createRandomNumberGenerator(seed: Long):Random = {
+    val generator:SecureRandom = SecureRandom.getInstance("SHA1PRNG");
+    generator.setSeed(seed)
+    return generator
+  }
+
+  /** Generates a session ID.
+  @param size: The length of the byte array that
+  will contain the session ID.
+  */
+  def generateSessionId(generator:Random, size: Int):Array[Byte] = {
+      val number:Array[Byte] = new Array[Byte](size)
+      generator.nextBytes(number)
+      val sha:MessageDigest  = MessageDigest.getInstance("SHA-1");
+      val digest:Array[Byte] =  sha.digest(number);
+      return digest
+  }
+
+  /**
+  Generate a seed by taking the bitwise OR of the current system time since Epoch
+  and the available system memory.
+  */
+  def generateSeed():Long = {
+    val seed = System.currentTimeMillis() | Runtime.getRuntime().freeMemory()
+    return seed
+  }
+
+
   /** Creates a salt of specified size using a secure random number generator.
   @param size: The length of the byte array that will contain the seed.
   */
-  def generateSalt(size: Int):Array[Byte] = {
+  def generateSalt(generator: Random, size: Int):Array[Byte] = {
     val salt:Array[Byte] = new Array[Byte](size)
-    val random = new SecureRandom()
-    random.nextBytes(salt)
+    generator.nextBytes(salt)
     return salt
   }
 
@@ -61,5 +84,9 @@ object PasswordTools{
   */
   def compare(hashA: Array[Byte], hashB: Array[Byte]):Boolean = {
     return java.util.Arrays.equals(hashA, hashB)
+  }
+
+  def byteArrayToHexStr(bytes: Array[Byte]):String = {
+    return bytes.map("%02X" format _).mkString
   }
 }

@@ -25,7 +25,7 @@ class DecisionsDSLSpec extends FunSpec with Matchers with EasyMockSugar with Bef
   var tree:Question = null
 
   override def beforeAll(){
-    tree = DecisionDSL.buildDecisionTreeFromRules(path)
+    tree = DecisionDSL.buildDecisionTreeFromRules()
   }
 
   describe("Decision Tree"){

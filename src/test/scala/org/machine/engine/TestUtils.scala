@@ -1,7 +1,6 @@
 package org.machine.engine
 
 import org.machine.engine.graph.Neo4JHelper
-import org.machine.engine.Engine
 
 object TestUtils{
   import Neo4JHelper._

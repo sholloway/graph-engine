@@ -114,6 +114,7 @@ class WebServer {
     val requestHandler: HttpRequest => HttpResponse = {
       case HttpRequest(GET, Uri.Path("/"), _, _, _) => handleRootRequest()
       case HttpRequest(GET, Uri.Path("/configuration"), _, _, _) => handleInfoRequest()
+      case HttpRequest(POST, Uri.Path("/authenticate"), _, _, _) => handleAuthRequest()
       case req @ HttpRequest(GET, Uri.Path("/ws"),_, _, _) => handleWebSocketRequest(req)
       case req @ HttpRequest(GET, Uri.Path("/ws/ping"),_, _, _) => handleWebSocketRequest(req)
       case _: HttpRequest =>
@@ -151,6 +152,11 @@ class WebServer {
     |</html>
     """.stripMargin
     return HttpResponse(entity = HttpEntity(ContentTypes.`text/html(UTF-8)`,msg))
+  }
+
+  private def handleAuthRequest(): HttpResponse = {
+    
+    return HttpResponse(400, entity = "Not a valid websocket request.")
   }
 
   private def handleWebSocketRequest(req: HttpRequest):HttpResponse = {
