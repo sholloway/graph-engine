@@ -26,7 +26,7 @@ object PasswordTools{
       val number:Array[Byte] = new Array[Byte](size)
       generator.nextBytes(number)
       val sha:MessageDigest  = MessageDigest.getInstance("SHA-1");
-      val digest:Array[Byte] =  sha.digest(number);
+      val digest:Array[Byte] = sha.digest(number);
       return digest
   }
 

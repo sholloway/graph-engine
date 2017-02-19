@@ -1,0 +1,191 @@
+swagger: "2.0"
+info:
+  description: "Collection of endpoints for managing the user's identity and authentication."
+  version: "1.0.0"
+  title: "Identity Service"
+  contact: {}
+host: "localhost:2324"
+schemes:
+  - "https"
+# will be prefixed to all paths
+basePath: /v
+
+securityDefinitions:
+  BasicAuth:
+    description: "HTTP Basic Authentication"
+    type: "basic"
+
+parameters:
+  userId:
+    name: userId
+    in: path
+    description: The unquie identifier of a user.
+    required: true
+    type: string
+
+paths:
+  /login:
+    post:
+      description: |
+        "Uses Basic Auth to require a username:password in the Authorization
+        header. If the username/password combination is correct then the user is
+        logged in an a session ID is returned."
+      produces:
+      - "application/json"
+      parameters: []
+      responses:
+        200:
+          description: |
+            "The user was logged in successfully and a new session was started."
+          schema:
+            $ref: "#/definitions/Session"
+        401:
+          description: "Authentication failed."
+          schema:
+            type: "string"
+        500:
+          description: "Couldn't access the database."
+          schema:
+            type: "string"
+  /users:
+    post:
+      summary: "Create User"
+      description: "Creates a new user in the system."
+      consumes:
+      - "application/json"
+      produces:
+      - "application/json"
+      parameters:
+      - in: "body"
+        name: "body"
+        required: false
+        schema:
+          $ref: "#/definitions/NewUserRequest"
+      responses:
+        200:
+          description: "Status 200"
+          schema:
+            $ref: "#/definitions/NewUserResponse"
+        500:
+          description: "Could not access the database."
+  /users/{userId}/credentials:
+    post:
+      summary: "Create an login-able user."
+      description: |
+        "Given an existing user account, grant the right to login, log
+        them in and return a session ID."
+      consumes:
+        - "application/json"
+      produces:
+        - "application/json"
+      parameters:
+        - $ref: "#/parameters/userId"
+        - in: "body"
+          name: "body"
+          required: false
+          schema:
+            $ref: "#/definitions/UserCredentialsRequest"
+      security:
+        - BasicAuth: []
+      responses:
+        200:
+          description: |
+            "The user's credentials were created and they were successfully
+            logged in."
+          schema:
+            $ref: "#/definitions/Session"
+        400:
+          description: "A required property was not present."
+          schema:
+            type: "string"
+        404:
+          description: "The user could not be found for the provided ID."
+          schema:
+            type: "string"
+        422:
+          description: "The verification code was incorrect."
+          schema:
+            type: "string"
+        500:
+          description: "Could not access the database."
+          schema:
+            type: "string"
+  /users/{userId}/verify:
+    post:
+      summary: "Send Verification Code"
+      description: |
+        "Emails a time limited verification code to the user's specified
+        email address."
+      parameters:
+        - $ref: "#/parameters/userId"
+      security:
+        - BasicAuth: []
+      responses:
+        200:
+          description: "Email was sent."
+        404:
+          description: "User was not found for the ID provided."
+          schema:
+            type: "string"
+        422:
+          description: "Email address could not be sent to."
+          schema:
+            type: "string"
+        500:
+          description: |
+            "Failed to send email. Possibly due to network connectivity
+            or could not access the database."
+          schema:
+            type: "string"
+
+definitions:
+  NewUserRequest:
+    type: "object"
+    required:
+    - "emailAddress"
+    - "firstName"
+    - "lastName"
+    - "username"
+    properties:
+      username:
+        type: "string"
+      firstName:
+        type: "string"
+      lastName:
+        type: "string"
+      emailAddress:
+        type: "string"
+    description: "Required properties for defining a new user."
+  NewUserResponse:
+    type: "object"
+    required:
+    - "userId"
+    properties:
+      userId:
+        type: "string"
+        description: |
+          "The unique identifier of the user in the formate of a type IV UUID."
+  UserCredentialsRequest:
+    type: "object"
+    required:
+    - "password"
+    - "verificationCode"
+    properties:
+      password:
+        type: "string"
+        description: "The user's password."
+      verificationCode:
+        type: "string"
+        description: |
+          "The verification code that was emailed to the user's recovery
+          email address."
+    description: "A request to register a user's credentials and log them in."
+  Session:
+    type: "object"
+    required:
+    - "sessionId"
+    properties:
+      sessionId:
+        type: "string"
+        description: "A time limited, user specific session ID."
+    description: "Represents a logged in user."
