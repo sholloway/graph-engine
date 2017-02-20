@@ -1,6 +1,6 @@
 lazy val projectSettings = Seq(
 	name := "machine-engine",
-	version := "0.1.0",
+	version := "0.1.0-SNAPSHOT",
 	scalaVersion := "2.11.8"
 )
 
@@ -11,7 +11,9 @@ scalacOptions ++= Seq("" +
   "-encoding", "UTF-8",
 	"-language","postfixOps")
 
+
 import sbtassembly.AssemblyPlugin._
+
 lazy val sbtAssemblySettings = Seq(
 	mainClass in assembly := Some("org.machine.engine.Main"),
 	assemblyOption in assembly := (assemblyOption in assembly).value.copy(prependShellScript = Some(defaultShellScript)),
@@ -35,34 +37,34 @@ PB.protobufSettings
 //Tests must be run sequentially due to neo4j interaction.
 parallelExecution in Test := false
 
+resolvers += "SBT Plugins" at "https://dl.bintray.com/sbt/sbt-plugin-releases"
 resolvers += "Typesafe Repository" at "http://repo.typesafe.com/typesafe/releases/"
 resolvers += Resolver.bintrayRepo("commercetools", "maven") //For sphere-json
-// libraryDependencies += "com.eed3si9n" % "sbt-assembly" % "0.14.3" from "https://dl.bintray.com/sbt/sbt-plugin-releases/com.eed3si9n/sbt-assembly/scala_2.11/sbt_1.0.0-M4/0.14.3/jars/sbt-assembly.jar"
 
 //Load everything and set project settings
 lazy val root = (project in file(".")).
-	settings(projectSettings: _*)
-	// settings(sbtAssemblySettings: _*)
+	settings(projectSettings: _*).
+  enablePlugins(AssemblyPlugin)
 
 //Maven Format: groupID % artifactID % revision
 libraryDependencies ++= Seq(
 	"org.scalatest" % "scalatest_2.11" % "2.2.6" % Test,
 	"org.easymock" % "easymock" % "3.3.1" % Test,
-	 "com.typesafe.akka" %% "akka-actor" % "2.4.8",
-	 "com.typesafe.akka" %% "akka-testkit" % "2.4.8" % Test,
-	 "com.typesafe.akka" %% "akka-slf4j" % "2.4.8",
-	 "com.typesafe.akka" %% "akka-http-core" % "2.4.8",
-	 "com.typesafe.akka" %% "akka-http-experimental" % "2.4.8",
-	 "com.typesafe.akka" %% "akka-camel" % "2.4.8",
-	 "org.apache.camel" % "camel-stream" % "2.17.2",
-	 "com.typesafe.scala-logging" %% "scala-logging" % "3.1.0",
+	 "com.typesafe.akka" %% "akka-actor" % "2.4.17",
+	 "com.typesafe.akka" %% "akka-testkit" % "2.4.17" % Test,
+	 "com.typesafe.akka" %% "akka-slf4j" % "2.4.17",
+	 "com.typesafe.akka" %% "akka-http-core" % "10.0.3",
+	 "com.typesafe.akka" %% "akka-http" % "10.0.3",
+	 "com.typesafe.akka" %% "akka-camel" % "2.4.17",
+	 "org.apache.camel" % "camel-stream" % "2.18.2",
+	 "com.typesafe.scala-logging" %% "scala-logging" % "3.5.0",
 	 "ch.qos.logback" % "logback-classic" % "1.1.7",
-	 "com.typesafe" % "config" % "1.3.0",
+	 "com.typesafe" % "config" % "1.3.1",
 	 "org.zeromq" % "jeromq" % "0.3.5",
-	 "org.neo4j" % "neo4j" % "3.0.3",
-	 "org.neo4j" % "neo4j-slf4j" % "3.0.3",
-	 "org.neo4j" % "neo4j-graphviz" % "3.0.3" % Test,
-	 "org.neo4j" % "neo4j-io" % "3.0.3" % Test,
+	 "org.neo4j" % "neo4j" % "3.1.1",
+	 "org.neo4j" % "neo4j-slf4j" % "3.1.1",
+	 "org.neo4j" % "neo4j-graphviz" % "3.1.1" % Test,
+	 "org.neo4j" % "neo4j-io" % "3.1.1" % Test,
 	 "net.liftweb" %% "lift-json" % "3.0-RC3"
 )
 

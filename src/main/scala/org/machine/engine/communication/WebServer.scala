@@ -14,6 +14,10 @@ import scala.collection.JavaConversions._
 import org.machine.engine.flow.{WebSocketFlow}
 import scala.concurrent.{Future}
 
+import org.machine.engine.communication.services.{UserService}
+
+import akka.http.scaladsl.unmarshalling.Unmarshal
+
 /*
 TODO:
 - Rename to something self documenting.
@@ -108,13 +112,19 @@ class WebServer {
   //All the subprotocols supported. Listed in descending priority.
   private val validSubprotocols:List[String] = config.getStringList("engine.communication.webserver.subprotocols").toList
   private var bindingFutureOption:Option[Future[Http.ServerBinding]] = None;
+  private val userService = new UserService()
 
   def start() = {
     system.log.info("Webserver Starting")
+
+    /*
+    Example for basic auth:
+    http://www.slideshare.net/luksow/practical-akka-http-introduction Slide15
+    */
     val requestHandler: HttpRequest => HttpResponse = {
       case HttpRequest(GET, Uri.Path("/"), _, _, _) => handleRootRequest()
       case HttpRequest(GET, Uri.Path("/configuration"), _, _, _) => handleInfoRequest()
-      case HttpRequest(POST, Uri.Path("/authenticate"), _, _, _) => handleAuthRequest()
+      // case req @ HttpRequest(POST, Uri.Path("/users"), _, _, _) => handleCreateUserRequest(req)
       case req @ HttpRequest(GET, Uri.Path("/ws"),_, _, _) => handleWebSocketRequest(req)
       case req @ HttpRequest(GET, Uri.Path("/ws/ping"),_, _, _) => handleWebSocketRequest(req)
       case _: HttpRequest =>
@@ -126,9 +136,6 @@ class WebServer {
     bindingFutureOption = Some(Http().bindAndHandleSync(requestHandler, host, port))
   }
 
-  /*
-  TODO Continue on this.
-  */
   def stop() = {
     system.log.info("Webserver Stopping")
     bindingFutureOption.foreach{ future =>
@@ -154,9 +161,20 @@ class WebServer {
     return HttpResponse(entity = HttpEntity(ContentTypes.`text/html(UTF-8)`,msg))
   }
 
-  private def handleAuthRequest(): HttpResponse = {
-    
-    return HttpResponse(400, entity = "Not a valid websocket request.")
+  private def handleCreateUserRequest(req: HttpRequest): HttpResponse = {
+    import scala.concurrent.{ ExecutionContext, ExecutionContext$, Future, Promise, Await }
+    import scala.concurrent.duration._
+    val requestPayloadFuture:Future[String] = Unmarshal(req.entity).to[String]
+    var requestPayload: String = null
+    requestPayloadFuture.onSuccess{
+      case r  =>{
+        requestPayload = r
+        req.discardEntityBytes()
+      }
+    }
+    Await.result(requestPayloadFuture, 5 seconds)
+    Console.println(requestPayload)
+    return userService.process(req)
   }
 
   private def handleWebSocketRequest(req: HttpRequest):HttpResponse = {
@@ -243,10 +261,11 @@ class WebServer {
       }
    }
 
-  // private def inboundStreamGraph(): Graph[FlowShape[Message, Message], Any] = {
-  //   WebSocketFlow.flow
-  // }
-
    //Simply return the message received.
-   private def echo:Graph[FlowShape[Message, Message], Any] = Flow[Message]
+   private def echo:Graph[FlowShape[Message, Message], Any] = {
+     Console.println("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
+     Console.println("Oh no I'm echoing for some stupid reason!!!!")
+     Console.println("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
+     Flow[Message]
+   }
 }

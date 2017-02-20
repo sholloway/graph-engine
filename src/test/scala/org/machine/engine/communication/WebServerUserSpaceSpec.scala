@@ -30,7 +30,7 @@ import org.machine.engine.flow.requests._
 class WebServerUserSpaceSpec extends FunSpecLike with Matchers with ScalaFutures with BeforeAndAfterAll{
   import WSHelper._
   import TestUtils._
-  
+
   //Configure the whenReady for how long to wait.
   implicit val defaultPatience = PatienceConfig(timeout = Span(5, Seconds), interval = Span(500, Millis))
 
@@ -78,7 +78,7 @@ class WebServerUserSpaceSpec extends FunSpecLike with Matchers with ScalaFutures
 
           whenReady(closed){ results =>
             results should have length 2
-            val envelopeMap = validateOkMsg(msgToMap(results.last))
+            val envelopeMap = validateOkMsg(msgToMap(results.head))
             val payloadMap = strToMap(envelopeMap("textMessage").asInstanceOf[String])
             payloadMap.contains("id") should equal(true)
             val edId = payloadMap("id").asInstanceOf[String]
@@ -106,7 +106,7 @@ class WebServerUserSpaceSpec extends FunSpecLike with Matchers with ScalaFutures
 
           whenReady(closed){ results =>
             results should have length 2
-            val envelopeMap = validateOkMsg(msgToMap(results.last))
+            val envelopeMap = validateOkMsg(msgToMap(results.head))
             val payloadMap = strToMap(envelopeMap("textMessage").asInstanceOf[String])
             payloadMap.contains("ElementDefinitions") should equal(true)
             payloadMap("ElementDefinitions").asInstanceOf[List[Map[String, Any]]].length should be >= 1
@@ -129,7 +129,7 @@ class WebServerUserSpaceSpec extends FunSpecLike with Matchers with ScalaFutures
 
           whenReady(closed){ results =>
             results should have length 2
-            val envelopeMap = validateOkMsg(msgToMap(results.last))
+            val envelopeMap = validateOkMsg(msgToMap(results.head))
             val payloadMap = strToMap(envelopeMap("textMessage").asInstanceOf[String])
             payloadMap.contains("id") should equal(true)
 
@@ -157,7 +157,7 @@ class WebServerUserSpaceSpec extends FunSpecLike with Matchers with ScalaFutures
 
           whenReady(closed){ results =>
             results should have length 2
-            val envelopeMap = validateOkMsg(msgToMap(results.last))
+            val envelopeMap = validateOkMsg(msgToMap(results.head))
             val payloadMap = strToMap(envelopeMap("textMessage").asInstanceOf[String])
             payloadMap.contains("id") should equal(true)
 
@@ -186,7 +186,7 @@ class WebServerUserSpaceSpec extends FunSpecLike with Matchers with ScalaFutures
 
           whenReady(closed){ results =>
             results should have length 2
-            val envelopeMap = validateOkMsg(msgToMap(results.last))
+            val envelopeMap = validateOkMsg(msgToMap(results.head))
             val payloadMap = strToMap(envelopeMap("textMessage").asInstanceOf[String])
             payloadMap.contains("id") should equal(true)
 
@@ -214,7 +214,7 @@ class WebServerUserSpaceSpec extends FunSpecLike with Matchers with ScalaFutures
 
           whenReady(closed){ results =>
             results should have length 2
-            val envelopeMap = validateOkMsg(msgToMap(results.last))
+            val envelopeMap = validateOkMsg(msgToMap(results.head))
             val payloadMap = strToMap(envelopeMap("textMessage").asInstanceOf[String])
             payloadMap.contains("id") should equal(true)
 
@@ -243,7 +243,7 @@ class WebServerUserSpaceSpec extends FunSpecLike with Matchers with ScalaFutures
 
           whenReady(closed){ results =>
             results should have length 2
-            val envelopeMap = validateOkMsg(msgToMap(results.last))
+            val envelopeMap = validateOkMsg(msgToMap(results.head))
             val payloadMap = strToMap(envelopeMap("textMessage").asInstanceOf[String])
             payloadMap.contains("ElementDefinitions") should equal(true)
             val eds = payloadMap("ElementDefinitions").asInstanceOf[List[Map[String, Any]]]
@@ -270,7 +270,7 @@ class WebServerUserSpaceSpec extends FunSpecLike with Matchers with ScalaFutures
 
           whenReady(closed){ results =>
             results should have length 2
-            val envelopeMap = validateOkMsg(msgToMap(results.last))
+            val envelopeMap = validateOkMsg(msgToMap(results.head))
             val payloadMap = strToMap(envelopeMap("textMessage").asInstanceOf[String])
             payloadMap.contains("ElementDefinitions") should equal(true)
             val eds = payloadMap("ElementDefinitions").asInstanceOf[List[Map[String, Any]]]
@@ -298,7 +298,7 @@ class WebServerUserSpaceSpec extends FunSpecLike with Matchers with ScalaFutures
 
           whenReady(closed){ results =>
             results should have length 2
-            val envelopeMap = validateOkMsg(msgToMap(results.last))
+            val envelopeMap = validateOkMsg(msgToMap(results.head))
             val payloadMap = strToMap(envelopeMap("textMessage").asInstanceOf[String])
             payloadMap.contains("id") should equal(true)
             val id = payloadMap("id").asInstanceOf[String]
@@ -325,7 +325,7 @@ class WebServerUserSpaceSpec extends FunSpecLike with Matchers with ScalaFutures
 
           whenReady(closed){ results =>
             results should have length 2
-            val envelopeMap = validateOkMsg(msgToMap(results.last))
+            val envelopeMap = validateOkMsg(msgToMap(results.head))
             val payloadMap = strToMap(envelopeMap("textMessage").asInstanceOf[String])
             payloadMap.contains("id") should equal(true)
             val id = payloadMap("id").asInstanceOf[String]
@@ -353,7 +353,7 @@ class WebServerUserSpaceSpec extends FunSpecLike with Matchers with ScalaFutures
 
           whenReady(closed){ results =>
             results should have length 2
-            val envelopeMap = validateOkMsg(msgToMap(results.last))
+            val envelopeMap = validateOkMsg(msgToMap(results.head))
             val payloadMap = strToMap(envelopeMap("textMessage").asInstanceOf[String])
             payloadMap.contains("datasets") should equal(true)
             val ds = payloadMap("datasets").asInstanceOf[List[Map[String, Any]]].head
@@ -380,7 +380,7 @@ class WebServerUserSpaceSpec extends FunSpecLike with Matchers with ScalaFutures
 
           whenReady(closed){ results =>
             results should have length 2
-            val envelopeMap = validateOkMsg(msgToMap(results.last))
+            val envelopeMap = validateOkMsg(msgToMap(results.head))
             val payloadMap = strToMap(envelopeMap("textMessage").asInstanceOf[String])
             payloadMap.contains("datasets") should equal(true)
             val ds = payloadMap("datasets").asInstanceOf[List[Map[String, Any]]].head
@@ -406,7 +406,7 @@ class WebServerUserSpaceSpec extends FunSpecLike with Matchers with ScalaFutures
 
           whenReady(closed){ results =>
             results should have length 2
-            val envelopeMap = validateOkMsg(msgToMap(results.last))
+            val envelopeMap = validateOkMsg(msgToMap(results.head))
             val payloadMap = strToMap(envelopeMap("textMessage").asInstanceOf[String])
             payloadMap.contains("datasets") should equal(true)
             val dsList = payloadMap("datasets").asInstanceOf[List[Map[String, Any]]]

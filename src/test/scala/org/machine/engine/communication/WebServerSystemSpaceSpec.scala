@@ -83,7 +83,7 @@ class WebServerSystemSpaceSpec extends FunSpecLike with Matchers with ScalaFutur
 
           whenReady(closed){ results =>
             results should have length 2
-            val envelopeMap = msgToMap(results.last)
+            val envelopeMap = msgToMap(results.head)
             envelopeMap("status") should equal("Ok")
             envelopeMap("messageType") should equal("CmdResult")
             val payloadMap = strToMap(envelopeMap("textMessage").asInstanceOf[String])
@@ -113,7 +113,7 @@ class WebServerSystemSpaceSpec extends FunSpecLike with Matchers with ScalaFutur
 
           whenReady(closed){ results =>
             results should have length 2
-            val envelopeMap = msgToMap(results.last)
+            val envelopeMap = msgToMap(results.head)
             envelopeMap("status") should equal("Ok")
             envelopeMap("messageType") should equal("CmdResult")
             val payloadMap = strToMap(envelopeMap("textMessage").asInstanceOf[String])
@@ -135,7 +135,7 @@ class WebServerSystemSpaceSpec extends FunSpecLike with Matchers with ScalaFutur
 
           whenReady(closed){ results =>
             results should have length 2
-            val envelopeMap = msgToMap(results.last)
+            val envelopeMap = msgToMap(results.head)
             envelopeMap("status") should equal("Ok")
             envelopeMap("messageType") should equal("CmdResult")
             val payloadMap = strToMap(envelopeMap("textMessage").asInstanceOf[String])
@@ -161,7 +161,7 @@ class WebServerSystemSpaceSpec extends FunSpecLike with Matchers with ScalaFutur
 
           whenReady(closed){ results =>
             results should have length 2
-            val envelopeMap = msgToMap(results.last)
+            val envelopeMap = msgToMap(results.head)
             envelopeMap("status") should equal("Ok")
             envelopeMap("messageType") should equal("CmdResult")
             val payloadMap = strToMap(envelopeMap("textMessage").asInstanceOf[String])
@@ -206,7 +206,7 @@ class WebServerSystemSpaceSpec extends FunSpecLike with Matchers with ScalaFutur
 
           whenReady(closed){ results =>
             results should have length 2
-            val envelopeMap = msgToMap(results.last)
+            val envelopeMap = msgToMap(results.head)
             envelopeMap("status") should equal("Ok")
             envelopeMap("messageType") should equal("CmdResult")
             val payloadMap = strToMap(envelopeMap("textMessage").asInstanceOf[String])
@@ -237,7 +237,7 @@ class WebServerSystemSpaceSpec extends FunSpecLike with Matchers with ScalaFutur
 
           whenReady(closed){ results =>
             results should have length 2
-            val envelopeMap = msgToMap(results.last)
+            val envelopeMap = msgToMap(results.head)
             envelopeMap("status") should equal("Ok")
             envelopeMap("messageType") should equal("CmdResult")
             val payloadMap = strToMap(envelopeMap("textMessage").asInstanceOf[String])
@@ -267,7 +267,7 @@ class WebServerSystemSpaceSpec extends FunSpecLike with Matchers with ScalaFutur
 
           whenReady(closed){ results =>
             results should have length 2
-            val envelopeMap = msgToMap(results.last)
+            val envelopeMap = msgToMap(results.head)
             envelopeMap("status") should equal("Ok")
             envelopeMap("messageType") should equal("CmdResult")
             val payloadMap = strToMap(envelopeMap("textMessage").asInstanceOf[String])
@@ -298,7 +298,7 @@ class WebServerSystemSpaceSpec extends FunSpecLike with Matchers with ScalaFutur
 
           whenReady(closed){ results =>
             results should have length 2
-            val envelopeMap = msgToMap(results.last)
+            val envelopeMap = msgToMap(results.head)
             envelopeMap("status") should equal("Ok")
             envelopeMap("messageType") should equal("CmdResult")
             val payloadMap = strToMap(envelopeMap("textMessage").asInstanceOf[String])
@@ -327,7 +327,7 @@ class WebServerSystemSpaceSpec extends FunSpecLike with Matchers with ScalaFutur
 
           whenReady(closed){ results =>
             results should have length 2
-            val envelopeMap = msgToMap(results.last)
+            val envelopeMap = msgToMap(results.head)
             envelopeMap("status") should equal("Ok")
             envelopeMap("messageType") should equal("CmdResult")
             val payloadMap = strToMap(envelopeMap("textMessage").asInstanceOf[String])
