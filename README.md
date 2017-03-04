@@ -44,7 +44,7 @@ npm start
 ```
 cd target/scala-2.11
 
-java -cp machine-engine-assembly-0.1.0-deps.jar:machine-engine-assembly-0.1.0.jar \
+java -cp machine-engine-assembly-0.1.0-SNAPSHOT-deps.jar:machine-engine-assembly-0.1.0-SNAPSHOT.jar \
   org.machine.engine.Main
 ```
 
@@ -90,6 +90,7 @@ Supported Commands:
 * [Scala Code Coverage](https://github.com/scoverage/sbt-scoverage)
 * [Apache Camel Stream](https://camel.apache.org/stream.html)
 * [Akka Stdin Example](https://searler.github.io/scala/akka/camel/reactive/2015/01/11/Simple-Akka-Stream-Camel-Integration.html)
+* [Akka REST DSL with Actors Example](https://spindance.com/reactive-rest-services-akka-http/)
 
 ### ZeroMQ
 * [ZeroMQ Node](https://github.com/JustinTulloss/zeromq.node)

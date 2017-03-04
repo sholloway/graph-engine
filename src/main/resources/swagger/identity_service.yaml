@@ -65,7 +65,7 @@ paths:
         200:
           description: "Status 200"
           schema:
-            $ref: "#/definitions/NewUserResponse"
+            $ref: "#/definitions/NewUser"
         500:
           description: "Could not access the database."
   /users/{userId}/credentials:
@@ -156,7 +156,7 @@ definitions:
       emailAddress:
         type: "string"
     description: "Required properties for defining a new user."
-  NewUserResponse:
+  NewUser:
     type: "object"
     required:
     - "userId"
