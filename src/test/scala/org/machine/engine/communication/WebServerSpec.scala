@@ -29,7 +29,7 @@ import org.machine.engine.flow.requests._
 class WebServerSpec extends FunSpecLike with Matchers with ScalaFutures with BeforeAndAfterAll{
   import WSHelper._
   import TestUtils._
-  
+
   //Configure the whenReady for how long to wait.
   implicit val defaultPatience = PatienceConfig(timeout = Span(5, Seconds), interval = Span(500, Millis))
 
@@ -46,12 +46,6 @@ class WebServerSpec extends FunSpecLike with Matchers with ScalaFutures with Bef
   val enginePath = s"ws://$host:$port/ws"
   val echoPath = s"ws://$host:$port/ws/ping"
 
-  /*
-  TODO Test the WebServer
-  1. Get an instance of the engine.
-  2. Create a set of data that can be used for all 36 commands.
-  3. Test the execution of all 41 rules (36 commands).
-  */
   override def beforeAll(){
     engine = Engine.getInstance
     perge

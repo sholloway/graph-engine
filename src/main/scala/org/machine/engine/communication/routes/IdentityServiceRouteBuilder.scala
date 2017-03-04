@@ -8,9 +8,11 @@ import akka.stream.{ActorMaterializer}
 import akka.util.Timeout
 import scala.concurrent.duration._
 import akka.pattern.ask
-import org.machine.engine.communication.services.{UserServiceActor, CreateUser, NewUser}
+import org.machine.engine.communication.services.{UserServiceActor, CreateUser,
+  NewUser, CreateNewUserRequest, NewUserResponse, UserServiceJsonSupport};
+import akka.http.scaladsl.server.Directives
 
-object IdentityServiceRouteBuilder{
+object IdentityServiceRouteBuilder extends Directives with UserServiceJsonSupport{
   private implicit val system = ActorSystem()
   private implicit val materializer = ActorMaterializer()
   def buildRoutes():Route = {
@@ -28,12 +30,14 @@ object IdentityServiceRouteBuilder{
           complete(StatusCodes.OK, "Hello World\n")
         }~
         post{
-          onSuccess(userService ? CreateUser){
-            case response: NewUser => {
-              complete(StatusCodes.OK,s"${response.userId}\n")
-            }
-            case _ => {
-              complete(StatusCodes.InternalServerError)
+          entity(as[CreateUser]){ newUserRequest =>
+            onSuccess(userService ? CreateNewUserRequest(newUserRequest)){
+              case response: NewUserResponse => {
+                complete(StatusCodes.OK, response.newUser)
+              }
+              case _ => {
+                complete(StatusCodes.InternalServerError)
+              }
             }
           }
         }

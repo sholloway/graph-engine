@@ -55,6 +55,7 @@ libraryDependencies ++= Seq(
 	 "com.typesafe.akka" %% "akka-slf4j" % "2.4.17",
 	 "com.typesafe.akka" %% "akka-http-core" % "10.0.3",
 	 "com.typesafe.akka" %% "akka-http" % "10.0.3",
+	 "com.typesafe.akka" %% "akka-http-spray-json" % "10.0.3",
 	 "com.typesafe.akka" %% "akka-camel" % "2.4.17",
 	 "org.apache.camel" % "camel-stream" % "2.18.2",
 	 "com.typesafe.scala-logging" %% "scala-logging" % "3.5.0",
@@ -65,7 +66,8 @@ libraryDependencies ++= Seq(
 	 "org.neo4j" % "neo4j-slf4j" % "3.1.1",
 	 "org.neo4j" % "neo4j-graphviz" % "3.1.1" % Test,
 	 "org.neo4j" % "neo4j-io" % "3.1.1" % Test,
-	 "net.liftweb" %% "lift-json" % "3.0-RC3"
+	 "net.liftweb" %% "lift-json" % "3.0-RC3",
+	 "com.squareup.okhttp3" % "okhttp" % "3.6.0"% Test
 )
 
 //Split the project and dependencies.
