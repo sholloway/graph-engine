@@ -9,7 +9,7 @@ import akka.stream.scaladsl._
 import com.typesafe.config._
 import java.io.File;
 import java.io.IOException;
-import okhttp3.{OkHttpClient, Request, RequestBody, Response, MediaType}
+import okhttp3.{Credentials, OkHttpClient, Request, RequestBody, Response, MediaType}
 import org.neo4j.io.fs.FileUtils
 import org.scalatest._
 import org.scalatest.concurrent.ScalaFutures
@@ -58,8 +58,12 @@ class IdentityServiceSpec extends FunSpecLike with Matchers with ScalaFutures wi
     describe("Users"){
       it ("should perform a GET example"){
         val url = s"http://$host:$port/users"
+        val user:String = config.getString("engine.communication.identity_service.user")
+        val pwd:String = config.getString("engine.communication.identity_service.password")
+        val credential:String = Credentials.basic(user, pwd);
         val request = new Request.Builder()
           .url(url)
+          .header("Authorization", credential)
           .build()
         val response = client.newCall(request).execute()
         response.code() should equal(200)
@@ -67,19 +71,49 @@ class IdentityServiceSpec extends FunSpecLike with Matchers with ScalaFutures wi
       }
 
       it ("should create a new user"){
-        val url = s"http://$host:$port/users"
-        val expected = "{\"userId\":\"tech49\"}"
-        val requestStr = newUserRequest()
+        val url:String = s"http://$host:$port/users"
+        val expected:String = "{\"userId\":\"tech49\"}"
+        val requestStr:String = newUserRequest()
+        val user:String = config.getString("engine.communication.identity_service.user")
+        val pwd:String = config.getString("engine.communication.identity_service.password")
+        val credential:String = Credentials.basic(user, pwd);
         val requestBody = RequestBody.create(jsonMediaType, requestStr)
         val request = new Request.Builder()
           .url(url)
           .post(requestBody)
+          .header("Authorization", credential)
           .build()
         val response = client.newCall(request).execute()
         val result = response.body().string()
         Console.println(result)
         response.code() should equal(200)
         result should equal(expected)
+      }
+
+      it ("should return 403 for a bad username if the password was ok."){
+        val url = s"http://$host:$port/users"
+        val user:String = "bad user name"
+        val pwd:String = config.getString("engine.communication.identity_service.password")
+        val credential:String = Credentials.basic(user, pwd);
+        val request = new Request.Builder()
+          .url(url)
+          .header("Authorization", credential)
+          .build()
+        val response = client.newCall(request).execute()
+        response.code() should equal(403)
+      }
+
+      it ("should return 401 for a bad password"){
+        val url = s"http://$host:$port/users"
+        val user:String = config.getString("engine.communication.identity_service.user")
+        val pwd:String = "bad password"
+        val credential:String = Credentials.basic(user, pwd);
+        val request = new Request.Builder()
+          .url(url)
+          .header("Authorization", credential)
+          .build()
+        val response = client.newCall(request).execute()
+        response.code() should equal(401)
       }
     }
   }

@@ -11,10 +11,14 @@ import akka.pattern.ask
 import org.machine.engine.communication.services.{UserServiceActor, CreateUser,
   NewUser, CreateNewUserRequest, NewUserResponse, UserServiceJsonSupport};
 import akka.http.scaladsl.server.Directives
+import akka.http.scaladsl.server.directives.Credentials
+
 
 object IdentityServiceRouteBuilder extends Directives with UserServiceJsonSupport{
   private implicit val system = ActorSystem()
   private implicit val materializer = ActorMaterializer()
+  private val config = system.settings.config
+
   def buildRoutes():Route = {
     val userService = system.actorOf(UserServiceActor.props(), "userService")
     val routes = {
@@ -25,32 +29,42 @@ object IdentityServiceRouteBuilder extends Directives with UserServiceJsonSuppor
       */
       implicit val timeout = Timeout(5.seconds)
 
-      path("users"){
-        get{
-          complete(StatusCodes.OK, "Hello World\n")
-        }~
-        post{
-          entity(as[CreateUser]){ newUserRequest =>
-            onSuccess(userService ? CreateNewUserRequest(newUserRequest)){
-              case response: NewUserResponse => {
-                complete(StatusCodes.OK, response.newUser)
-              }
-              case _ => {
-                complete(StatusCodes.InternalServerError)
+      authenticateBasic(realm = "Engine User Service", authenticator){ user =>
+        authorize(hasRights(user)){
+          path("users"){
+            get{
+              complete(StatusCodes.OK, "Hello World\n")
+            }~
+            post{
+              entity(as[CreateUser]){ newUserRequest =>
+                onSuccess(userService ? CreateNewUserRequest(newUserRequest)){
+                  case response: NewUserResponse => {
+                    complete(StatusCodes.OK, response.newUser)
+                  }
+                  case _ => {
+                    complete(StatusCodes.InternalServerError)
+                  }
+                }
               }
             }
           }
         }
       }
-      // path("users"){
-      //   post{
-      //     entity(as[String]){ payload =>
-      //       complete(payload)
-      //     }
-      //   }
-      // }
     }
     return routes;
+  }
+
+  private def authenticator(credentials: Credentials): Option[String] =
+    credentials match {
+      case p @ Credentials.Provided(id) if p.verify(config.getString("engine.communication.identity_service.password")) => Some(id)
+      case _ => None
+    }
+
+  private def hasRights(user: String):Boolean  = {
+    val registeredUser = config.getString("engine.communication.identity_service.user")
+    Console.println(s"Registered User: ${registeredUser}")
+    Console.println(s"Provided User: ${user}")
+    return registeredUser == user
   }
 }
 
