@@ -33,6 +33,9 @@ object CommandFactory{
       case EngineCommands.EditAssociation => new EditAssociation(database, cmdScope, cmdOptions)
       case EngineCommands.DeleteAssociation => new DeleteAssociation(database, cmdScope, cmdOptions)
       case EngineCommands.RemoveAssociationField => new RemoveAssociationField(database, cmdScope, cmdOptions)
+
+      case EngineCommands.CreateNewUser => new CreateNewUser(database, cmdScope, cmdOptions)
+
     }
   }
 }

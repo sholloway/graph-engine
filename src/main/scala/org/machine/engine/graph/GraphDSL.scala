@@ -290,6 +290,23 @@ import org.machine.engine.graph.decisions._
 *   .onElement(elementId)
 *   .findUpStreamElements()
 * }}}
+*
+* ==Managing Identity==
+* The system has the concept of a user which represents the person creating
+* datasets. Users are automatically created in system space.
+*
+* '''Create a user.'''
+* When creating a user the fields: firstName, lastName, emailAddress, and
+* userName are require.
+*
+* {{{
+* val userId = engine.createUser
+*   .withFirstName(request.firstName)
+*   .withLastName(request.lastName)
+*   .withEmailAddress(request.emailAddress)
+*   .withUserName(request.userName)
+* .end
+* }}}
 */
 trait GraphDSL{
   //Abstract handlers
@@ -349,6 +366,12 @@ trait GraphDSL{
 
   def removeInboundAssociations()
   def removeOutboundAssociations()
+
+  def createUser():GraphDSL
+  def withFirstName(name:String):GraphDSL
+  def withLastName(name:String):GraphDSL
+  def withEmailAddress(email:String):GraphDSL
+  def withUserName(email:String):GraphDSL
 }
 
 trait CmdResult{

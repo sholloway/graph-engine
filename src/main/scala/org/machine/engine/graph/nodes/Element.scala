@@ -3,6 +3,10 @@ package org.machine.engine.graph.nodes
 import org.machine.engine.exceptions._
 
 /** An immutable element in a dataset.
+* A node in the graph. It is created from the template of an
+* ElementDefinition. The underlying Neo4J label is the
+* ElementDefinition name. Fields are node properties based on
+* the ElementDefinition's associated PropertyDefs.
 *
 * @constructor Creates a new Element.
 * @param id The Element's unique identifier.

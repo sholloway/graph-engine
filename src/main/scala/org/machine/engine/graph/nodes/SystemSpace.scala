@@ -3,7 +3,7 @@ package org.machine.engine.graph.nodes
 import scala.collection.mutable.ArrayBuffer
 
 /** The collection of ElementDefinitions that are available to the user to
-*   instantiate, but can not be redefined.
+* instantiate, but can not be redefined.
 *
 * @constructor Creates a new SystemSpace.
 * @param id The SystemSpace UUID.

@@ -34,10 +34,10 @@ object Engine{
   def getInstance: Engine = {
     if(engine == None){
       val decisionTree = DecisionDSL.buildDecisionTreeFromRules()
-      Console.println("########################################################")
-      Console.println("Printing the Engine Decision Tree")
-      DecisionDSL.drawTree(decisionTree,0, new ConsolePlotter())
-      Console.println("########################################################")
+      // Console.println("########################################################")
+      // Console.println("Printing the Engine Decision Tree")
+      // DecisionDSL.drawTree(decisionTree,0, new ConsolePlotter())
+      // Console.println("########################################################")
       engine = Some(new Engine(dbPath, decisionTree))
       sys.addShutdownHook(shutdown)
     }
@@ -516,5 +516,27 @@ class Engine private (dbPath:String, decisionTree: Question) extends GraphDSL wi
 
   def removeOutboundAssociations() = {
     new RemoveOutboundAssociations(database, scope, cmdOptions).execute()
+  }
+
+  def createUser():GraphDSL = {
+    command = EngineCommands.CreateNewUser
+    cmdOptions.reset
+    return this.inSystemSpace()
+  }
+
+  def withFirstName(name:String):GraphDSL = {
+    return withField("firstName", name)
+  }
+
+  def withLastName(name:String):GraphDSL = {
+    return withField("lastName", name)
+  }
+
+  def withEmailAddress(email:String):GraphDSL = {
+    return withField("emailAddress", email)
+  }
+
+  def withUserName(name:String):GraphDSL = {
+    return withField("userName", name)
   }
 }

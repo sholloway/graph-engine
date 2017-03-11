@@ -19,11 +19,13 @@ object TestUtils{
     val delete_property_definitions = "match (pd:property_definition) detach delete pd"
     val delete_elements = "match (e:element) detach delete e"
     val delete_datasets = "match (ds:internal_data_set) detach delete ds"
+    val delete_users = "match (u:user) detach delete u"
 
     val map = new java.util.HashMap[java.lang.String, Object]()
     run(Engine.getInstance.database, delete_element_definitions, map, emptyResultProcessor[String])
     run(Engine.getInstance.database, delete_property_definitions, map, emptyResultProcessor[String])
     run(Engine.getInstance.database, delete_elements, map, emptyResultProcessor[String])
     run(Engine.getInstance.database, delete_datasets, map, emptyResultProcessor[String])
+    run(Engine.getInstance.database, delete_users, map, emptyResultProcessor[String])
   }
 }

@@ -2,7 +2,8 @@ package org.machine.engine.graph.nodes
 
 import scala.collection.mutable.ListBuffer
 
-/** A base element used to define what can be created by the user.
+/** An abstract object that is responsible for the definition of nodes that
+* can be dynamically provisioned by the user.
 *
 * @constructor Create a new Element Definition.
 * @param id The Element Defintion NodeJS ID.

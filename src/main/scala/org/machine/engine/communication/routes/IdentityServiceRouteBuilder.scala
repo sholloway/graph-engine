@@ -62,8 +62,6 @@ object IdentityServiceRouteBuilder extends Directives with UserServiceJsonSuppor
 
   private def hasRights(user: String):Boolean  = {
     val registeredUser = config.getString("engine.communication.identity_service.user")
-    Console.println(s"Registered User: ${registeredUser}")
-    Console.println(s"Provided User: ${user}")
     return registeredUser == user
   }
 }

@@ -1,6 +1,7 @@
 package org.machine.engine.graph.nodes
 
-/** A graph, defined by a user.
+/** A graph, defined by a user composed of ElementDefinitions and Elements and
+* their associations.
 *
 * @constructor Creates a new DataSet.
 * @param id The DataSet NodeJS ID.

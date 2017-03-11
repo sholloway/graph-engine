@@ -22,6 +22,7 @@ http://www.slideshare.net/luksow/practical-akka-http-introduction Slide15
 */
 //TODO: Refactor into smaller classes and objects. This object should only have
 //the routing logic.
+//TODO: Re-write to use the Routing DSL with the WebSockets directives.
 object WebSocketRouteBuilder{
   private implicit val system = ActorSystem()
   private implicit val materializer = ActorMaterializer()
