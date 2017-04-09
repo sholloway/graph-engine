@@ -9,19 +9,22 @@ import akka.http.scaladsl.model.ws.{BinaryMessage, Message, TextMessage, Upgrade
 import akka.http.scaladsl.server.Route
 import akka.http.scaladsl.server.Directives._
 import akka.pattern.ask
+import akka.stream.{ActorMaterializer}
 import akka.stream.OverflowStrategy
 import akka.stream.scaladsl._
-import akka.stream.{ActorMaterializer}
 import akka.util.Timeout
 
-
-import scala.concurrent.duration._
-import scala.concurrent.{ExecutionContext, Future}
+import akka.http.scaladsl.model.StatusCodes
+import akka.http.scaladsl.testkit._
+import akka.http.scaladsl.server._
 
 import org.scalatest._
 import org.scalatest.concurrent.ScalaFutures
 import org.scalatest.mock._
 import org.scalatest.time.{Millis, Seconds, Span}
+
+import scala.concurrent.duration._
+import scala.concurrent.{ExecutionContext, Future}
 
 import org.machine.engine.TestUtils
 
@@ -51,14 +54,6 @@ class WSSpikeServer{
     return Some(Http().bindAndHandle(routes, wsHost, wsPort))
   }
 
-  /*
-  akka.http.scaladsl.server.Directives.path("/services/greeter") {
-    handleWebSocketMessages(greeterService)
-  }~
-  akka.http.scaladsl.server.Directives.path("/services/echo") {
-    handleWebSocketMessages(echoService)
-  }
-  */
   def createRoutes():Route = {
     val routes = {
       akka.http.scaladsl.server.Directives.path("services" / "greeter") {
@@ -88,7 +83,11 @@ class WSSpikeServer{
     Flow[Message].buffer(1, OverflowStrategy.backpressure)
 }
 
-class WSRoutesSpikeSpec extends FunSpecLike with Matchers with ScalaFutures with BeforeAndAfterAll{
+class WSRoutesSpikeSpec extends FunSpecLike
+  with Matchers
+  with ScalaFutures
+  with BeforeAndAfterAll
+  with ScalatestRouteTest{
   import WSHelper._
   import TestUtils._
 
@@ -131,6 +130,29 @@ class WSRoutesSpikeSpec extends FunSpecLike with Matchers with ScalaFutures with
           TextMessage.Strict("Hello D!"),
           TextMessage.Strict("Hello E!"),
           TextMessage.Strict("Hello F!")))
+      }
+    }
+
+    it ("should use test kit"){
+      implicit val system = ActorSystem()
+      implicit val materializer = ActorMaterializer()
+      val wsClient = WSProbe()
+      WS("/services/greeter", wsClient.flow, Seq("engine.json.v1")) ~> server.createRoutes() ~> check {
+        // check response for WS Upgrade headers
+        isWebSocketUpgrade shouldEqual true
+
+        // manually run a WS conversation
+        wsClient.sendMessage("Peter")
+        wsClient.expectMessage("Hello Peter!")
+
+        // wsClient.sendMessage(BinaryMessage(ByteString("abcdef")))
+        // wsClient.expectNoMessage(100.millis)
+
+        wsClient.sendMessage("John")
+        wsClient.expectMessage("Hello John!")
+
+        wsClient.sendCompletion()
+        wsClient.expectCompletion()
       }
     }
   }

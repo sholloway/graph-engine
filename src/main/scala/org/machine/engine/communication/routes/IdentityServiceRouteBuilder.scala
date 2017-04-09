@@ -17,9 +17,15 @@ object IdentityServiceRouteBuilder extends Directives with UserServiceJsonSuppor
   private implicit val system = ActorSystem()
   private implicit val materializer = ActorMaterializer()
   private val config = system.settings.config
+  private var userServiceCounter:Integer = 0
+
+  private def generateNewUserServiceName():String = {
+    userServiceCounter = userServiceCounter + 1
+    return s"identity-user-$userServiceCounter"
+  }
 
   def buildRoutes():Route = {
-    val userService = system.actorOf(UserServiceActor.props(), "userService")
+    val userService = system.actorOf(UserServiceActor.props(), generateNewUserServiceName())
     val routes = {
       /*
        The ask operation (? symbol) involves creating an internal actor for handling
