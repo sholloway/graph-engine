@@ -13,7 +13,6 @@ import org.machine.engine.communication.services.{UserServiceActor, CreateUser,
 import akka.http.scaladsl.server.Directives
 import akka.http.scaladsl.server.directives.Credentials
 
-
 object IdentityServiceRouteBuilder extends Directives with UserServiceJsonSupport{
   private implicit val system = ActorSystem()
   private implicit val materializer = ActorMaterializer()
