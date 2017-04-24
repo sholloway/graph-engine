@@ -60,26 +60,8 @@ class HttpRequestsSpec extends FunSpecLike
 
   describe("Receiving Requests"){
     describe ("HTTP Requests"){
-      it ("should return static message for root"){
-        val responseFuture = getHTTP(s"$scheme://$host:$port")
-        val expected = "<html><body>This is a private channel for engine communication.</body></html>"
-        verifyHTTPRequest(responseFuture, expected, Span(5, Seconds))
-      }
-
-      it ("should return static message for /"){
-        val responseFuture = getHTTP(s"$scheme://$host:$port/")
-        val expected = "<html><body>This is a private channel for engine communication.</body></html>"
-        verifyHTTPRequest(responseFuture, expected, Span(5, Seconds))
-      }
-
       it ("should provide usage stats for /stats")(pending)
-
-      it ("should provide configuration for /configuration"){
-        val responseFuture = getHTTP(s"$scheme://$host:$port/configuration")
-        val expected = s"<html><body><h1>Engine</h1><hr/>Version:$engineVersion</body></html>"
-        verifyHTTPRequest(responseFuture, expected, Span(5, Seconds))
-      }
-
+      it ("should provide configuration for /configuration")(pending)
       it ("should provide the diagram of the in memory decision tree for /rules")(pending)
     }
   }

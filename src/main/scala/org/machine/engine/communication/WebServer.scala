@@ -4,12 +4,13 @@ import akka.actor.ActorSystem
 import akka.http.scaladsl.Http
 import akka.http.scaladsl.model._
 import akka.http.scaladsl.model.HttpMethods._
+import akka.http.scaladsl.server.Route
 import akka.stream.{ActorMaterializer, Graph, FlowShape}
 import akka.stream.scaladsl.{Flow, Sink, Source}
 import scala.collection.JavaConversions._
 import scala.concurrent.{Future}
 
-import org.machine.engine.communication.routes.{IdentityServiceRouteBuilder, WebSocketRouteBuilder}
+import org.machine.engine.communication.routes.{IdentityServiceRouteBuilder, RPCOverWSRouteBuilder, WebSocketRouteBuilder}
 
 class WebServer {
   private implicit val system = ActorSystem()
@@ -41,10 +42,10 @@ class WebServer {
 
   private def initializeWebSocketsEndpoint():Option[Future[Http.ServerBinding]] = {
     system.log.info("Webserver Starting")
-    val requestHandler: HttpRequest => HttpResponse = WebSocketRouteBuilder.buildRoutes()
+    val wsRoutes = RPCOverWSRouteBuilder.buildRoutes()
     val wsHost = config.getString("engine.communication.webserver.host")
     val wsPort = config.getInt("engine.communication.webserver.port")
-    return Some(Http().bindAndHandleSync(requestHandler, wsHost, wsPort))
+    return Some(Http().bindAndHandle(wsRoutes, wsHost, wsPort))
   }
 
   private def initializeIdentityServiceEndpoint():Option[Future[Http.ServerBinding]] = {

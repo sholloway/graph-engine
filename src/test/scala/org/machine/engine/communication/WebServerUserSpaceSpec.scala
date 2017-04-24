@@ -27,7 +27,10 @@ import org.machine.engine.graph.commands.CommandScopes
 import org.machine.engine.graph.nodes._
 import org.machine.engine.flow.requests._
 
-class WebServerUserSpaceSpec extends FunSpecLike with Matchers with ScalaFutures with BeforeAndAfterAll{
+class WebServerUserSpaceSpec extends FunSpecLike
+  with Matchers
+  with ScalaFutures
+  with BeforeAndAfterAll{
   import WSHelper._
   import TestUtils._
 

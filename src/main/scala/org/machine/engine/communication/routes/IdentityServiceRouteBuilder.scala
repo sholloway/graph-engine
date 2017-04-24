@@ -70,5 +70,3 @@ object IdentityServiceRouteBuilder extends Directives with UserServiceJsonSuppor
     return registeredUser == user
   }
 }
-
-// case class NewUserRequest()

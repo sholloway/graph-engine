@@ -1,0 +1,10 @@
+{
+  "name": "Echo Request",
+  "description": "Given a request, it will return an identical response. Used for testing the WebSocket endpoint and flow.",
+  "scope": "internal_system_space",
+  "entityType": "ElementDefinition",
+  "actionType": "Echo",
+  "filter": "None",
+  "decision": "EchoRequest",
+  "comment": "Expects the request options to contain a message parameter. This parameter will be echoed."
+}

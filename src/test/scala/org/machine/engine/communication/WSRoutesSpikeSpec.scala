@@ -72,10 +72,11 @@ class WSSpikeServer{
       val response = s"Hello $msg!"
       TextMessage(response) :: Nil
     }
-    case bm: BinaryMessage =>
+    case bm: BinaryMessage =>{
       // ignore binary messages but drain content to avoid the stream being clogged
       bm.dataStream.runWith(Sink.ignore)
       Nil
+    }
   }
 
   def echoService(): Flow[Message, Message, Any] =

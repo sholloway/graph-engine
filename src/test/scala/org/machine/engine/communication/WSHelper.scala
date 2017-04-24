@@ -8,8 +8,11 @@ import akka.http.scaladsl.Http
 import akka.http.scaladsl.model._
 import akka.http.scaladsl.model.ws._
 import akka.http.scaladsl.unmarshalling.Unmarshal
-import akka.http.scaladsl.model.headers.{ BasicHttpCredentials, Authorization }
+import akka.http.scaladsl.model.headers._
 import akka.util.ByteString
+
+import com.typesafe.config._
+
 import net.liftweb.json._
 import net.liftweb.json.DefaultFormats
 
@@ -18,6 +21,7 @@ import org.scalatest.concurrent.ScalaFutures
 import org.scalatest.time.{Millis, Seconds, Span}
 import org.scalatest.concurrent.PatienceConfiguration.Interval
 
+import scala.collection.immutable.Seq
 import scala.concurrent.{ExecutionContext, Future}
 import scala.concurrent.duration.FiniteDuration
 
@@ -70,11 +74,22 @@ object WSHelper{
     actionType: String,
     scope: String,
     entityType: String,
-    filter: String, options: Map[String, Any] = Map.empty[String, Any]):Source[Message, NotUsed] = {
-    val rm = RequestMessage(user, actionType, scope, entityType, filter, options)
-    val json = RequestMessage.toJSON(rm)
+    filter: String,
+    options: Map[String, Any] = Map.empty[String, Any]):Source[Message, NotUsed] = {
+    val json:String = buildWSRequestStr(user, actionType, scope, entityType, filter, options)
     return Source.single(TextMessage(json))
   }
+
+  def buildWSRequestStr(user: String,
+    actionType: String,
+    scope: String,
+    entityType: String,
+    filter: String,
+    options: Map[String, Any] = Map.empty[String, Any]):String = {
+      val rm = RequestMessage(user, actionType, scope, entityType, filter, options)
+      val json:String = RequestMessage.toJSON(rm)
+      return json
+    }
 
   /*
   Invoke the websocket and return a future with the Sink
@@ -84,7 +99,16 @@ object WSHelper{
     path: String,
     protocol: String = "engine.json.v1"):Future[Seq[Message]] = {
     val flow = Flow.fromSinkAndSourceMat(Sink.seq[Message], request)(Keep.left)
-    val (upgradeResponse, closed) = Http().singleWebSocketRequest(WebSocketRequest(path, subprotocol = Some(protocol)), flow)
+    val config = ConfigFactory.load()
+    val username = config.getString("engine.communication.webserver.user")
+    val pwd = config.getString("engine.communication.webserver.password")
+    val authHeader = Authorization(BasicHttpCredentials(username, pwd))
+    val headers:Seq[HttpHeader] = Seq(authHeader)
+    val (upgradeResponse, closed) = Http().singleWebSocketRequest(
+      WebSocketRequest(path,
+        extraHeaders = headers,
+        subprotocol = Some(protocol)),
+        flow)
     val connected = upgradeResponse.map(verifyProtocolsSwitched)
     connected.onFailure(failTest)
     return closed
