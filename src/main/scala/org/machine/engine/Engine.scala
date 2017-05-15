@@ -539,4 +539,8 @@ class Engine private (dbPath:String, decisionTree: Question) extends GraphDSL wi
   def withUserName(name:String):GraphDSL = {
     return withField("userName", name)
   }
+
+  def withUserPassword(password:String):GraphDSL = {
+    return withField("userPassword", password)
+  }
 }

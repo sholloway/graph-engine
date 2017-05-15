@@ -48,4 +48,14 @@ class PasswordSpec extends FunSpecLike with Matchers with BeforeAndAfterAll{
     encodedSessionIdB.length should be(40)
     encodedSessionIdA should not equal(encodedSessionIdB)
   }
+
+
+  describe("Base64"){
+    it("should encode and decode strings with base64"){
+      val msg = "An unencoded message."
+      val encoded = strToBase64(msg)
+      val decoded = base64ToString(encoded)
+      decoded should be(msg)
+    }
+  }
 }

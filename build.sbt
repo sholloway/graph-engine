@@ -53,10 +53,10 @@ libraryDependencies ++= Seq(
 	 "com.typesafe.akka" %% "akka-actor" % "2.4.17",
 	 "com.typesafe.akka" %% "akka-testkit" % "2.4.17" % Test,
 	 "com.typesafe.akka" %% "akka-slf4j" % "2.4.17",
-	 "com.typesafe.akka" %% "akka-http-core" % "10.0.5",
-	 "com.typesafe.akka" %% "akka-http" % "10.0.5",
-	 "com.typesafe.akka" %% "akka-http-testkit" % "10.0.5" % Test,
-	 "com.typesafe.akka" %% "akka-http-spray-json" % "10.0.5",
+	 "com.typesafe.akka" %% "akka-http-core" % "10.0.6",
+	 "com.typesafe.akka" %% "akka-http" % "10.0.6",
+	 "com.typesafe.akka" %% "akka-http-testkit" % "10.0.6" % Test,
+	 "com.typesafe.akka" %% "akka-http-spray-json" % "10.0.6",
 	 "com.typesafe.akka" %% "akka-camel" % "2.4.17",
 	 "org.apache.camel" % "camel-stream" % "2.18.2",
 	 "com.typesafe.scala-logging" %% "scala-logging" % "3.5.0",
@@ -65,6 +65,8 @@ libraryDependencies ++= Seq(
 	 "org.zeromq" % "jeromq" % "0.3.5",
 	 "org.neo4j" % "neo4j" % "3.1.1",
 	 "org.neo4j" % "neo4j-slf4j" % "3.1.1",
+	 "com.softwaremill.akka-http-session" %% "core" % "0.4.0",
+   "com.softwaremill.akka-http-session" %% "jwt"  % "0.4.0",
 	 "org.neo4j" % "neo4j-graphviz" % "3.1.1" % Test,
 	 "org.neo4j" % "neo4j-io" % "3.1.1" % Test,
 	 "net.liftweb" %% "lift-json" % "3.0-RC3",
@@ -104,4 +106,5 @@ initialCommands in console := """
 	|import org.machine.engine.graph.nodes._
 	|import org.machine.engine.graph.labels._
 	|import org.machine.engine.graph.internal._
-	""".stripMargin
+  |import com.softwaremill.session._
+  """.stripMargin

@@ -1,10 +1,10 @@
 package org.machine.engine.authentication
 
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
+import java.security.MessageDigest
+import java.security.NoSuchAlgorithmException
 import java.security.SecureRandom
 import java.util.Base64
-import java.util.Random;
+import java.util.Random
 import javax.crypto.SecretKeyFactory
 import javax.crypto.spec.PBEKeySpec
 
@@ -88,5 +88,14 @@ object PasswordTools{
 
   def byteArrayToHexStr(bytes: Array[Byte]):String = {
     return bytes.map("%02X" format _).mkString
+  }
+
+  def strToBase64(msg: String):String = {
+    return Base64.getEncoder().encodeToString(msg.getBytes())
+  }
+
+  def base64ToString(msg: String):String = {
+    val bytes = Base64.getDecoder().decode(msg)
+    return new String(bytes)
   }
 }

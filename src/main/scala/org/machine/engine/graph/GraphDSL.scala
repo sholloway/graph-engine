@@ -372,6 +372,7 @@ trait GraphDSL{
   def withLastName(name:String):GraphDSL
   def withEmailAddress(email:String):GraphDSL
   def withUserName(email:String):GraphDSL
+  def withUserPassword(password:String):GraphDSL
 }
 
 trait CmdResult{

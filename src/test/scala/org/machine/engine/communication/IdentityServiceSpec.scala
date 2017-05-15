@@ -21,14 +21,18 @@ import scala.concurrent.duration._
 import scala.concurrent.{ExecutionContext, Future}
 
 import org.machine.engine.Engine
-import org.machine.engine.graph.Neo4JHelper
 import org.machine.engine.TestUtils
+import org.machine.engine.authentication.PasswordTools
+import org.machine.engine.graph.Neo4JHelper
 import org.machine.engine.exceptions._
 import org.machine.engine.graph.commands.GraphCommandOptions
 import org.machine.engine.graph.nodes._
 import org.machine.engine.flow.requests._
 
-class IdentityServiceSpec extends FunSpecLike with Matchers with ScalaFutures with BeforeAndAfterAll{
+class IdentityServiceSpec extends FunSpecLike
+  with Matchers
+  with ScalaFutures
+  with BeforeAndAfterAll{
   import WSHelper._
   import TestUtils._
   import Neo4JHelper._
@@ -56,7 +60,6 @@ class IdentityServiceSpec extends FunSpecLike with Matchers with ScalaFutures wi
 
   override def afterAll(){
     server.stop()
-    // perge
   }
 
   describe("Identity Service"){
@@ -123,7 +126,6 @@ class IdentityServiceSpec extends FunSpecLike with Matchers with ScalaFutures wi
         Console.println(resultStr)
         response.code() should equal(200)
 
-
         import org.machine.engine.viz.GraphVizHelper
         GraphVizHelper.visualize(engine.database)
 
@@ -156,6 +158,34 @@ class IdentityServiceSpec extends FunSpecLike with Matchers with ScalaFutures wi
         engineUser.emailAddress should be("jharper@missioncontrol.com")
       }
     }
+
+    describe("Login"){
+      it ("should return a session token after authenticating a user"){
+        val url = s"http://$host:$port/login"
+        // TODO: Refactor this into a helper function to create credentials.
+        val user:String = config.getString("engine.communication.identity_service.user")
+        val pwd:String = config.getString("engine.communication.identity_service.password")
+        val credential:String = Credentials.basic(user, pwd);
+        val userPwd = "I love Sally."
+        val encodedPwd = PasswordTools.strToBase64(pwd)
+        val requestStr: String = s"""
+        |{
+        |   "userName": "tech49",
+        |   "password": "${userPwd}"
+        |}
+        """.stripMargin
+        val requestBody = RequestBody.create(jsonMediaType, requestStr)
+        val request = new Request.Builder()
+          .url(url)
+          .header("Authorization", credential)
+          .post(requestBody)
+          .build()
+        val response = client.newCall(request).execute()
+        response.code() should equal(200)
+        Console.println(response.headers.toString())
+        response.body().string() should equal("Hello World\n")
+      }
+    }
   }
 
   def userQueryMapper(results: ArrayBuffer[User],
@@ -171,12 +201,15 @@ class IdentityServiceSpec extends FunSpecLike with Matchers with ScalaFutures wi
   }
 
   def newUserRequest():String = {
-    val str = """
+    val pwd = "I love Sally."
+    val encodedPwd = PasswordTools.strToBase64(pwd)
+    val str = s"""
     {
       "emailAddress": "jharper@missioncontrol.com",
       "firstName": "Jack",
       "lastName": "Harper",
-      "userName": "tech49"
+      "userName": "tech49",
+      "password": "${encodedPwd}"
     }
     """.stripMargin
     return str
