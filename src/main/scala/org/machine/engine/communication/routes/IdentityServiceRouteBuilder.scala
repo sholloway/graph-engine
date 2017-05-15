@@ -94,7 +94,8 @@ object IdentityServiceRouteBuilder extends Directives
                     */
                     response.status match {
                       case 200  => {
-                        setSession(oneOff, usingHeaders, UserSession(request.userName, response.userId)){                          /*
+                        setSession(oneOff, usingHeaders, UserSession(request.userName, response.userId)){
+                          /*
                           Next Steps:
                           1. [X] - Update UserServiceActor to hash and save the user password.
                           2. [X] - Create an Actor under the services package to verify the user's password.
@@ -104,7 +105,13 @@ object IdentityServiceRouteBuilder extends Directives
                           6. [ ] - Update the diagrams with the correct sequence of commands.
                           7. [ ] - Write a markdown document detailing how the authentication works, including images.
                           8. [ ] - Put a unique constraint on User.userName.
+                            CREATE CONSTRAINT ON (u:user) ASSERT u.user_name IS UNIQUE
+                            This should occure only once when the engine starts up. Engine.initializeDatabase()
+                            https://neo4j.com/docs/developer-manual/current/cypher/schema/constraints/
                           9. [ ] - Put an index on the User.userName.
+                          CREATE INDEX ON :user(user_name)
+
+                          I should put an index an all the nodes mid's.
                           10. [ ] - Implement logout. (New Actor)
                           The JWT looks like it's signed. Dig into the session framework and see how the signiture is being done.
                           It would be good to verify the signature of the token if it doesn't do it automatically.

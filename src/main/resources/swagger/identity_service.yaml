@@ -26,6 +26,7 @@ parameters:
 paths:
   /login:
     post:
+      summary: "Login User"
       description: |
         "Uses requires a username and password hash in the body. If the username/password combination is correct then the user is
         logged in an a session ID is returned."
@@ -52,7 +53,21 @@ paths:
           schema:
             type: "string"
         500:
-          description: "Couldn't access the database."
+          description: "Internal Error"
+          schema:
+            type: "string"
+  /logout/{userId}:
+    post:
+      summary: "Logout User"
+      description: |
+        "Logs a user out by their User ID (not their username). Does nothing
+        if the user doesn't exist or is not logged in."
+      parameters:
+        - $ref: '#/parameters/userId'
+      responses:
+        200:
+          description: |
+            "The user was logged out successfully."
           schema:
             type: "string"
   /users:
