@@ -52,6 +52,9 @@ class IdentityServiceSpec extends FunSpecLike
   val port = config.getString("engine.communication.identity_service.port")
   val engineVersion = config.getString("engine.version")
 
+  val goodUserPwd = "I love Sally."
+  val badUserPwd = "We are not an effective team."
+
   override def beforeAll(){
     engine = Engine.getInstance
     perge
@@ -126,32 +129,9 @@ class IdentityServiceSpec extends FunSpecLike
         Console.println(resultStr)
         response.code() should equal(200)
 
-        import org.machine.engine.viz.GraphVizHelper
-        GraphVizHelper.visualize(engine.database)
-
         val responseMap = strToMap(resultStr)
-
-        //Query the engine to find the actual vertex and compare the vertex to
-        //the service response. The query needs to include system space.
-        val findUser = """
-        |match (s:internal_system_space)-[:registered]->(u:user)
-        |where u.mid={mid}
-        |return u.mid as mid,
-        | u.first_name as first_name,
-        | u.last_name as last_name,
-        | u.email_address as email_address,
-        | u.user_name as user_name,
-        | u.creation_time as creation_time,
-        | u.last_modified_time as last_modified_time
-        """.stripMargin
-
-        Console.println(responseMap)
         val userId = responseMap.get("userId").get.toString()
-        Console.println("User ID:" + userId)
-        val params = GraphCommandOptions().addOption("mid", userId)
-        val usersCollection = query[User](engine.database, findUser, params.toJavaMap, userQueryMapper)
-        usersCollection.length shouldBe 1
-        val engineUser = usersCollection.head
+        val engineUser = findUserById(userId)
         engineUser.firstName should be("Jack")
         engineUser.lastName should be("Harper")
         engineUser.userName should be("tech49")
@@ -160,18 +140,18 @@ class IdentityServiceSpec extends FunSpecLike
     }
 
     describe("Login"){
-      it ("should return a session token after authenticating a user"){
+      it ("should return 200 and session token after authenticating a user"){
         val url = s"http://$host:$port/login"
         // TODO: Refactor this into a helper function to create credentials.
         val user:String = config.getString("engine.communication.identity_service.user")
         val pwd:String = config.getString("engine.communication.identity_service.password")
         val credential:String = Credentials.basic(user, pwd);
-        val userPwd = "I love Sally."
         val encodedPwd = PasswordTools.strToBase64(pwd)
+        val encodedUserPwd = PasswordTools.strToBase64(goodUserPwd)
         val requestStr: String = s"""
         |{
         |   "userName": "tech49",
-        |   "password": "${userPwd}"
+        |   "password": "${encodedUserPwd}"
         |}
         """.stripMargin
         val requestBody = RequestBody.create(jsonMediaType, requestStr)
@@ -183,14 +163,67 @@ class IdentityServiceSpec extends FunSpecLike
         val response = client.newCall(request).execute()
         response.code() should equal(200)
         Console.println(response.headers.toString())
-        response.body().string() should equal("Hello World\n")
+
+        val userJack = findUserByUserName("tech49")
+        val expectedMsg = s"""{"userId":"${userJack.id}"}"""
+        response.body().string() should equal(expectedMsg)
+
+        val jwt = response.header("Set-Authorization")
+        jwt should not be(null)
       }
+
+      it ("should return 401 and no session token if the user's password is incorrect.")(pending)
+      it ("should return 401 and no session token if the user's username is incorrect.")(pending)
+      it ("should logout the user")(pending)
     }
+  }
+
+  def findUserById(userId: String):User = {
+    val findUser = """
+    |match (s:internal_system_space)-[:registered]->(u:user)
+    |where u.mid={mid}
+    |return u.mid as mid,
+    | u.first_name as first_name,
+    | u.last_name as last_name,
+    | u.email_address as email_address,
+    | u.user_name as user_name,
+    | u.creation_time as creation_time,
+    | u.last_modified_time as last_modified_time
+    """.stripMargin
+
+    val params = GraphCommandOptions().addOption("mid", userId)
+    val usersCollection = query[User](engine.database,
+      findUser,
+      params.toJavaMap,
+      userQueryMapper)
+    usersCollection.length shouldBe 1
+    return usersCollection.head
+  }
+
+  def findUserByUserName(userName: String):User = {
+    val findUser = """
+    |match (s:internal_system_space)-[:registered]->(u:user)
+    |where u.user_name={userName}
+    |return u.mid as mid,
+    | u.first_name as first_name,
+    | u.last_name as last_name,
+    | u.email_address as email_address,
+    | u.user_name as user_name,
+    | u.creation_time as creation_time,
+    | u.last_modified_time as last_modified_time
+    """.stripMargin
+
+    val params = GraphCommandOptions().addOption("userName", userName)
+    val usersCollection = query[User](engine.database,
+      findUser,
+      params.toJavaMap,
+      userQueryMapper)
+    usersCollection.length shouldBe 1
+    return usersCollection.head
   }
 
   def userQueryMapper(results: ArrayBuffer[User],
     record: java.util.Map[java.lang.String, Object]):Unit = {
-      Console.println("Got a record!")
     val id:String = record.get("mid").toString()
     val firstName:String = record.get("first_name").toString()
     val lastName:String = record.get("last_name").toString()
@@ -201,8 +234,7 @@ class IdentityServiceSpec extends FunSpecLike
   }
 
   def newUserRequest():String = {
-    val pwd = "I love Sally."
-    val encodedPwd = PasswordTools.strToBase64(pwd)
+    val encodedPwd = PasswordTools.strToBase64(goodUserPwd)
     val str = s"""
     {
       "emailAddress": "jharper@missioncontrol.com",

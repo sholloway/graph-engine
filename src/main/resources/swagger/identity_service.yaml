@@ -44,7 +44,7 @@ paths:
           schema:
             $ref: "#/definitions/Session"
           headers:
-            X-Session:
+            Set-Authorization:
               type: "string"
               description: "Encoded JWT session object."
         401:
@@ -76,7 +76,6 @@ paths:
             $ref: "#/definitions/NewUser"
         500:
           description: "Could not access the database."
-
 
 definitions:
   NewUserRequest:

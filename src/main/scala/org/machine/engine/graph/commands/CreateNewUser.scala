@@ -23,8 +23,6 @@ class CreateNewUser(database: GraphDatabaseService,
   def execute():InsertCmdResult[String] = {
     logger.debug("CreateNewUser: Executing Command")
     generateId(cmdOptions)
-
-    //TODO: Need to enforce all the required bits.
     transaction(database, (graphDB:GraphDatabaseService) => {
       createUser(graphDB)
       createUserCredential(graphDB)
@@ -64,10 +62,11 @@ class CreateNewUser(database: GraphDatabaseService,
     val salt:Array[Byte] = generateSalt(generator, SALT_BYTE_SIZE)
     val passwordHash:Array[Byte] = generateHash(cmdOptions.option[String]("userPassword"), salt, PBKDF2_ITERATIONS)
     val pwdHashStr:String = hashToBase64(passwordHash)
+    val saltStr = hashToBase64(salt)
 
     cmdOptions.addOption("credId", uuid)
     cmdOptions.addOption("passwordHash", pwdHashStr)
-    cmdOptions.addOption("passwordSalt", SALT_BYTE_SIZE)
+    cmdOptions.addOption("passwordSalt", saltStr)
     cmdOptions.addOption("hashIterationCount", PBKDF2_ITERATIONS)
 
     val createUserCredentialStatement = """
@@ -108,7 +107,7 @@ class CreateNewUser(database: GraphDatabaseService,
     logger.debug("CreateNewUser: Associating the user credential with the user.")
     val stmt = """
     |match(u:user) where u.mid = {mid}
-    |match (uc:credential)
+    |match (uc:credential) where uc.mid = {credId}
     |merge (u)-[:authenticates_with]->(uc)
     """.stripMargin
     run(graphDB,

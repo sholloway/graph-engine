@@ -14,14 +14,11 @@ import org.machine.engine.Engine
 trait UserServiceJsonSupport extends SprayJsonSupport with DefaultJsonProtocol {
   implicit val createUserFormat = jsonFormat5(CreateUser)
   implicit val newUserFormat = jsonFormat1(NewUser)
-  implicit val loginRequestFormat = jsonFormat2(LoginRequest)
-  implicit val loginResponseFormat = jsonFormat1(LoginResponse)
 }
 
 case class CreateUser(emailAddress:String, firstName: String, lastName:String, userName: String, var password: String)
 case class CreateNewUserRequest(createUser: CreateUser)
-case class LoginRequest(userName: String, password: String)
-case class LoginResponse(userId: String)
+
 case class NewUser(userId: String)
 case class NewUserResponse(newUser: NewUser)
 
