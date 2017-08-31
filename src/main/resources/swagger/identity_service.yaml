@@ -22,7 +22,17 @@ parameters:
     description: The unquie identifier of a user.
     required: true
     type: string
+  session:
+    name: Authorization
+    in: header
+    description: "Session JWT token."
+    required: true
+    type: string
 
+# I think this should be redesigned. Using endpoints as verbs feels wrong.
+# The endpoints should be nouns that have actions applied to them via the HTTP
+# methods when possible. Perhaps the resouce for login/logout is "Session".
+# e.g /session?action=login /session?action=logout or POST /session DELETE /session 
 paths:
   /login:
     post:
@@ -57,13 +67,14 @@ paths:
           schema:
             type: "string"
   /logout/{userId}:
-    post:
+    get:
       summary: "Logout User"
       description: |
-        "Logs a user out by their User ID (not their username). Does nothing
+        "Logs a user out by their session token. Does nothing
         if the user doesn't exist or is not logged in."
       parameters:
         - $ref: '#/parameters/userId'
+        - $ref: '#/parameters/session'
       responses:
         200:
           description: |
