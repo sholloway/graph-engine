@@ -126,7 +126,6 @@ class IdentityServiceSpec extends FunSpecLike
           .build()
         val response = client.newCall(request).execute()
         val resultStr = response.body().string()
-        Console.println(resultStr)
         response.code() should equal(200)
 
         val responseMap = strToMap(resultStr)
@@ -142,19 +141,8 @@ class IdentityServiceSpec extends FunSpecLike
     describe("Login"){
       it ("should return 200 and session token after authenticating a user"){
         val url = s"http://$host:$port/login"
-        // TODO: Refactor this into a helper function to create credentials.
-        val user:String = config.getString("engine.communication.identity_service.user")
-        val pwd:String = config.getString("engine.communication.identity_service.password")
-        val credential:String = Credentials.basic(user, pwd);
-        val encodedPwd = PasswordTools.strToBase64(pwd)
-        val encodedUserPwd = PasswordTools.strToBase64(goodUserPwd)
-        val requestStr: String = s"""
-        |{
-        |   "userName": "tech49",
-        |   "password": "${encodedUserPwd}"
-        |}
-        """.stripMargin
-        val requestBody = RequestBody.create(jsonMediaType, requestStr)
+        val credential:String = serviceCredentials()
+        val requestBody = createGoodLogin()
         val request = new Request.Builder()
           .url(url)
           .header("Authorization", credential)
@@ -162,8 +150,6 @@ class IdentityServiceSpec extends FunSpecLike
           .build()
         val response = client.newCall(request).execute()
         response.code() should equal(200)
-        Console.println(response.headers.toString())
-
         val userJack = findUserByUserName("tech49")
         val expectedMsg = s"""{"userId":"${userJack.id}"}"""
         response.body().string() should equal(expectedMsg)
@@ -174,8 +160,77 @@ class IdentityServiceSpec extends FunSpecLike
 
       it ("should return 401 and no session token if the user's password is incorrect.")(pending)
       it ("should return 401 and no session token if the user's username is incorrect.")(pending)
-      it ("should logout the user")(pending)
+
+      /*
+      1. Login
+      2. Access protected resource.
+      3. Logout.
+      4. Attempt to access protected resource.
+      */
+      it ("should logout the user"){
+        val credential:String = serviceCredentials()
+        val jwt = login(credential)
+        println(jwt);
+        attemptToGetProtectedResource(200, jwt, credential)
+        logout(jwt,credential)
+        attemptToGetProtectedResource(10, jwt, credential)
+      }
     }
+  }
+
+  def login(credential:String):String = {
+    val loginUrl = s"http://$host:$port/login"
+    val requestBody:RequestBody = createGoodLogin()
+    val loginRequest = new Request.Builder()
+      .url(loginUrl)
+      .header("Authorization", credential)
+      .post(requestBody)
+      .build()
+    val loginResponse = client.newCall(loginRequest).execute()
+    loginResponse.code() should equal(200)
+    return loginResponse.header("Set-Authorization")
+  }
+
+  def logout(jwt:String, credential:String):Unit = {
+    val logoutUrl = s"http://$host:$port/logout"
+    val logoutRequest = new Request.Builder()
+      .url(logoutUrl)
+      .header("Authorization", credential)
+      .header("Session", jwt)
+      .build()
+    val logoutResponse = client.newCall(logoutRequest).execute()
+    logoutResponse.code() should equal(200)
+  }
+
+  def attemptToGetProtectedResource(expectResponse:Int,
+    jwt: String,
+    credential:String
+  ):Unit = {
+    val url = s"http://$host:$port/protected"
+    val logoutRequest = new Request.Builder()
+      .url(url)
+      .header("Authorization", credential)
+      .header("Session", jwt)
+      .build()
+      val logoutResponse = client.newCall(logoutRequest).execute()
+      logoutResponse.code() should equal(expectResponse)
+  }
+
+  def createGoodLogin():RequestBody = {
+    val encodedUserPwd = PasswordTools.strToBase64(goodUserPwd)
+    val requestStr: String = s"""
+    |{
+    |   "userName": "tech49",
+    |   "password": "${encodedUserPwd}"
+    |}
+    """.stripMargin
+    return RequestBody.create(jsonMediaType, requestStr)
+  }
+
+  def serviceCredentials():String = {
+    val user:String = config.getString("engine.communication.identity_service.user")
+    val pwd:String = config.getString("engine.communication.identity_service.password")
+    return Credentials.basic(user, pwd);
   }
 
   def findUserById(userId: String):User = {

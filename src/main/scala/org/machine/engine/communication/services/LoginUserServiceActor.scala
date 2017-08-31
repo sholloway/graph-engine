@@ -9,8 +9,8 @@ import akka.http.scaladsl.server.Directives
 import akka.http.scaladsl.unmarshalling.Unmarshal
 
 import com.typesafe.scalalogging.{LazyLogging}
-import spray.json._
 import scala.collection.mutable.ArrayBuffer
+import spray.json._
 
 import org.machine.engine.Engine
 import org.machine.engine.authentication.PasswordTools
