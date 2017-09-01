@@ -16,11 +16,14 @@ import org.machine.engine.Engine
 import org.machine.engine.graph.Neo4JHelper
 
 trait SessionServiceJsonSupport extends SprayJsonSupport with DefaultJsonProtocol {
-  implicit val saveSessionRequestFormat = jsonFormat1(SaveUserSessionRequest)
+  implicit val saveSessionRequestFormat = jsonFormat3(SaveUserSessionRequest)
   implicit val saveSessionResponseFormat = jsonFormat1(SaveUserSessionResponse)
 }
 
-case class SaveUserSessionRequest(id:String)
+case class SaveUserSessionRequest(userId: String,
+  sessionId: String,
+  issuedTime: Long)
+
 case class SaveUserSessionResponse(id:String)
 
 object SessionServiceActor {
@@ -39,6 +42,7 @@ class SessionServiceActor extends Actor with ActorLogging{
 
   private def saveUserSession(request: SaveUserSessionRequest):SaveUserSessionResponse = {
     println("saveUserSession")
+    println(request)
     return new SaveUserSessionResponse("More blah")
   }
 }

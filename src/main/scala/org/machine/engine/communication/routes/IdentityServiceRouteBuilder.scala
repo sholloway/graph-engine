@@ -16,15 +16,19 @@ import akka.http.scaladsl.server.directives.Credentials
 import com.softwaremill.session._
 import com.softwaremill.session.SessionDirectives._
 import com.softwaremill.session.SessionOptions._
+import com.softwaremill.session.SessionResult._
 
 import java.util.Optional;
 
+import org.machine.engine.authentication.PasswordTools
 import org.machine.engine.communication.headers.UserSession
 import org.machine.engine.communication.services.{UserServiceActor, CreateUser,
   NewUser, CreateNewUserRequest, LoginRequest, LoginResponse, LoginUserServiceJsonSupport,
   LoginUserServiceActor,NewUserResponse, UserLoginResponse, UserServiceJsonSupport,
   SessionServiceJsonSupport, SaveUserSessionRequest, SaveUserSessionResponse,
   SessionServiceActor};
+
+import org.machine.engine.graph.Neo4JHelper
 
 import scala.concurrent.{Await, Future}
 import scala.util.{Try, Success, Failure};
@@ -33,26 +37,38 @@ object IdentityServiceRouteBuilder extends Directives
   with UserServiceJsonSupport
   with LoginUserServiceJsonSupport
   with SessionServiceJsonSupport{
+  import PasswordTools._;
+
   private implicit val system = ActorSystem()
   private implicit val materializer = ActorMaterializer()
   private val config = system.settings.config
   private var actorCounter:Integer = 0
 
-  val sessionSecret = config.getString("engine.communication.identity_service.session.secret")
-  val sessionConfig = SessionConfig.default(sessionSecret)
+  private val sessionSecret = config.getString("engine.communication.identity_service.session.secret")
+  private val sessionConfig = SessionConfig.default(sessionSecret)
   implicit val serializer = JValueSessionSerializer.caseClass[UserSession]
   implicit val encoder = new JwtSessionEncoder[UserSession]
   implicit val sessionManager = new SessionManager(sessionConfig)
+  val clientSessionManager = sessionManager.clientSessionManager
 
-  val userService = system.actorOf(UserServiceActor.props(), generateNewServiceName("user"))
-  val loginService = system.actorOf(LoginUserServiceActor.props(), generateNewServiceName("login"))
-  val sessionService = system.actorOf(SessionServiceActor.props(), generateNewServiceName("session"))
+  private val userService = system.actorOf(UserServiceActor.props(), generateNewServiceName("user"))
+  private val loginService = system.actorOf(LoginUserServiceActor.props(), generateNewServiceName("login"))
+  private val sessionService = system.actorOf(SessionServiceActor.props(), generateNewServiceName("session"))
+
+  private val SESSION_BYTE_SIZE = 128
+  private val GENERAL_TIME_OUT = 5 seconds;
+
+  private var generator = createRandomNumberGenerator(generateSeed())
 
   private def generateNewServiceName(actorName: String):String = {
     actorCounter = actorCounter + 1
     return s"identity_service-actor-${actorName}-${actorCounter}"
   }
 
+  private def createSessionId():String = {
+    val sessionIdBytes = generateSessionId(generator, SESSION_BYTE_SIZE)
+    return byteArrayToHexStr(sessionIdBytes)
+  }
   /*
   Next Steps:
   1. [X] - Update UserServiceActor to hash and save the user password.
@@ -92,7 +108,7 @@ object IdentityServiceRouteBuilder extends Directives
             // Create a new user.
             post{
               entity(as[CreateUser]){ newUserRequest =>
-                onSuccess(userService.ask(CreateNewUserRequest(newUserRequest))(5 seconds)){
+                onSuccess(userService.ask(CreateNewUserRequest(newUserRequest))(GENERAL_TIME_OUT)){
                   case response: NewUserResponse => {
                     complete(StatusCodes.OK, response.newUser)
                   }
@@ -107,7 +123,7 @@ object IdentityServiceRouteBuilder extends Directives
           path("login"){
             post{
               entity(as[LoginRequest]){ request =>
-                onSuccess(loginService.ask(request)(5 seconds)){
+                onSuccess(loginService.ask(request)(GENERAL_TIME_OUT)){
                   case response: LoginResponse  => {
                     /*
                     I need to handle response.status 200 and 401.
@@ -116,7 +132,11 @@ object IdentityServiceRouteBuilder extends Directives
                     response.status match {
                       case 200  => {
                         saveSessionRoute{
-                          setSession(oneOff, usingHeaders, UserSession(request.userName, response.userId)){
+                          setSession(oneOff, usingHeaders,
+                            UserSession(request.userName,
+                              response.userId,
+                              createSessionId(),
+                              Neo4JHelper.time)){
                             complete(StatusCodes.OK, UserLoginResponse(response.userId))
                           }
                         }
@@ -177,12 +197,19 @@ object IdentityServiceRouteBuilder extends Directives
   private def saveActiveUserSession(response: HttpResponse): HttpResponse = {
     val sessionHeader:Optional[HttpHeader] = response.getHeader("Set-Authorization")
     if(sessionHeader.isPresent()){
+      //Assume's that the string is of the format: Header Name + Space + Encoded JWT Token
       val sessionTokenStr:String = sessionHeader.get().toString();
-      val decodeAttempt:Try[DecodeResult[UserSession]] = encoder.decode(sessionTokenStr, sessionConfig);
-      decodeAttempt match{
-        case Success(v) => {
-          println("Success: " + v)
-          val sessionServiceResponse =  sessionService.ask(SaveUserSessionRequest("blah"))(5 seconds)
+      val tokens = sessionTokenStr.split(" ")
+      val decodeAttempt:SessionResult[UserSession] = clientSessionManager.decode(tokens.last);
+      println(decodeAttempt)
+      decodeAttempt match {
+        case Decoded(session) => {
+          println("decoded")
+          val sessionServiceResponse = sessionService.ask(
+            SaveUserSessionRequest(session.userId,
+              session.sessionId,
+              session.issuedTime))(GENERAL_TIME_OUT)
+
           // Is there a way to get the execution context from the calling directive?
           import scala.concurrent.ExecutionContext.Implicits.global
           sessionServiceResponse.onSuccess{
@@ -194,9 +221,20 @@ object IdentityServiceRouteBuilder extends Directives
           }
           Await.result(sessionServiceResponse, 6 seconds)
         }
-        case Failure(e) => {
-          println("Failure: " + e.getMessage)
-          return response;
+        case CreatedFromToken(session) => {
+          println("created from token")
+        }
+        case NoSession => {
+          println("no session")
+        }
+        case TokenNotFound => {
+          println("token not found")
+        }
+        case Expired => {
+          println("expired")
+        }
+        case Corrupt(exc) => {
+          println("corrupt")
         }
       }
     }

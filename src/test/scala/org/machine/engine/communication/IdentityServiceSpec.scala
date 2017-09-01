@@ -170,7 +170,6 @@ class IdentityServiceSpec extends FunSpecLike
       it ("should logout the user"){
         val credential:String = serviceCredentials()
         val jwt = login(credential)
-        println(jwt);
         attemptToGetProtectedResource(200, jwt, credential)
         logout(jwt,credential)
         attemptToGetProtectedResource(10, jwt, credential)
