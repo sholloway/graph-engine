@@ -11,7 +11,6 @@ import akka.pattern.ask
 import akka.http.scaladsl.model.HttpResponse
 import akka.http.scaladsl.server.Directives
 import akka.http.scaladsl.server.directives.Credentials
-
 import com.softwaremill.session._
 import com.softwaremill.session.SessionDirectives._
 import com.softwaremill.session.SessionOptions._
@@ -26,11 +25,11 @@ import org.machine.engine.communication.services.{UserServiceActor, CreateUser,
   NewUser, CreateNewUserRequest, LoginRequest, LoginResponse, LoginUserServiceJsonSupport,
   LoginUserServiceActor,NewUserResponse, UserLoginResponse, UserServiceJsonSupport,
   SessionServiceJsonSupport, SaveUserSessionRequest, SaveUserSessionResponse,
-  SessionServiceActor};
-
+  SessionServiceActor, LogOutUserSessionRequest, LogOutUserSessionResponse};
 import org.machine.engine.graph.Neo4JHelper
 
 import scala.concurrent.{Await, Future}
+import scala.concurrent.ExecutionContext.Implicits.global
 import scala.util.{Try, Success, Failure};
 
 object IdentityServiceRouteBuilder extends Directives
@@ -60,6 +59,8 @@ object IdentityServiceRouteBuilder extends Directives
   private val GENERAL_TIME_OUT = 5 seconds;
 
   private var generator = createRandomNumberGenerator(generateSeed())
+  private val SESSION_REQUEST_HEADER = config.getString("akka.http.session.header.get-from-client-name")
+  private val SESSION_RESPONSE_HEADER = config.getString("akka.http.session.header.send-to-client-name")
 
   private def generateNewServiceName(actorName: String):String = {
     actorCounter = actorCounter + 1
@@ -126,10 +127,6 @@ object IdentityServiceRouteBuilder extends Directives
               entity(as[LoginRequest]){ request =>
                 onSuccess(loginService.ask(request)(GENERAL_TIME_OUT)){
                   case response: LoginResponse  => {
-                    /*
-                    I need to handle response.status 200 and 401.
-                    complete(StatusCodes.Unauthorized)
-                    */
                     response.status match {
                       case 200  => {
                         saveSessionRoute{
@@ -158,7 +155,10 @@ object IdentityServiceRouteBuilder extends Directives
             get{
               requiredSession(oneOff, usingHeaders){ session =>
                 invalidateSession(oneOff, usingHeaders){
-                  complete(StatusCodes.OK)
+                  headerValueByName(SESSION_REQUEST_HEADER){ session =>
+                    logoutTheUser(session)
+                    complete(StatusCodes.OK)
+                  }
                 }
               }
             }
@@ -185,7 +185,7 @@ object IdentityServiceRouteBuilder extends Directives
   Communicates with an Akka Actor that saves the session associated with the user.
   */
   private def saveActiveUserSession(response: HttpResponse): HttpResponse = {
-    val sessionHeader:Optional[HttpHeader] = response.getHeader("Set-Authorization")
+    val sessionHeader:Optional[HttpHeader] = response.getHeader(SESSION_RESPONSE_HEADER)
     if(sessionHeader.isPresent()){
       //Assume's that the string is of the format: Header Name + Space + Encoded JWT Token
       val sessionTokenStr:String = sessionHeader.get().toString();
@@ -224,21 +224,50 @@ object IdentityServiceRouteBuilder extends Directives
   Save the user's session via an actor.
   */
   private def brokerSavingUserSession(session: UserSession) = {
-    val sessionServiceResponse = sessionService.ask(
+    val response = sessionService.ask(
       SaveUserSessionRequest(session.userId,
         session.sessionId,
         session.issuedTime))(GENERAL_TIME_OUT)
-
-    // Is there a way to get the execution context from the calling directive?
-    import scala.concurrent.ExecutionContext.Implicits.global
-    sessionServiceResponse.onSuccess{
+    response.onSuccess{
       case _ => logger.debug("The session actor responded.")
     }
-
-    sessionServiceResponse.onFailure{
+    response.onFailure{
       case _ => logger.error("The session actor did not respond when attempting to save the user's session.")
     }
-    Await.result(sessionServiceResponse, 6 seconds)
+    Await.result(response, 6 seconds)
+  }
+
+  private def logoutTheUser(sessionToken: String) = {
+    //The token may or may not have "Bearer before it.
+    val tokens = sessionToken.split(" ")
+    val decodeAttempt:SessionResult[UserSession] = clientSessionManager.decode(tokens.last);
+    (decodeAttempt: @unchecked) match {
+      case Decoded(session) => {
+        logger.debug("Successfully decoded the session header.")
+        brokerlogingOutTheUser(session.userId)
+      }
+      case Expired => {
+        logger.debug("The user's token is expired.")
+      }
+      case Corrupt(exc) => {
+        logger.error("The user's session token is corrupt.")
+      }
+      case _ => logger.error("An unexpected response occured when attempting to decode the token.")
+    }
+  }
+
+  /*
+  Log the user out by deleting all of their session verticies through an actor.
+  */
+  private def brokerlogingOutTheUser(userId: String) = {
+    val response = sessionService.ask(LogOutUserSessionRequest(userId))(GENERAL_TIME_OUT)
+    response.onSuccess{
+      case _ => logger.debug("The session actor responded.")
+    }
+    response.onFailure{
+      case _ => logger.error("The session actor did not respond when attempting to save the user's session.")
+    }
+    Await.result(response, 6 seconds)
   }
 
   private def authenticator(credentials: Credentials): Option[String] =
