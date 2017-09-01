@@ -16,18 +16,18 @@ object TestUtils{
   */
   def perge = {
     val map = new java.util.HashMap[java.lang.String, Object]()
-    val deleteStatements = List(
-      "match (ed:element_definition) detach delete ed",
-      "match (pd:property_definition) detach delete pd",
-      "match (e:element) detach delete e",
-      "match (ds:internal_data_set) detach delete ds",
-      "match (u:user) detach delete u",
-      "match (uc:credential) detach delete uc",
-      "match (s:session) detach delete s"
+    val vertices = List(
+      "element_definition",
+      "property_definition",
+      "element",
+      "internal_data_set",
+      "user",
+      "credential",
+      "session"
     )
-    deleteStatements.foreach(statement => {
+    vertices.foreach(vertex => {
       run(Engine.getInstance.database,
-        statement,
+        s"match (v:${vertex}) detach delete v",
         map,
         emptyResultProcessor[String])
     })
