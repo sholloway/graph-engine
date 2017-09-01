@@ -166,17 +166,6 @@ object IdentityServiceRouteBuilder extends Directives
           path("protected"){
             get{
               requiredSession(oneOff, usingHeaders){ session =>
-                /*
-                So this doesn't work the way I expected.
-                The session framework is stateless. I need to store the JWT and
-                check to see if it's revoked.
-                Possible Strategies:
-                1. Store the hash of token in the DB.
-                  A. Store the valid tokens in the DB in a flat table.
-                  B. Store the invalid tokens in a flat table.
-                  C. Parse the JWT. It contains the user ID. Use that to store
-                     the token's hash in the credential node.
-                */
                 complete(StatusCodes.OK)
               }
             }
@@ -202,7 +191,6 @@ object IdentityServiceRouteBuilder extends Directives
       val sessionTokenStr:String = sessionHeader.get().toString();
       val tokens = sessionTokenStr.split(" ")
       val decodeAttempt:SessionResult[UserSession] = clientSessionManager.decode(tokens.last);
-
       /*
       TODO: The error conditions should not just return the response but rather
       force the service to return a 500 or something...
@@ -210,21 +198,7 @@ object IdentityServiceRouteBuilder extends Directives
       (decodeAttempt: @unchecked) match {
         case Decoded(session) => {
           logger.debug("Successfully decoded the session header.")
-          val sessionServiceResponse = sessionService.ask(
-            SaveUserSessionRequest(session.userId,
-              session.sessionId,
-              session.issuedTime))(GENERAL_TIME_OUT)
-
-          // Is there a way to get the execution context from the calling directive?
-          import scala.concurrent.ExecutionContext.Implicits.global
-          sessionServiceResponse.onSuccess{
-            case _ => println("The session actor responded.")
-          }
-
-          sessionServiceResponse.onFailure{
-            case _ => logger.error("The session actor did not respond when attempting to save the user's session.")
-          }
-          Await.result(sessionServiceResponse, 6 seconds)
+          brokerSavingUserSession(session)
         }
         case CreatedFromToken(session) => {
           logger.error("Decoding the session header incorrectly resulted in a CreatedFromToken object.")
@@ -244,6 +218,27 @@ object IdentityServiceRouteBuilder extends Directives
       }
     }
     return response;
+  }
+
+  /*
+  Save the user's session via an actor.
+  */
+  private def brokerSavingUserSession(session: UserSession) = {
+    val sessionServiceResponse = sessionService.ask(
+      SaveUserSessionRequest(session.userId,
+        session.sessionId,
+        session.issuedTime))(GENERAL_TIME_OUT)
+
+    // Is there a way to get the execution context from the calling directive?
+    import scala.concurrent.ExecutionContext.Implicits.global
+    sessionServiceResponse.onSuccess{
+      case _ => logger.debug("The session actor responded.")
+    }
+
+    sessionServiceResponse.onFailure{
+      case _ => logger.error("The session actor did not respond when attempting to save the user's session.")
+    }
+    Await.result(sessionServiceResponse, 6 seconds)
   }
 
   private def authenticator(credentials: Credentials): Option[String] =
