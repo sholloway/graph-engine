@@ -50,7 +50,7 @@ object IdentityServiceRouteBuilder extends Directives
   implicit val serializer = JValueSessionSerializer.caseClass[UserSession]
   implicit val encoder = new JwtSessionEncoder[UserSession]
   implicit val sessionManager = new SessionManager(sessionConfig)
-  val clientSessionManager = sessionManager.clientSessionManager
+  private val clientSessionManager = sessionManager.clientSessionManager
 
   private val userService = system.actorOf(UserServiceActor.props(), generateNewServiceName("user"))
   private val loginService = system.actorOf(LoginUserServiceActor.props(), generateNewServiceName("login"))

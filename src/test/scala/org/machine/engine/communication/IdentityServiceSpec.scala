@@ -170,6 +170,12 @@ class IdentityServiceSpec extends FunSpecLike
       it ("should logout the user"){
         val credential:String = serviceCredentials()
         val jwt = login(credential)
+
+        import org.machine.engine.viz.GraphVizHelper
+        GraphVizHelper.visualize(Engine.getInstance.database,
+          s"${GraphVizHelper.wd}/viz",
+          "temp.dot")
+          
         attemptToGetProtectedResource(200, jwt, credential)
         logout(jwt,credential)
         attemptToGetProtectedResource(10, jwt, credential)
