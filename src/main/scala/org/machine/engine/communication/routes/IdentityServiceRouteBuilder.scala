@@ -1,5 +1,4 @@
 package org.machine.engine.communication.routes
-
 import akka.actor.ActorSystem
 import akka.http.javadsl.model.HttpHeader;
 import akka.http.scaladsl.server.Route
@@ -17,6 +16,7 @@ import com.softwaremill.session._
 import com.softwaremill.session.SessionDirectives._
 import com.softwaremill.session.SessionOptions._
 import com.softwaremill.session.SessionResult._
+import com.typesafe.scalalogging.{LazyLogging}
 
 import java.util.Optional;
 
@@ -36,7 +36,8 @@ import scala.util.{Try, Success, Failure};
 object IdentityServiceRouteBuilder extends Directives
   with UserServiceJsonSupport
   with LoginUserServiceJsonSupport
-  with SessionServiceJsonSupport{
+  with SessionServiceJsonSupport
+  with LazyLogging{
   import PasswordTools._;
 
   private implicit val system = ActorSystem()
@@ -201,10 +202,14 @@ object IdentityServiceRouteBuilder extends Directives
       val sessionTokenStr:String = sessionHeader.get().toString();
       val tokens = sessionTokenStr.split(" ")
       val decodeAttempt:SessionResult[UserSession] = clientSessionManager.decode(tokens.last);
-      println(decodeAttempt)
-      decodeAttempt match {
+
+      /*
+      TODO: The error conditions should not just return the response but rather
+      force the service to return a 500 or something...
+      */
+      (decodeAttempt: @unchecked) match {
         case Decoded(session) => {
-          println("decoded")
+          logger.debug("Successfully decoded the session header.")
           val sessionServiceResponse = sessionService.ask(
             SaveUserSessionRequest(session.userId,
               session.sessionId,
@@ -217,24 +222,24 @@ object IdentityServiceRouteBuilder extends Directives
           }
 
           sessionServiceResponse.onFailure{
-            case _ => println("The session actor did not respond.")
+            case _ => logger.error("The session actor did not respond when attempting to save the user's session.")
           }
           Await.result(sessionServiceResponse, 6 seconds)
         }
         case CreatedFromToken(session) => {
-          println("created from token")
+          logger.error("Decoding the session header incorrectly resulted in a CreatedFromToken object.")
         }
         case NoSession => {
-          println("no session")
+          logger.error("There was no session present on the header.")
         }
         case TokenNotFound => {
-          println("token not found")
+          logger.error("There was no token on the session header.")
         }
         case Expired => {
-          println("expired")
+          logger.error("The user's token is expired.")
         }
         case Corrupt(exc) => {
-          println("corrupt")
+          logger.error("The user's session token is corrupt.")
         }
       }
     }
