@@ -15,19 +15,21 @@ object TestUtils{
   Intended to only be used by tests.
   */
   def perge = {
-    val delete_element_definitions = "match (ed:element_definition) detach delete ed"
-    val delete_property_definitions = "match (pd:property_definition) detach delete pd"
-    val delete_elements = "match (e:element) detach delete e"
-    val delete_datasets = "match (ds:internal_data_set) detach delete ds"
-    val delete_users = "match (u:user) detach delete u"
-    val delete_users_credentials = "match (uc:credential) detach delete uc"
-
     val map = new java.util.HashMap[java.lang.String, Object]()
-    run(Engine.getInstance.database, delete_element_definitions, map, emptyResultProcessor[String])
-    run(Engine.getInstance.database, delete_property_definitions, map, emptyResultProcessor[String])
-    run(Engine.getInstance.database, delete_elements, map, emptyResultProcessor[String])
-    run(Engine.getInstance.database, delete_datasets, map, emptyResultProcessor[String])
-    run(Engine.getInstance.database, delete_users, map, emptyResultProcessor[String])
-    run(Engine.getInstance.database, delete_users_credentials, map, emptyResultProcessor[String])
+    val deleteStatements = List(
+      "match (ed:element_definition) detach delete ed",
+      "match (pd:property_definition) detach delete pd",
+      "match (e:element) detach delete e",
+      "match (ds:internal_data_set) detach delete ds",
+      "match (u:user) detach delete u",
+      "match (uc:credential) detach delete uc",
+      "match (s:session) detach delete s"
+    )
+    deleteStatements.foreach(statement => {
+      run(Engine.getInstance.database,
+        statement,
+        map,
+        emptyResultProcessor[String])
+    })
   }
 }
