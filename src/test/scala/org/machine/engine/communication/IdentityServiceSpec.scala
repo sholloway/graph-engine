@@ -158,8 +158,8 @@ class IdentityServiceSpec extends FunSpecLike
         jwt should not be(null)
       }
 
-      it ("should return 401 and no session token if the user's password is incorrect.")(pending)
       it ("should return 401 and no session token if the user's username is incorrect.")(pending)
+      it ("should return 401 and no session token if the user's password is incorrect.")(pending)
 
       /*
       1. Login
@@ -170,15 +170,9 @@ class IdentityServiceSpec extends FunSpecLike
       it ("should logout the user"){
         val credential:String = serviceCredentials()
         val jwt = login(credential)
-
-        import org.machine.engine.viz.GraphVizHelper
-        GraphVizHelper.visualize(Engine.getInstance.database,
-          s"${GraphVizHelper.wd}/viz",
-          "temp.dot")
-          
         attemptToGetProtectedResource(200, jwt, credential)
         logout(jwt,credential)
-        attemptToGetProtectedResource(10, jwt, credential)
+        attemptToGetProtectedResource(401, jwt, credential)
       }
     }
   }

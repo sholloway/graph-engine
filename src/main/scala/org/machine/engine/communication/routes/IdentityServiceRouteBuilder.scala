@@ -10,6 +10,8 @@ import scala.concurrent.duration._
 import akka.pattern.ask
 import akka.http.scaladsl.model.HttpResponse
 import akka.http.scaladsl.server.Directives
+import akka.http.scaladsl.server.Directives._
+import akka.http.scaladsl.server.{Directive0, Directive1}
 import akka.http.scaladsl.server.directives.Credentials
 import com.softwaremill.session._
 import com.softwaremill.session.SessionDirectives._
@@ -21,11 +23,7 @@ import java.util.Optional;
 
 import org.machine.engine.authentication.PasswordTools
 import org.machine.engine.communication.headers.UserSession
-import org.machine.engine.communication.services.{UserServiceActor, CreateUser,
-  NewUser, CreateNewUserRequest, LoginRequest, LoginResponse, LoginUserServiceJsonSupport,
-  LoginUserServiceActor,NewUserResponse, UserLoginResponse, UserServiceJsonSupport,
-  SessionServiceJsonSupport, SaveUserSessionRequest, SaveUserSessionResponse,
-  SessionServiceActor, LogOutUserSessionRequest, LogOutUserSessionResponse};
+import org.machine.engine.communication.services._
 import org.machine.engine.graph.Neo4JHelper
 
 import scala.concurrent.{Await, Future}
@@ -61,7 +59,8 @@ object IdentityServiceRouteBuilder extends Directives
   private var generator = createRandomNumberGenerator(generateSeed())
   private val SESSION_REQUEST_HEADER = config.getString("akka.http.session.header.get-from-client-name")
   private val SESSION_RESPONSE_HEADER = config.getString("akka.http.session.header.send-to-client-name")
-
+  private val VALID_SESSION:Boolean = true
+  private val INVALID_SESSION:Boolean = false
   private def generateNewServiceName(actorName: String):String = {
     actorCounter = actorCounter + 1
     return s"identity_service-actor-${actorName}-${actorCounter}"
@@ -83,6 +82,7 @@ object IdentityServiceRouteBuilder extends Directives
   8. [ ] - Update the diagrams with the correct sequence of commands.
   9. [ ] - Write a markdown document detailing how the authentication works, including images.
   10. [ ] - Put a unique constraint on User.userName.
+  11. [ ] - Add the logRequests directive to all endpoints.
     CREATE CONSTRAINT ON (u:user) ASSERT u.user_name IS UNIQUE
     This should occure only once when the engine starts up. Engine.initializeDatabase()
     https://neo4j.com/docs/developer-manual/current/cypher/schema/constraints/
@@ -166,7 +166,11 @@ object IdentityServiceRouteBuilder extends Directives
           path("protected"){
             get{
               requiredSession(oneOff, usingHeaders){ session =>
-                complete(StatusCodes.OK)
+                headerValueByName(SESSION_REQUEST_HEADER){ session =>
+                  requiredActiveSession(session) {
+                    complete(StatusCodes.OK)
+                  }
+                }
               }
             }
           }
@@ -200,21 +204,13 @@ object IdentityServiceRouteBuilder extends Directives
           logger.debug("Successfully decoded the session header.")
           brokerSavingUserSession(session)
         }
-        case CreatedFromToken(session) => {
-          logger.error("Decoding the session header incorrectly resulted in a CreatedFromToken object.")
-        }
-        case NoSession => {
-          logger.error("There was no session present on the header.")
-        }
-        case TokenNotFound => {
-          logger.error("There was no token on the session header.")
-        }
         case Expired => {
           logger.error("The user's token is expired.")
         }
         case Corrupt(exc) => {
           logger.error("The user's session token is corrupt.")
         }
+        case _ => logger.error("An unexpected response occured when attempting to decode the token.")
       }
     }
     return response;
@@ -268,6 +264,77 @@ object IdentityServiceRouteBuilder extends Directives
       case _ => logger.error("The session actor did not respond when attempting to save the user's session.")
     }
     Await.result(response, 6 seconds)
+  }
+
+  def requiredActiveSession[T](sessionToken: String): Directive0 = {
+    val tokens = sessionToken.split(" ")
+    val decodeAttempt:SessionResult[UserSession] = clientSessionManager.decode(tokens.last);
+    (decodeAttempt: @unchecked) match {
+      case Decoded(session) => {
+        logger.debug("Successfully decoded the session header.")
+        //Note: The akka-http-session framework is enforcing the token expiration.
+        //So we're not checking it ourselves.
+        verifyTheTokenExists(session) match {
+          case true => pass //Go to the next internal route.
+          case false => complete(StatusCodes.Unauthorized)
+        }
+      }
+      case Expired => {
+        logger.debug("The user's token is expired.")
+        complete(StatusCodes.Unauthorized)
+      }
+      case Corrupt(exc) => {
+        logger.error("The user's session token is corrupt.")
+        complete(StatusCodes.Unauthorized)
+      }
+      case _ => {
+        logger.error("An unexpected response occured when attempting to decode the token.")
+        complete(StatusCodes.Unauthorized)
+      }
+    }
+  }
+
+  /*
+  Via the SessionServiceActor find out if the session is recorded in the graph.
+  To be considered valid, the session must:
+  1. Be attached to the User's crediental.
+  2. Have the corrisponding session ID.
+  3. Have a matching issuedTime.
+
+  Note: The signature of the JWT and expiration time are enforced by the
+  akka-http-session middleware so we don't explicitly check them.
+  */
+  private def verifyTheTokenExists(session: UserSession):Boolean = {
+    val response = sessionService.ask(
+      IsUserSessionValidRequest(session.userId,
+        session.sessionId,
+        session.issuedTime))(GENERAL_TIME_OUT)
+
+    // TODO: What should this method do if the actor doesn't respond?..
+    // response.onFailure{
+    //   case _ => {
+    //     logger.error("The session actor did not respond when attempting to save the user's session.")
+    //     println("The session actor did not respond when attempting to save the user's session.")
+    //
+    //   }
+    // }
+
+    val responseValue = Await.result(response, 6 seconds)
+    val sessionValid:Boolean = responseValue match{
+      case r:UserSessionIsVaild => {
+        logger.debug("The user session was deemed valid.")
+        VALID_SESSION
+      }
+      case r:UserSessionIsNotVaild => {
+        logger.debug("The user session was deemed invalid.")
+        INVALID_SESSION
+      }
+      case unknown => {
+        logger.debug("An unexpected response was sent by the SessionActor..")
+        INVALID_SESSION
+      }
+    }
+    return sessionValid
   }
 
   private def authenticator(credentials: Credentials): Option[String] =
