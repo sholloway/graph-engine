@@ -52,6 +52,8 @@ class IdentityServiceSpec extends FunSpecLike
   val port = config.getString("engine.communication.identity_service.port")
   val engineVersion = config.getString("engine.version")
 
+  val goodUserName  = "tech49"
+  val badUserName = "Jack"
   val goodUserPwd = "I love Sally."
   val badUserPwd = "We are not an effective team."
 
@@ -140,33 +142,22 @@ class IdentityServiceSpec extends FunSpecLike
 
     describe("Login"){
       it ("should return 200 and session token after authenticating a user"){
-        val url = s"http://$host:$port/login"
-        val credential:String = serviceCredentials()
-        val requestBody = createGoodLogin()
-        val request = new Request.Builder()
-          .url(url)
-          .header("Authorization", credential)
-          .post(requestBody)
-          .build()
-        val response = client.newCall(request).execute()
-        response.code() should equal(200)
+        val loginResponse = loginAttempt(goodUserName, goodUserPwd, serviceCredentials())
         val userJack = findUserByUserName("tech49")
         val expectedMsg = s"""{"userId":"${userJack.id}"}"""
-        response.body().string() should equal(expectedMsg)
-
-        val jwt = response.header("Set-Authorization")
-        jwt should not be(null)
+        loginResponse._1 should equal(200)
+        loginResponse._2 should equal(expectedMsg)
+        loginResponse._3 should not be(null)
       }
 
-      it ("should return 401 and no session token if the user's username is incorrect.")(pending)
-      it ("should return 401 and no session token if the user's password is incorrect.")(pending)
+      it ("should return 401 and no session token if the user's username is incorrect."){
+        loginAttempt(badUserName, goodUserPwd, serviceCredentials())._1 shouldBe 401
+      }
 
-      /*
-      1. Login
-      2. Access protected resource.
-      3. Logout.
-      4. Attempt to access protected resource.
-      */
+      it ("should return 401 and no session token if the user's password is incorrect."){
+        loginAttempt(goodUserName, badUserPwd, serviceCredentials())._1 shouldBe 401
+      }
+
       it ("should logout the user"){
         val credential:String = serviceCredentials()
         val jwt = login(credential)
@@ -188,6 +179,30 @@ class IdentityServiceSpec extends FunSpecLike
     val loginResponse = client.newCall(loginRequest).execute()
     loginResponse.code() should equal(200)
     return loginResponse.header("Set-Authorization")
+  }
+
+  def loginAttempt(username: String,
+    password: String,
+    serviceCredentials:String):(Integer, String, String) = {
+    val loginUrl = s"http://$host:$port/login"
+    val encodedUserPwd = PasswordTools.strToBase64(password)
+    val requestStr: String = s"""
+    |{
+    |   "userName": "${username}",
+    |   "password": "${encodedUserPwd}"
+    |}
+    """.stripMargin
+    val requestBody:RequestBody = RequestBody.create(jsonMediaType, requestStr)
+    val loginRequest = new Request.Builder()
+      .url(loginUrl)
+      .header("Authorization", serviceCredentials)
+      .post(requestBody)
+      .build()
+    val loginResponse = client.newCall(loginRequest).execute()
+    val jwt = loginResponse.header("Set-Authorization")
+    val responseCode = loginResponse.code()
+    val responseBody = loginResponse.body().string()
+    return (responseCode, responseBody, jwt)
   }
 
   def logout(jwt:String, credential:String):Unit = {

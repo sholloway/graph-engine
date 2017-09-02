@@ -77,8 +77,8 @@ object IdentityServiceRouteBuilder extends Directives
   3. [X] - Update this function to call the new Actor to query the DB to find the password.
   4. [X] - Update the Swagger doc to detail the error case.
   5. [X] - Return a session on Login, otherwise return an error.
-  6  [ ] - Save the session to the graph.
-  7. [ ] - Look up the session in the graph when a request comes in.
+  6  [X] - Save the session to the graph.
+  7. [X] - Look up the session in the graph when a request comes in.
   8. [ ] - Update the diagrams with the correct sequence of commands.
   9. [ ] - Write a markdown document detailing how the authentication works, including images.
   10. [ ] - Put a unique constraint on User.userName.
@@ -87,10 +87,15 @@ object IdentityServiceRouteBuilder extends Directives
     This should occure only once when the engine starts up. Engine.initializeDatabase()
     https://neo4j.com/docs/developer-manual/current/cypher/schema/constraints/
   11. [ ] - Put an index on the User.userName.
+  12. [ ] - Redo the swagger of the Login service to not use verbs for resources.
+            Rather have a /session endpoint. Althought it makes sense to have a
+            /login URL. But is that more from a website perspecive. For a REST
+            API, you're managing resources. So the API should manage sessions
+            rather than loging/logout...
   CREATE INDEX ON :user(user_name)
 
   I should put an index an all the nodes mid's.
-  10. [ ] - Implement logout. (New Actor)
+  10. [X] - Implement logout. (New Actor)
   The JWT looks like it's signed. Dig into the session framework and see how the signiture is being done.
   It would be good to verify the signature of the token if it doesn't do it automatically.
   */

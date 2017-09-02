@@ -45,13 +45,15 @@ class LoginUserServiceActor extends Actor with ActorLogging{
 
   private def attemptLoginUser(request: LoginRequest):LoginResponse = {
     val credential = findPassword(request)
-    var response:LoginResponse = null;
+    var response:LoginResponse = LoginResponse(401, null);
     credential.foreach(cred => {
       val saltHash = base64ToHash(cred.passwordSalt)
       val providedPwdHash:Array[Byte] = generateHash(request.password, saltHash, cred.hashIterationCount)
       val originalPwdHash = base64ToHash(cred.passwordHash)
       val passwordMatch = compare(originalPwdHash, providedPwdHash)
-      response = if (passwordMatch) LoginResponse(200, cred.userId) else LoginResponse(401, null);
+      if (passwordMatch){
+        response = LoginResponse(200, cred.userId)
+      }
     })
     return response
   }
@@ -73,7 +75,7 @@ class LoginUserServiceActor extends Actor with ActorLogging{
       findPasswordQuery,
       params.toJavaMap,
       credentialsMapper)
-    return Some(credentials.head)
+    return if (credentials.isEmpty) None else Some(credentials.head)
   }
 
   private def credentialsMapper(results: ArrayBuffer[Credential],
