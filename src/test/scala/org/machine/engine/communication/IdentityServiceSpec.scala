@@ -9,7 +9,6 @@ import akka.stream.scaladsl._
 import com.typesafe.config._
 import java.io.File;
 import java.io.IOException;
-import okhttp3.{Credentials, OkHttpClient, Request, RequestBody, Response, MediaType}
 import org.neo4j.io.fs.FileUtils
 import org.scalatest._
 import org.scalatest.concurrent.ScalaFutures
@@ -22,7 +21,7 @@ import scala.concurrent.{ExecutionContext, Future}
 
 import org.machine.engine.Engine
 import org.machine.engine.TestUtils
-import org.machine.engine.authentication.PasswordTools
+
 import org.machine.engine.graph.Neo4JHelper
 import org.machine.engine.exceptions._
 import org.machine.engine.graph.commands.GraphCommandOptions
@@ -36,6 +35,7 @@ class IdentityServiceSpec extends FunSpecLike
   import WSHelper._
   import TestUtils._
   import Neo4JHelper._
+  import LoginHelper._
 
   implicit val defaultPatience = PatienceConfig(timeout = Span(5, Seconds), interval = Span(500, Millis))
 
@@ -44,12 +44,6 @@ class IdentityServiceSpec extends FunSpecLike
   val dbPath = config.getString("engine.graphdb.path")
   val dbFile = new File(dbPath)
   var engine:Engine = null
-  val client = new OkHttpClient()
-  val jsonMediaType:okhttp3.MediaType = okhttp3.MediaType.parse("application/json; charset=utf-8");
-
-  val scheme = "http"
-  val host = config.getString("engine.communication.identity_service.host")
-  val port = config.getString("engine.communication.identity_service.port")
   val engineVersion = config.getString("engine.version")
 
   val goodUserName  = "tech49"
@@ -70,181 +64,92 @@ class IdentityServiceSpec extends FunSpecLike
   describe("Identity Service"){
     describe("Basic Auth"){
       it ("should return 403 for a bad username if the password was ok."){
-        val url = s"http://$host:$port/users"
         val user:String = "bad user name"
         val pwd:String = config.getString("engine.communication.identity_service.password")
-        val credential:String = Credentials.basic(user, pwd);
-        val request = new Request.Builder()
-          .url(url)
-          .header("Authorization", credential)
-          .build()
-        val response = client.newCall(request).execute()
-        response.code() should equal(403)
-        response.close()
+        val response = createUser(credentials(user, pwd))
+        response._1 should equal(403)
       }
 
       it ("should return 401 for a bad password"){
-        val url = s"http://$host:$port/users"
         val user:String = config.getString("engine.communication.identity_service.user")
         val pwd:String = "bad password"
-        val credential:String = Credentials.basic(user, pwd);
-        val request = new Request.Builder()
-          .url(url)
-          .header("Authorization", credential)
-          .build()
-        val response = client.newCall(request).execute()
-        response.code() should equal(401)
-        response.close()
+        val response = createUser(credentials(user, pwd))
+        response._1 should equal(401)
       }
 
       it ("should allow access (200) if the username and password are correct"){
-        val url = s"http://$host:$port/users"
         val user:String = config.getString("engine.communication.identity_service.user")
         val pwd:String = config.getString("engine.communication.identity_service.password")
-        val credential:String = Credentials.basic(user, pwd);
-        val request = new Request.Builder()
-          .url(url)
-          .header("Authorization", credential)
-          .build()
-        val response = client.newCall(request).execute()
-        response.code() should equal(200)
-        response.body().string() should equal("Hello World\n")
+        val serviceCreds = credentials(user, pwd)
+        val response = createUser(serviceCreds)
+        response._1 should equal(200)
+        cleanUpUser(response._2)
       }
     }
 
     describe("Users"){
       it ("should create a new user"){
-        val url:String = s"http://$host:$port/users"
-        val expected:String = "{\"userId\":\"123\"}"
-        val requestStr:String = newUserRequest()
         val user:String = config.getString("engine.communication.identity_service.user")
         val pwd:String = config.getString("engine.communication.identity_service.password")
-        val credential:String = Credentials.basic(user, pwd);
-        val requestBody = RequestBody.create(jsonMediaType, requestStr)
-        val request = new Request.Builder()
-          .url(url)
-          .post(requestBody)
-          .header("Authorization", credential)
-          .build()
-        val response = client.newCall(request).execute()
-        val resultStr = response.body().string()
-        response.code() should equal(200)
+        val response = createUser(credentials(user, pwd))
+        response._1 should equal(200)
 
-        val responseMap = strToMap(resultStr)
+        val responseMap = strToMap(response._2)
         val userId = responseMap.get("userId").get.toString()
         val engineUser = findUserById(userId)
+
         engineUser.firstName should be("Jack")
         engineUser.lastName should be("Harper")
         engineUser.userName should be("tech49")
         engineUser.emailAddress should be("jharper@missioncontrol.com")
+        cleanUpUser(response._2)
       }
     }
 
     describe("Login"){
       it ("should return 200 and session token after authenticating a user"){
-        val loginResponse = loginAttempt(goodUserName, goodUserPwd, serviceCredentials())
+        val serviceCreds = serviceCredentials()
+        val newUserResponse = createUser(serviceCreds)
+        val loginResponse = loginAttempt(goodUserName, goodUserPwd, serviceCreds)
         val userJack = findUserByUserName("tech49")
         val expectedMsg = s"""{"userId":"${userJack.id}"}"""
         loginResponse._1 should equal(200)
         loginResponse._2 should equal(expectedMsg)
         loginResponse._3 should not be(null)
+        cleanUpUser(newUserResponse._2)
       }
 
       it ("should return 401 and no session token if the user's username is incorrect."){
-        loginAttempt(badUserName, goodUserPwd, serviceCredentials())._1 shouldBe 401
+        val serviceCreds = serviceCredentials()
+        val response = createUser(serviceCreds)
+        loginAttempt(badUserName, goodUserPwd, serviceCreds)._1 shouldBe 401
+        cleanUpUser(response._2)
       }
 
       it ("should return 401 and no session token if the user's password is incorrect."){
-        loginAttempt(goodUserName, badUserPwd, serviceCredentials())._1 shouldBe 401
+        val serviceCreds = serviceCredentials()
+        val response = createUser(serviceCreds)
+        loginAttempt(goodUserName, badUserPwd, serviceCreds)._1 shouldBe 401
+        cleanUpUser(response._2)
       }
 
       it ("should logout the user"){
-        val credential:String = serviceCredentials()
-        val jwt = login(credential)
-        attemptToGetProtectedResource(200, jwt, credential)
-        logout(jwt,credential)
-        attemptToGetProtectedResource(401, jwt, credential)
+        val serviceCreds = serviceCredentials()
+        val response = createUser(serviceCreds)
+        response._1 should equal(200)
+        val jwt = login(serviceCreds)
+        attemptToGetProtectedResource(200, jwt, serviceCreds)
+        logout(jwt,serviceCreds)
+        attemptToGetProtectedResource(401, jwt, serviceCreds)
+        cleanUpUser(response._2)
       }
     }
   }
 
-  def login(credential:String):String = {
-    val loginUrl = s"http://$host:$port/login"
-    val requestBody:RequestBody = createGoodLogin()
-    val loginRequest = new Request.Builder()
-      .url(loginUrl)
-      .header("Authorization", credential)
-      .post(requestBody)
-      .build()
-    val loginResponse = client.newCall(loginRequest).execute()
-    loginResponse.code() should equal(200)
-    return loginResponse.header("Set-Authorization")
-  }
-
-  def loginAttempt(username: String,
-    password: String,
-    serviceCredentials:String):(Integer, String, String) = {
-    val loginUrl = s"http://$host:$port/login"
-    val encodedUserPwd = PasswordTools.strToBase64(password)
-    val requestStr: String = s"""
-    |{
-    |   "userName": "${username}",
-    |   "password": "${encodedUserPwd}"
-    |}
-    """.stripMargin
-    val requestBody:RequestBody = RequestBody.create(jsonMediaType, requestStr)
-    val loginRequest = new Request.Builder()
-      .url(loginUrl)
-      .header("Authorization", serviceCredentials)
-      .post(requestBody)
-      .build()
-    val loginResponse = client.newCall(loginRequest).execute()
-    val jwt = loginResponse.header("Set-Authorization")
-    val responseCode = loginResponse.code()
-    val responseBody = loginResponse.body().string()
-    return (responseCode, responseBody, jwt)
-  }
-
-  def logout(jwt:String, credential:String):Unit = {
-    val logoutUrl = s"http://$host:$port/logout"
-    val logoutRequest = new Request.Builder()
-      .url(logoutUrl)
-      .header("Authorization", credential)
-      .header("Session", jwt)
-      .build()
-    val logoutResponse = client.newCall(logoutRequest).execute()
-    logoutResponse.code() should equal(200)
-  }
-
-  def attemptToGetProtectedResource(expectResponse:Int,
-    jwt: String,
-    credential:String
-  ):Unit = {
-    val url = s"http://$host:$port/protected"
-    val logoutRequest = new Request.Builder()
-      .url(url)
-      .header("Authorization", credential)
-      .header("Session", jwt)
-      .build()
-      val logoutResponse = client.newCall(logoutRequest).execute()
-      logoutResponse.code() should equal(expectResponse)
-  }
-
-  def createGoodLogin():RequestBody = {
-    val encodedUserPwd = PasswordTools.strToBase64(goodUserPwd)
-    val requestStr: String = s"""
-    |{
-    |   "userName": "tech49",
-    |   "password": "${encodedUserPwd}"
-    |}
-    """.stripMargin
-    return RequestBody.create(jsonMediaType, requestStr)
-  }
-
-  def serviceCredentials():String = {
-    val user:String = config.getString("engine.communication.identity_service.user")
-    val pwd:String = config.getString("engine.communication.identity_service.password")
-    return Credentials.basic(user, pwd);
+  def cleanUpUser(newUserStr: String) = {
+    val responseMap = strToMap(newUserStr)
+    val userId = responseMap.get("userId").get.toString()
+    deleteUser(serviceCredentials(), userId)
   }
 
   def findUserById(userId: String):User = {
@@ -300,19 +205,5 @@ class IdentityServiceSpec extends FunSpecLike
     val userName:String = record.get("user_name").toString()
     val creationTime:String = record.get("creation_time").toString()
     results += new User(id, firstName, lastName, userName, emailAddress, creationTime, null)
-  }
-
-  def newUserRequest():String = {
-    val encodedPwd = PasswordTools.strToBase64(goodUserPwd)
-    val str = s"""
-    {
-      "emailAddress": "jharper@missioncontrol.com",
-      "firstName": "Jack",
-      "lastName": "Harper",
-      "userName": "tech49",
-      "password": "${encodedPwd}"
-    }
-    """.stripMargin
-    return str
   }
 }

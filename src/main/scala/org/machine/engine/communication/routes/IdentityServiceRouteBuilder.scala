@@ -39,9 +39,6 @@ object IdentityServiceRouteBuilder extends Directives
   implicit val sessionManager = sessionBroker.sessionManagerInstance
   /*
   Next Steps:
-  00. Clean up the code.
-  000. Add ScalaDoc for all classes & methods.
-
   1. [ ] - Get the WebSocket endpoint using the sessions.
   2. [ ] - Put a unique constraint on User.userName.
     CREATE CONSTRAINT ON (u:user) ASSERT u.user_name IS UNIQUE
@@ -109,7 +106,7 @@ object IdentityServiceRouteBuilder extends Directives
             get{
               requiredSession(oneOff, usingHeaders){ session =>
                 headerValueByName(SESSION_REQUEST_HEADER){ session =>
-                  requiredActiveSession(session) {
+                  requireActiveSession(session) {
                     complete(StatusCodes.OK)
                   }
                 }
@@ -169,7 +166,7 @@ object IdentityServiceRouteBuilder extends Directives
     return registeredUser == user
   }
 
-  private def requiredActiveSession[T](sessionToken: String): Directive0 = {
+  private def requireActiveSession[T](sessionToken: String): Directive0 = {
     val tokens = sessionToken.split(" ")
     val decodeAttempt:SessionResult[UserSession] = sessionBroker.decodeToken(tokens.last);
     (decodeAttempt: @unchecked) match {
