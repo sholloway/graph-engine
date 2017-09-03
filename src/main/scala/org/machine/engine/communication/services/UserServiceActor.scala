@@ -14,13 +14,16 @@ import org.machine.engine.Engine
 trait UserServiceJsonSupport extends SprayJsonSupport with DefaultJsonProtocol {
   implicit val createUserFormat = jsonFormat5(CreateUser)
   implicit val newUserFormat = jsonFormat1(NewUser)
+  implicit val newUserResponseFormat = jsonFormat0(FailedToCreateUserReponse)
 }
 
 case class CreateUser(emailAddress:String, firstName: String, lastName:String, userName: String, var password: String)
 case class CreateNewUserRequest(createUser: CreateUser)
 
 case class NewUser(userId: String)
-case class NewUserResponse(newUser: NewUser)
+sealed trait CreateUserResponse{}
+final case class NewUserResponse(newUser: NewUser) extends CreateUserResponse
+final case class FailedToCreateUserReponse() extends CreateUserResponse
 
 object UserServiceActor {
   def props(): Props = {
@@ -31,8 +34,7 @@ object UserServiceActor {
 class UserServiceActor extends Actor with ActorLogging{
   def receive = {
     case request: CreateNewUserRequest => {
-      val newUser = createNewUser(request)
-      sender() ! NewUserResponse(newUser)
+      sender() ! NewUserResponse(createNewUser(request))
     }
   }
 
