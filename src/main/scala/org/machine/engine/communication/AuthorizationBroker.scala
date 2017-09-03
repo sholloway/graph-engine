@@ -65,7 +65,8 @@ class SessionBroker private() extends UserServiceJsonSupport
   private val sessionService = system.actorOf(SessionServiceActor.props(), generateNewServiceName("session"))
 
   private val SESSION_BYTE_SIZE = 128
-  private val GENERAL_TIME_OUT = 5 seconds;
+  private val GENERAL_TIME_OUT = 5 seconds
+  private val GENERAL_WAIT_TIME = 6 seconds
 
   private var generator = createRandomNumberGenerator(generateSeed())
   private val VALID_SESSION:Boolean = true
@@ -90,7 +91,7 @@ class SessionBroker private() extends UserServiceJsonSupport
       IsUserSessionValidRequest(session.userId,
         session.sessionId,
         session.issuedTime))(GENERAL_TIME_OUT)
-    val responseValue = Await.result(response, 6 seconds)
+    val responseValue = Await.result(response, GENERAL_WAIT_TIME)
     val sessionValid:Boolean = responseValue match{
       case r:UserSessionIsVaild => {
         logger.debug("The user session was deemed valid.")
@@ -123,7 +124,7 @@ class SessionBroker private() extends UserServiceJsonSupport
     futureResponse.onFailure{
       case _ => logger.error("The user actor did not respond when attempting to create a new user.")
     }
-    return Await.result(futureResponse, 6 seconds).asInstanceOf[CreateUserResponse]
+    return Await.result(futureResponse, GENERAL_WAIT_TIME).asInstanceOf[CreateUserResponse]
   }
 
   def brokerUserLogin(request: LoginRequest):LoginResponse = {
@@ -134,7 +135,7 @@ class SessionBroker private() extends UserServiceJsonSupport
     futureResponse.onFailure{
       case _ => logger.error("The login actor did not respond when attempting to login a user.")
     }
-    return Await.result(futureResponse, 6 seconds).asInstanceOf[LoginResponse]
+    return Await.result(futureResponse, GENERAL_WAIT_TIME).asInstanceOf[LoginResponse]
   }
 
   /*
@@ -151,7 +152,7 @@ class SessionBroker private() extends UserServiceJsonSupport
     response.onFailure{
       case _ => logger.error("The session actor did not respond when attempting to save the user's session.")
     }
-    Await.result(response, 6 seconds)
+    Await.result(response, GENERAL_WAIT_TIME)
   }
 
   /*
@@ -165,7 +166,7 @@ class SessionBroker private() extends UserServiceJsonSupport
     response.onFailure{
       case _ => logger.error("The session actor did not respond when attempting to save the user's session.")
     }
-    Await.result(response, 6 seconds)
+    Await.result(response, GENERAL_WAIT_TIME)
   }
 
   private def generateNewServiceName(actorName: String):String = {

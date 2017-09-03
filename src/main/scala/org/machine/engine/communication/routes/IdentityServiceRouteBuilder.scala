@@ -1,14 +1,13 @@
 package org.machine.engine.communication.routes
-import akka.http.scaladsl.server.Route
 import akka.http.javadsl.model.HttpHeader;
-import akka.http.scaladsl.server.Directives._
 import akka.http.scaladsl.model.StatusCodes
-
 import akka.http.scaladsl.model.HttpResponse
 import akka.http.scaladsl.server.Directives
 import akka.http.scaladsl.server.Directives._
-import akka.http.scaladsl.server.{Directive0, Directive1}
+import akka.http.scaladsl.server.Directives._
 import akka.http.scaladsl.server.directives.Credentials
+import akka.http.scaladsl.server.{Directive0, Directive1}
+import akka.http.scaladsl.server.Route
 import com.softwaremill.session._
 import com.softwaremill.session.SessionDirectives._
 import com.softwaremill.session.SessionOptions._
@@ -19,30 +18,27 @@ import com.typesafe.scalalogging.{LazyLogging}
 import java.util.Optional;
 
 import org.machine.engine.authentication.PasswordTools
+import org.machine.engine.communication.SessionBroker
 import org.machine.engine.communication.headers.UserSession
+import org.machine.engine.communication.services._
 import org.machine.engine.graph.Neo4JHelper
 
 import scala.concurrent.{Await, Future}
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.util.{Try, Success, Failure};
 
-import org.machine.engine.communication.SessionBroker
-import org.machine.engine.communication.services._
-
 object IdentityServiceRouteBuilder extends Directives
-  with UserServiceJsonSupport
+  with LazyLogging
   with LoginUserServiceJsonSupport
-  with LazyLogging{
+  with UserServiceJsonSupport{
 
   private val config = ConfigFactory.load()
   private val SESSION_REQUEST_HEADER = config.getString("akka.http.session.header.get-from-client-name")
   private val SESSION_RESPONSE_HEADER = config.getString("akka.http.session.header.send-to-client-name")
-
   private val sessionBroker:SessionBroker = SessionBroker.getInstance
   implicit val sessionManager = sessionBroker.sessionManagerInstance
   /*
   Next Steps:
-  0. Refactor to use the AuthorizationBroker.
   00. Clean up the code.
   000. Add ScalaDoc for all classes & methods.
 
@@ -182,7 +178,7 @@ object IdentityServiceRouteBuilder extends Directives
         //Note: The akka-http-session framework is enforcing the token expiration.
         //So we're not checking it ourselves.
         sessionBroker.verifyTheTokenExists(session) match {
-          case true => pass //Go to the next internal route.
+          case true => pass
           case false => complete(StatusCodes.Unauthorized)
         }
       }
