@@ -38,6 +38,7 @@ object WebSocketFlow{
 
   def transform(message:Message):ClientMessage = {
     val msg = message.asInstanceOf[TextMessage.Strict].text
+    println (msg)
     return new ClientMessageBase(msg)
   }
 

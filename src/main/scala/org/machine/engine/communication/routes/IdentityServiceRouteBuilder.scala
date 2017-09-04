@@ -37,19 +37,7 @@ object IdentityServiceRouteBuilder extends Directives
   private val SESSION_RESPONSE_HEADER = config.getString("akka.http.session.header.send-to-client-name")
   private val sessionBroker:SessionBroker = SessionBroker.getInstance
   implicit val sessionManager = sessionBroker.sessionManagerInstance
-  /*
-  Next Steps:
-  1. [ ] - Get the WebSocket endpoint using the sessions.
-  2. [ ] - Put a unique constraint on User.userName.
-    CREATE CONSTRAINT ON (u:user) ASSERT u.user_name IS UNIQUE
-    This should occure only once when the engine starts up. Engine.initializeDatabase()
-    https://neo4j.com/docs/developer-manual/current/cypher/schema/constraints/
-  3. [ ] - Put an index on the User.userName.
-           CREATE INDEX ON :user(user_name)
-           I should put an index an all the nodes mid's.
-  4. [ ] - Update the diagrams with the correct sequence of commands.
-  5. [ ] - Write a markdown document detailing how the authentication works, including images.
-  */
+
   def buildRoutes():Route = {
     val routes = {
       /*
