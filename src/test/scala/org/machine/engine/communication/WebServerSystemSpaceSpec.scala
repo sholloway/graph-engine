@@ -68,11 +68,11 @@ class WebServerSystemSpaceSpec extends FunSpecLike with Matchers with ScalaFutur
       describe("System Space"){
         it ("should create element definition"){
           val edSpec = Map("name"->"Mobile Device",
-            "description"->"A computer that can be carried by the user.",
+            "description"->"A computer that can be carried by the userId.",
             "properties"->Seq(Map("name"->"Model", "propertyType"->"String", "description"->"The specific manufacture model."),
               Map("name"->"Manufacture", "propertyType"->"String", "description"->"The company that made the device.")))
 
-          val request = buildWSRequest(user="Bob",
+          val request = buildWSRequest(userId="Bob",
             actionType="Create",
             scope="SystemSpace",
             entityType="ElementDefinition",
@@ -91,7 +91,7 @@ class WebServerSystemSpaceSpec extends FunSpecLike with Matchers with ScalaFutur
             val edId = payloadMap("id").asInstanceOf[String]
             val ed = engine.inSystemSpace.findElementDefinitionById(edId)
             ed.name should equal("Mobile Device")
-            ed.description should equal("A computer that can be carried by the user.")
+            ed.description should equal("A computer that can be carried by the userId.")
             ed.properties should have length 2
           }
         }
@@ -103,7 +103,7 @@ class WebServerSystemSpaceSpec extends FunSpecLike with Matchers with ScalaFutur
             .withProperty("Note Text", "String", "The body of the note.")
           .end
 
-          val request = buildWSRequest(user="Bob",
+          val request = buildWSRequest(userId="Bob",
             actionType="Retrieve",
             scope="SystemSpace",
             entityType="ElementDefinition",
@@ -125,7 +125,7 @@ class WebServerSystemSpaceSpec extends FunSpecLike with Matchers with ScalaFutur
         it ("should provide an empty payload if no element definitions exist"){
           purgeAllElementDefinitions()
 
-          val request = buildWSRequest(user="Bob",
+          val request = buildWSRequest(userId="Bob",
             actionType="Retrieve",
             scope="SystemSpace",
             entityType="ElementDefinition",
@@ -149,7 +149,7 @@ class WebServerSystemSpaceSpec extends FunSpecLike with Matchers with ScalaFutur
           purgeAllElementDefinitions()
           val edId = createTimepieceElementDefinition()
 
-          val request = buildWSRequest(user="Bob",
+          val request = buildWSRequest(userId="Bob",
             actionType="Update",
             scope="SystemSpace",
             entityType="ElementDefinition",
@@ -193,7 +193,7 @@ class WebServerSystemSpaceSpec extends FunSpecLike with Matchers with ScalaFutur
           purgeAllElementDefinitions()
           val edId = createTimepieceElementDefinition()
 
-          val request = buildWSRequest(user="Bob",
+          val request = buildWSRequest(userId="Bob",
             actionType="Update",
             scope="SystemSpace",
             entityType="PropertyDefinition",
@@ -225,7 +225,7 @@ class WebServerSystemSpaceSpec extends FunSpecLike with Matchers with ScalaFutur
           purgeAllElementDefinitions()
           val edId = createTimepieceElementDefinition()
 
-          val request = buildWSRequest(user="Bob",
+          val request = buildWSRequest(userId="Bob",
             actionType="Delete",
             scope="SystemSpace",
             entityType="PropertyDefinition",
@@ -255,7 +255,7 @@ class WebServerSystemSpaceSpec extends FunSpecLike with Matchers with ScalaFutur
           purgeAllElementDefinitions()
           val edId = createTimepieceElementDefinition()
 
-          val request = buildWSRequest(user="Bob",
+          val request = buildWSRequest(userId="Bob",
             actionType="Delete",
             scope="SystemSpace",
             entityType="ElementDefinition",
@@ -286,7 +286,7 @@ class WebServerSystemSpaceSpec extends FunSpecLike with Matchers with ScalaFutur
           purgeAllElementDefinitions()
           val edId = createTimepieceElementDefinition()
 
-          val request = buildWSRequest(user="Bob",
+          val request = buildWSRequest(userId="Bob",
             actionType="Retrieve",
             scope="SystemSpace",
             entityType="ElementDefinition",
@@ -315,7 +315,7 @@ class WebServerSystemSpaceSpec extends FunSpecLike with Matchers with ScalaFutur
           purgeAllElementDefinitions()
           val edId = createTimepieceElementDefinition()
 
-          val request = buildWSRequest(user="Bob",
+          val request = buildWSRequest(userId="Bob",
             actionType="Retrieve",
             scope="SystemSpace",
             entityType="ElementDefinition",

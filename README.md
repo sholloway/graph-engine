@@ -92,6 +92,12 @@ Supported Commands:
 * [Akka REST DSL with Actors Example](https://spindance.com/reactive-rest-services-akka-http/)
 * [Akka Sessions](https://github.com/softwaremill/akka-http-session)
 
+### JSON
+* [Lift JSON](https://github.com/lift/framework/tree/master/core/json)
+* [Lift Community](https://groups.google.com/forum/#!forum/liftweb)
+* [Lift API Docs](https://liftweb.net/api/31/api/net/liftweb/json/index.html)
+* [Lift JSON Docs](https://app.assembla.com/spaces/liftweb/wiki/JSON_Support)
+
 ### ZeroMQ
 * [ZeroMQ Node](https://github.com/JustinTulloss/zeromq.node)
 * [ZeroMQ Socket Types](http://api.zeromq.org/2-1:zmq-socket)
@@ -101,11 +107,13 @@ Supported Commands:
 * [Java Docs](http://neo4j.com/docs/2.3.3/javadocs/)
 * [Stored Procedures](https://github.com/neo4j-contrib/neo4j-apoc-procedures)
 
+### Logging
+* [TypeSafe LazyLogging](https://github.com/typesafehub/scala-logging)
+* [Logback](http://logback.qos.ch/)
+
 ### Misc
 * [Google Protocol Buffers](https://developers.google.com/protocol-buffers/)
 * [TypeSafe Configuration](https://github.com/typesafehub/config)
-* [TypeSafe LazyLogging](https://github.com/typesafehub/scala-logging)
-* [Logback](http://logback.qos.ch/)
 * [I Am Done](https://github.com/imdone/imdone-core#metadata)
 * [Semantic Versioning](http://semver.org/)
 * [Web Socket Protocol](https://tools.ietf.org/html/rfc6455)

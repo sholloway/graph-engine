@@ -30,29 +30,34 @@ import org.machine.engine.flow.requests._
 class WebServerDataSetSpec extends FunSpecLike with Matchers with ScalaFutures with BeforeAndAfterAll{
   import WSHelper._
   import TestUtils._
+  import LoginHelper._
 
   //Configure the whenReady for how long to wait.
   implicit val defaultPatience = PatienceConfig(timeout = Span(5, Seconds), interval = Span(500, Millis))
 
   private val config = ConfigFactory.load()
-  val server = new WebServer()
-  val dbPath = config.getString("engine.graphdb.path")
-  val dbFile = new File(dbPath)
-  var engine:Engine = null
+  private val server = new WebServer()
+  private val serviceCreds = serviceCredentials()
+  private val PROTOCOL: String = "engine.json.v1"
+  private var jwtSessionToken:String = null
+  private var activeUserId:String = null
+  private val dbPath = config.getString("engine.graphdb.path")
+  private val dbFile = new File(dbPath)
+  private var engine:Engine = null
 
-  val scheme = "http"
-  val host = config.getString("engine.communication.webserver.host")
-  val port = config.getString("engine.communication.webserver.port")
-  val engineVersion = config.getString("engine.version")
-  val enginePath = s"ws://$host:$port/ws"
-  val echoPath = s"ws://$host:$port/ws/ping"
+  private val scheme = "http"
+  private val host = config.getString("engine.communication.webserver.host")
+  private val port = config.getString("engine.communication.webserver.port")
+  private val engineVersion = config.getString("engine.version")
+  private val enginePath = s"ws://$host:$port/ws"
+  private val echoPath = s"ws://$host:$port/ws/ping"
 
-  var starwarsDsId:String = null
-  var hanId:String = null
-  var chewieId:String = null
-  var leiaId:String = null
-  var lukeId:String = null
-  var r2Id:String = null
+  private var starwarsDsId:String = null
+  private var hanId:String = null
+  private var chewieId:String = null
+  private var leiaId:String = null
+  private var lukeId:String = null
+  private var r2Id:String = null
 
   /*
   TODO Test the WebServer
@@ -65,6 +70,9 @@ class WebServerDataSetSpec extends FunSpecLike with Matchers with ScalaFutures w
     perge
     createStarWarsSet()
     server.start()
+    val newUserResponse = createUser(serviceCreds)
+    activeUserId = getUserId(newUserResponse._2)
+    jwtSessionToken = login(serviceCreds)
   }
 
   override def afterAll(){
@@ -104,14 +112,14 @@ class WebServerDataSetSpec extends FunSpecLike with Matchers with ScalaFutures w
             "properties"->Seq(Map("name"->"p1", "propertyType"->"String", "description"->"p1"),
               Map("name"->"p2", "propertyType"->"String", "description"->"p2")))
 
-          val request = buildWSRequest(user="Bob",
-            actionType="Create",
-            scope="DataSet",
-            entityType="ElementDefinition",
-            filter="None",
-            options=edSpec)
+          val request = buildWSRequest(activeUserId,
+            "Create",
+            "DataSet",
+            "ElementDefinition",
+            "None",
+            edSpec)
 
-          val closed:Future[Seq[Message]] = invokeWS(request, enginePath)
+          val closed:Future[Seq[Message]] = invokeWS(request, enginePath, PROTOCOL, jwtSessionToken)
 
           whenReady(closed){ results =>
             results should have length 2
@@ -126,6 +134,7 @@ class WebServerDataSetSpec extends FunSpecLike with Matchers with ScalaFutures w
           }
         }
 
+/*
         it ("should CreateElementDefinition By DS Name"){
           val dsName = "dsD"
           val datasetId = engine.createDataSet(dsName, "DS")
@@ -844,10 +853,10 @@ class WebServerDataSetSpec extends FunSpecLike with Matchers with ScalaFutures w
           }
         }
 
-        /*
-        import org.machine.engine.viz.GraphVizHelper
-        GraphVizHelper.visualize(engine.database)
-        */
+
+        // import org.machine.engine.viz.GraphVizHelper
+        // GraphVizHelper.visualize(engine.database)
+
         it ("should FindDownStreamElementsByElementId"){
           val downstream = engine.onDataSet(starwarsDsId).onElement(lukeId).findDownStreamElements()
           downstream.length should equal(1)
@@ -963,7 +972,14 @@ class WebServerDataSetSpec extends FunSpecLike with Matchers with ScalaFutures w
               .findOutboundAssociations().length should equal(0)
           }
         }
+        */
       }
     }
+  }
+
+  def getUserId(newUserResponse: String):String = {
+    val responseMap = strToMap(newUserResponse)
+    val userId = responseMap.get("userId").get.toString()
+    return userId
   }
 }

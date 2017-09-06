@@ -70,7 +70,7 @@ class WebServerUserSpaceSpec extends FunSpecLike
             "properties"->Seq(Map("name"->"Model", "propertyType"->"String", "description"->"The specific manufacture model."),
               Map("name"->"Manufacture", "propertyType"->"String", "description"->"The company that made the device.")))
 
-          val request = buildWSRequest(user="Bob",
+          val request = buildWSRequest(userId="Bob",
             actionType="Create",
             scope="UserSpace",
             entityType="ElementDefinition",
@@ -99,7 +99,7 @@ class WebServerUserSpaceSpec extends FunSpecLike
             .withProperty("Note Text", "String", "The body of the note.")
           .end
 
-          val request = buildWSRequest(user="Bob",
+          val request = buildWSRequest(userId="Bob",
             actionType="Retrieve",
             scope="UserSpace",
             entityType="ElementDefinition",
@@ -120,7 +120,7 @@ class WebServerUserSpaceSpec extends FunSpecLike
           purgeAllElementDefinitions(CommandScopes.UserSpaceScope)
           val edId = createTimepieceElementDefinition(CommandScopes.UserSpaceScope)
 
-          val request = buildWSRequest(user="Bob",
+          val request = buildWSRequest(userId="Bob",
             actionType="Update",
             scope="UserSpace",
             entityType="ElementDefinition",
@@ -147,7 +147,7 @@ class WebServerUserSpaceSpec extends FunSpecLike
           purgeAllElementDefinitions(CommandScopes.UserSpaceScope)
           val edId = createTimepieceElementDefinition(CommandScopes.UserSpaceScope)
 
-          val request = buildWSRequest(user="Bob",
+          val request = buildWSRequest(userId="Bob",
             actionType="Update",
             scope="UserSpace",
             entityType="PropertyDefinition",
@@ -177,7 +177,7 @@ class WebServerUserSpaceSpec extends FunSpecLike
           purgeAllElementDefinitions(CommandScopes.UserSpaceScope)
           val edId = createTimepieceElementDefinition(CommandScopes.UserSpaceScope)
 
-          val request = buildWSRequest(user="Bob",
+          val request = buildWSRequest(userId="Bob",
             actionType="Delete",
             scope="UserSpace",
             entityType="PropertyDefinition",
@@ -205,7 +205,7 @@ class WebServerUserSpaceSpec extends FunSpecLike
           purgeAllElementDefinitions(CommandScopes.UserSpaceScope)
           val edId = createTimepieceElementDefinition(CommandScopes.UserSpaceScope)
 
-          val request = buildWSRequest(user="Bob",
+          val request = buildWSRequest(userId="Bob",
             actionType="Delete",
             scope="UserSpace",
             entityType="ElementDefinition",
@@ -234,7 +234,7 @@ class WebServerUserSpaceSpec extends FunSpecLike
           purgeAllElementDefinitions(CommandScopes.UserSpaceScope)
           val edId = createTimepieceElementDefinition(CommandScopes.UserSpaceScope)
 
-          val request = buildWSRequest(user="Bob",
+          val request = buildWSRequest(userId="Bob",
             actionType="Retrieve",
             scope="UserSpace",
             entityType="ElementDefinition",
@@ -261,7 +261,7 @@ class WebServerUserSpaceSpec extends FunSpecLike
           purgeAllElementDefinitions(CommandScopes.UserSpaceScope)
           val edId = createTimepieceElementDefinition(CommandScopes.UserSpaceScope)
 
-          val request = buildWSRequest(user="Bob",
+          val request = buildWSRequest(userId="Bob",
             actionType="Retrieve",
             scope="UserSpace",
             entityType="ElementDefinition",
@@ -289,7 +289,7 @@ class WebServerUserSpaceSpec extends FunSpecLike
           // deleteAllDataSets("Bob")
           val dsName = "Favorite Timepieces"
           val dsDesc = "A collection focused on timepieces."
-          val request = buildWSRequest(user="Bob",
+          val request = buildWSRequest(userId="Bob",
             actionType="Create",
             scope="UserSpace",
             entityType="DataSet",
@@ -316,7 +316,7 @@ class WebServerUserSpaceSpec extends FunSpecLike
           val dsName = "Original Dataset"
           val dsId = engine.createDataSet(dsName, "The original intent.")
           val updatedDesc = "Modified Description"
-          val request = buildWSRequest(user="Bob",
+          val request = buildWSRequest(userId="Bob",
             actionType="Update",
             scope="UserSpace",
             entityType="DataSet",
@@ -344,7 +344,7 @@ class WebServerUserSpaceSpec extends FunSpecLike
           val desc = "Da DataSet Description"
           val dsId = engine.createDataSet(dsName, desc)
 
-          val request = buildWSRequest(user="Bob",
+          val request = buildWSRequest(userId="Bob",
             actionType="Retrieve",
             scope="UserSpace",
             entityType="DataSet",
@@ -371,7 +371,7 @@ class WebServerUserSpaceSpec extends FunSpecLike
           val desc = "Da DataSet Description"
           val dsId = engine.createDataSet(dsName, desc)
 
-          val request = buildWSRequest(user="Bob",
+          val request = buildWSRequest(userId="Bob",
             actionType="Retrieve",
             scope="UserSpace",
             entityType="DataSet",
@@ -398,7 +398,7 @@ class WebServerUserSpaceSpec extends FunSpecLike
           engine.createDataSet("dsB", "B")
           engine.createDataSet("dsC", "C")
 
-          val request = buildWSRequest(user="Bob",
+          val request = buildWSRequest(userId="Bob",
             actionType="Retrieve",
             scope="UserSpace",
             entityType="DataSet",

@@ -32,13 +32,16 @@ object RPCOverWSRouteBuilder extends Directives with LazyLogging{
       authenticateBasic(realm = "Engine User Service", authenticator){ user =>
         authorize(hasRights(user)){
           path("ws"){
-            handleWebSocketMessagesForProtocol(WebSocketFlow.flow, JSON_PROTOCOL)
+            headerValueByName(SESSION_HEADER){ session =>
+              requiredActiveSession(session){ userSession =>
+                handleWebSocketMessagesForProtocol(WebSocketFlow.flow, JSON_PROTOCOL)
+              }
+            }
           }~
           path("ws" / "ping"){
             //Return a 400 if the Session header is not present.
             headerValueByName(SESSION_HEADER){ session =>
               requiredActiveSession(session){ userSession =>
-                println(userSession)
                 handleWebSocketMessagesForProtocol(EchoFlow.flow, JSON_PROTOCOL)
               }
             }

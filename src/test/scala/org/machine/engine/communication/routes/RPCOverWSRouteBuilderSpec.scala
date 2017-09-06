@@ -101,9 +101,11 @@ class RPCOverWSRouteBuilderSpec extends FunSpecLike
           // Don't currently have the ability to inspect parts
           // of the message. So not asserting on it since the
           // ID is always unique.
-          // wsClient.expectMessage(TextMessage("{"id":"f2b7099e-1c64-4114-8181-099abfdce7fd","status":"Ok","messageType":"CmdResult","textMessage":"{\n  \"status\":\"OK\",\n  \"id\":\"Hello World\"\n}"}"))
+          // wsClient.expectMessage(
+          //   "{\"id\":\"f2b7099e-1c64-4114-8181-099abfdce7fd\",\"status\":\"Ok\",\"messageType\":\"CmdResult\",\"textMessage\":\"{\n  \"status\":\"OK\",\n  \"id\":\"Hello World\"\n}\"}"
+          // )
 
-          // wsClient.sendCompletion()
+          wsClient.sendCompletion()
           // wsClient.expectCompletion()
       }
   }

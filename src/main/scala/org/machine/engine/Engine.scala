@@ -173,6 +173,19 @@ class Engine private (dbPath:String, decisionTree: Question) extends GraphDSL wi
     return this
   }
 
+  /*
+  BUG
+  The current issue is that Userspace doesn't make sense any more. It needs to
+  be replaced with the user vertex.
+  Action Items:
+  1. Modify this run command to throw an error if there is no active User ID.
+  2. Modify this run command to inject the active user ID into the cmdOptions.
+  3. Update all Neo4J creation statements to leverage the user ID.
+  4. Update all Neo4J update statements to leverage the active user ID.
+  5. Update all Neo4J delete statements to leverage the active user ID.
+  6. Update all websocket tests to use an active user.
+  7. Update all unit tests to leverage an active user.
+  */
   def run():EngineCmdResult = {
     val decisionRequest = DecisionRequest(this.user,
       this.actionType,

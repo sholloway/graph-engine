@@ -6,6 +6,9 @@ import org.machine.engine.exceptions._
 import org.machine.engine.graph.commands.CommandScopes
 import org.machine.engine.graph.decisions.{ActionTypes, EntityTypes, Filters}
 
+/*
+TODO: Evaluate if we can delete this object. I don't think it's used anymore.
+*/
 object RequestRuleValidator{
   type ValidationFailure = String
   type ValidationInput = Either[Map[String, Any], ValidationFailure]

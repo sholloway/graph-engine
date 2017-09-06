@@ -72,7 +72,7 @@ libraryDependencies ++= Seq(
    "com.softwaremill.akka-http-session" %% "jwt"  % "0.5.1",
 	 "org.neo4j" % "neo4j-graphviz" % "3.1.1" % Test,
 	 "org.neo4j" % "neo4j-io" % "3.1.1" % Test,
-	 "net.liftweb" %% "lift-json" % "3.0-RC3",
+	 "net.liftweb" %% "lift-json" % "3.2.0-M1", //3.0-RC3
 	 "com.squareup.okhttp3" % "okhttp" % "3.6.0"% Test
 )
 

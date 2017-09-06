@@ -66,7 +66,7 @@ object GraphCmdWorkerFlow{
 
     val result:EngineCmdResult = Engine.getInstance
       .reset
-      .setUser(Some(request.user))
+      .setUser(Some(request.userId))
       .setScope(CommandScopes.pickScope(request.scope))
       .setActionType(ActionTypes.pickAction(request.actionType))
       .setEntityType(EntityTypes.pickEntity(request.entityType))

@@ -47,7 +47,7 @@ class GraphCmdWorkerFlowSpec extends TestKit(ActorSystem("GraphCmdWorkerFlowSpec
       implicit val materializer = ActorMaterializer()
       implicit val ec: ExecutionContext = scala.concurrent.ExecutionContext.Implicits.global
 
-      val request = RequestMessage(user="Sam",
+      val request = RequestMessage(userId="123...",
         actionType="Retrieve", scope="UserSpace",
         entityType="DataSet", filter="All")
 

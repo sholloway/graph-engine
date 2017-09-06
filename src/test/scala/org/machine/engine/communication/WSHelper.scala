@@ -40,7 +40,8 @@ object WSHelper{
   implicit val materializer = ActorMaterializer()
   // implicit val ec: ExecutionContext = scala.concurrent.ExecutionContext.Implicits.global
   import system.dispatcher
-
+  private val config = ConfigFactory.load()
+  private val SESSION_HEADER:String = config.getString("engine.communication.webserver.session.header")
   def getHTTP(url:String):Future[HttpResponse] = {
     return Http().singleRequest(HttpRequest(GET, uri = url))
   }
@@ -70,40 +71,42 @@ object WSHelper{
     }
   }
 
-  def buildWSRequest(user: String,
+  def buildWSRequest(userId: String,
     actionType: String,
     scope: String,
     entityType: String,
     filter: String,
     options: Map[String, Any] = Map.empty[String, Any]):Source[Message, NotUsed] = {
-    val json:String = buildWSRequestStr(user, actionType, scope, entityType, filter, options)
+    val json:String = buildWSRequestStr(userId, actionType, scope, entityType, filter, options)
     return Source.single(TextMessage(json))
   }
 
-  def buildWSRequestStr(user: String,
+  def buildWSRequestStr(userId: String,
     actionType: String,
     scope: String,
     entityType: String,
     filter: String,
     options: Map[String, Any] = Map.empty[String, Any]):String = {
-      val rm = RequestMessage(user, actionType, scope, entityType, filter, options)
+      val rm = RequestMessage(userId, actionType, scope, entityType, filter, options)
       val json:String = RequestMessage.toJSON(rm)
       return json
     }
 
   /*
-  Invoke the websocket and return a future with the Sink
+  Invoke the websocket as the default test user and return a future with the Sink
   captured as a sequence of responses.
   */
   def invokeWS(request: Source[Message, NotUsed],
     path: String,
-    protocol: String = "engine.json.v1"):Future[Seq[Message]] = {
+    protocol: String = "engine.json.v1",
+    jwtSessionToken: String = "NOT SET"
+  ):Future[Seq[Message]] = {
     val flow = Flow.fromSinkAndSourceMat(Sink.seq[Message], request)(Keep.left)
-    val config = ConfigFactory.load()
     val username = config.getString("engine.communication.webserver.user")
     val pwd = config.getString("engine.communication.webserver.password")
     val authHeader = Authorization(BasicHttpCredentials(username, pwd))
-    val headers:Seq[HttpHeader] = Seq(authHeader)
+    val sessionHeader = RawHeader(SESSION_HEADER, jwtSessionToken)
+    val headers:Seq[HttpHeader] = Seq(authHeader, sessionHeader)
     val (upgradeResponse, closed) = Http().singleWebSocketRequest(
       WebSocketRequest(path,
         extraHeaders = headers,
@@ -128,9 +131,11 @@ object WSHelper{
   def printJson(request: RequestMessage) = {
     import net.liftweb.json.JsonAST._
     import net.liftweb.json.Extraction._
-    import net.liftweb.json.Printer._
+    // import net.liftweb.json.Printer._
+    import net.liftweb.json._
     implicit val formats = net.liftweb.json.DefaultFormats
-    println(prettyRender(decompose(request)))
+    // println(prettyRender(decompose(request)))
+    println(net.liftweb.json.prettyRender(decompose(request)))
   }
 
   def tm(msg: String):Message = TextMessage(msg)
