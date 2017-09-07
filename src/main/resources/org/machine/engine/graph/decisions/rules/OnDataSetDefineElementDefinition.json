@@ -1,7 +1,7 @@
 {
   "name": "Define Element Definition",
   "description": "Create an element definition.",
-  "scope": "internal_data_set",
+  "scope": "data_set",
   "entityType": "ElementDefinition",
   "actionType": "Create",
   "filter": "None",

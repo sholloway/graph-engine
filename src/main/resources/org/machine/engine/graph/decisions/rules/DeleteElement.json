@@ -1,7 +1,7 @@
 {
   "name": "Delete an Element",
   "description": "Delete an element from a dataset.",
-  "scope": "internal_data_set",
+  "scope": "data_set",
   "entityType": "Element",
   "actionType": "Delete",
   "filter": "None",

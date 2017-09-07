@@ -34,7 +34,7 @@ class RemoveElementField(database: GraphDatabaseService,
     val exclude = List("dsId", "elementId")
     val removeClause = buildRemoveClause(prefix, cmdOptions.keys, exclude)
     val statement = """
-    |match (ds:internal_data_set {mid:{dsId}})-[:contains]->(e {mid:{elementId}})
+    |match (ds:data_set {mid:{dsId}})-[:contains]->(e {mid:{elementId}})
     |remove removeClause
     |return e.mid as mid
     """.stripMargin

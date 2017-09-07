@@ -173,7 +173,7 @@ class ElementDefintionWorkflowFunctionsSpec extends FunSpecLike
         processed._4 should equal(Left(WorkflowStatuses.OK))
         processed._3.contains("createElementDefinitionStmt") should equal(true)
         val expected = normalize("""
-        |match (ss:internal_data_set) where ss.mid = {dsId}
+        |match (ss:data_set) where ss.mid = {dsId}
         |create (ss)-[:exists_in]->(ed:element_definition {
         |  mid:{mid},
         |  name:{name},
@@ -194,7 +194,7 @@ class ElementDefintionWorkflowFunctionsSpec extends FunSpecLike
         processed._4 should equal(Left(WorkflowStatuses.OK))
         processed._3.contains("createElementDefinitionStmt") should equal(true)
         val expected = normalize("""
-        |match (ss:internal_data_set) where ss.name = {dsName}
+        |match (ss:data_set) where ss.name = {dsName}
         |create (ss)-[:exists_in]->(ed:element_definition {
         |  mid:{mid},
         |  name:{name},
@@ -514,7 +514,7 @@ class ElementDefintionWorkflowFunctionsSpec extends FunSpecLike
 
   def findEdOnDSById(dsId: String, edId: String):Seq[String] = {
     val stmt = """
-    |match (ds:internal_data_set {mid:{dsId}})-[:exists_in]->(ed:element_definition {mid:{mid}})
+    |match (ds:data_set {mid:{dsId}})-[:exists_in]->(ed:element_definition {mid:{mid}})
     |return ed.mid as edId
     """.stripMargin
 

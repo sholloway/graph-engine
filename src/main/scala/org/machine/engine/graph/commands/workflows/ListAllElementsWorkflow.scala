@@ -51,7 +51,7 @@ object ListAllElementsWorkflow extends LazyLogging{
       try{
         val scopeFilter = generateScopeFilter(capsule._2, capsule._3)
         val query:String = """
-        |match (ss:internal_data_set) filter
+        |match (ss:data_set) filter
         |match (ss)-[:contains]->(e:element)
         |return e as node, labels(e) as labels, keys(e) as keys
         """.stripMargin

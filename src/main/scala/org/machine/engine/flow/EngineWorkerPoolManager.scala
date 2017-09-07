@@ -16,7 +16,7 @@ object EngineWorkerPoolManager{
     val options = buildOptions(request)
     val result:EngineCmdResult = Engine.getInstance
       .reset
-      .setUser(Some(request.userId))
+      .setUser(request.userId)
       .setScope(CommandScopes.pickScope(request.scope))
       .setActionType(ActionTypes.pickAction(request.actionType))
       .setEntityType(EntityTypes.pickEntity(request.entityType))

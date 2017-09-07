@@ -25,41 +25,40 @@ class CreateDataSet(database:GraphDatabaseService,
     generateId(cmdOptions)
     transaction(database, (graphDB:GraphDatabaseService) => {
       createDataSet(graphDB)
-      registerDataSet(graphDB)
     })
     val mid = cmdOptions.option[String]("mid")
     return InsertCmdResult(mid.toString)
   }
 
+  /*
+  TODO Update data sets to be relative to a user.
+  - Merge the createDataset and registerDataSet to be a single command
+  - Change the "contains" relationship to "owns"
+  match (u:user) where u.mid = {activeUserId}
+  create (u)->[owns]->(d:data_set){
+    mid:{mid},
+    name:{name},
+    description:{description},
+    creation_time:timestamp(),
+    last_modified_time:timestamp()
+  }
+  */
   private def createDataSet(graphDB:GraphDatabaseService):Unit = {
     logger.debug("CreateDataSet: Creating data set.")
     val createDataSetStatement = """
-      |merge(ds:internal_data_set
-      |{
-      |  name:{name}
+      |match (u:user) where u.mid = {activeUserId}
+      |create (u)-[:owns]->(d:data_set{
+      |  mid:{mid},
+      |  name:{name},
+      |  description:{description},
+      |  creation_time:timestamp(),
+      |  last_modified_time:timestamp()
       |})
-      |on create set ds.creation_time = timestamp()
-      |on create set ds.mid = {mid}
-      |on create set ds.description = {description}
-      |on match set ds.last_modified_time = timestamp()
       """.stripMargin
 
-    run( graphDB,
+    run(graphDB,
       createDataSetStatement,
       cmdOptions.toJavaMap,
       emptyResultProcessor[DataSet])
-  }
-
-  private def registerDataSet(graphDB:GraphDatabaseService):Unit = {
-    logger.debug("CreateDataSet: Associating the data set to the scoped space.")
-    val associateToScopedSpace = """
-      |match (ss:label)
-      |match (ds:internal_data_set) where ds.mid = {mid}
-      |merge (ss)-[:contains]->(ds)
-      """.stripMargin.replaceAll("label", cmdScope.scope)
-      run(graphDB,
-        associateToScopedSpace,
-        cmdOptions.toJavaMap,
-        emptyResultProcessor[DataSet])
   }
 }

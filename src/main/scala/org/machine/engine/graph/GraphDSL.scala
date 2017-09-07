@@ -311,7 +311,7 @@ import org.machine.engine.graph.decisions._
 trait GraphDSL{
   //Abstract handlers
   def reset():GraphDSL
-  def setUser(user: Option[String]):GraphDSL
+  def setUser(userId: String):GraphDSL
   def setScope(scope: CommandScope):GraphDSL
   def setActionType(actionType: ActionType):GraphDSL
   def setEntityType(entityType: EntityType):GraphDSL

@@ -24,7 +24,7 @@ class ListDataSets(database: GraphDatabaseService,
     //#TODO:20 Currently this only returns ElementDefinitions that have associated PropertyDefinitions.
     //#TODO:90 Return creation_time & last_modified_time
     val findDataSets = """
-      |match (ss:space)-[:contains]->(ds:internal_data_set)
+      |match (ss:space)-[:contains]->(ds:data_set)
       |return ds.mid as id,
       |  ds.name as name,
       |  ds.description as description,

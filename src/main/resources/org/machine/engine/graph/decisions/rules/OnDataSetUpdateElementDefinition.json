@@ -1,7 +1,7 @@
 {
   "name": "Update Element Definition",
   "description": "Update an element definition.",
-  "scope": "internal_data_set",
+  "scope": "data_set",
   "entityType": "ElementDefinition",
   "actionType": "Update",
   "filter": "None",

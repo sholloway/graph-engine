@@ -47,8 +47,8 @@ class AssociateElements(database:GraphDatabaseService,
     val exclude = List("dsId", "startingElementId", "endingElementId", "associationName")
     val setClause = buildRelationshipClause(cmdOptions.keys, exclude)
     val statement = """
-      |match (ds:internal_data_set {mid:{dsId}})-[:contains]->(startingElement {mid:{startingElementId}})
-      |match (ds:internal_data_set {mid:{dsId}})-[:contains]->(endingElement {mid:{endingElementId}})
+      |match (ds:data_set {mid:{dsId}})-[:contains]->(startingElement {mid:{startingElementId}})
+      |match (ds:data_set {mid:{dsId}})-[:contains]->(endingElement {mid:{endingElementId}})
       |create (startingElement)-[a:association {setClause}]->(endingElement)
       """.stripMargin
         .replaceAll("association", associationType)

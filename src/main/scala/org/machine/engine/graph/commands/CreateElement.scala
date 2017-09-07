@@ -105,7 +105,7 @@ class CreateElement(database: GraphDatabaseService,
     logger.debug("CreateElement: Associating the new element to the dataset.")
     val associateToDataSet = """
       |match (e:label) where e.mid = {mid}
-      |match (ds:internal_data_set) where ds.mid = {dsId}
+      |match (ds:data_set) where ds.mid = {dsId}
       |create (ds)-[:contains]->(e)
       """.stripMargin.replaceAll("label", elementDef.name)
       run(graphDB,

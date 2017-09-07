@@ -33,7 +33,7 @@ class EditElement(database: GraphDatabaseService,
     val exclude = List("mid", "dsId", "elementId")
     val setClause = buildSetClause(prefix, cmdOptions.keys, exclude)
     val editDataSetStatement = """
-    |match (ds:internal_data_set {mid:{dsId}})-[:contains]->(e {mid:{elementId}})
+    |match (ds:data_set {mid:{dsId}})-[:contains]->(e {mid:{elementId}})
     |set setClause, ds.last_modified_time = timestamp()
     """.stripMargin
        .replaceAll("setClause", setClause)

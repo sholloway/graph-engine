@@ -30,7 +30,7 @@ class DeleteElement(database: GraphDatabaseService,
   private def deleteElement(graphDB: GraphDatabaseService):Unit = {
     logger.debug("DeleteElement: Deleting element.")
     val statement = """
-    |match (ds:internal_data_set {mid:{dsId}})-[:contains]->(e {mid:{elementId}})
+    |match (ds:data_set {mid:{dsId}})-[:contains]->(e {mid:{elementId}})
     |detach delete e
     """.stripMargin
 

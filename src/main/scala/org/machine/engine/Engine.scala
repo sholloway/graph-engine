@@ -26,7 +26,7 @@ import org.machine.engine.graph.internal._
 
 object Engine{
   val EmptyResultErrorMsg = "Empty Result"
-
+  val ActiveUserNotSetMsg = "An active user must be specified for the engine."
   private val config = ConfigFactory.load()
   private val dbPath = config.getString("engine.graphdb.path")
   private implicit var engine:Option[Engine] = None
@@ -68,7 +68,7 @@ class Engine private (dbPath:String, decisionTree: Question) extends GraphDSL wi
   var command:EngineCommand = EngineCommands.DefineElement
   var cmdOptions:GraphCommandOptions = new GraphCommandOptions()
   var actionType:ActionType = ActionTypes.None
-  var user:Option[String] = None
+  var activeUserId:Option[String] = None
   var entityType:EntityType = EntityTypes.None
   var filter:Filter = Filters.None
 
@@ -137,14 +137,14 @@ class Engine private (dbPath:String, decisionTree: Question) extends GraphDSL wi
   def reset():GraphDSL = {
     cmdOptions.reset
     actionType = ActionTypes.None
-    user = None
+    activeUserId = None
     entityType = EntityTypes.None
     filter = Filters.None
     return this
   }
 
-  def setUser(user: Option[String]):GraphDSL = {
-    this.user = user
+  def setUser(userId: String):GraphDSL = {
+    this.activeUserId = Some(userId)
     return this;
   }
 
@@ -173,26 +173,16 @@ class Engine private (dbPath:String, decisionTree: Question) extends GraphDSL wi
     return this
   }
 
-  /*
-  BUG
-  The current issue is that Userspace doesn't make sense any more. It needs to
-  be replaced with the user vertex.
-  Action Items:
-  1. Modify this run command to throw an error if there is no active User ID.
-  2. Modify this run command to inject the active user ID into the cmdOptions.
-  3. Update all Neo4J creation statements to leverage the user ID.
-  4. Update all Neo4J update statements to leverage the active user ID.
-  5. Update all Neo4J delete statements to leverage the active user ID.
-  6. Update all websocket tests to use an active user.
-  7. Update all unit tests to leverage an active user.
-  */
   def run():EngineCmdResult = {
-    val decisionRequest = DecisionRequest(this.user,
+    if (this.activeUserId.isEmpty){
+      throw new InternalErrorException(Engine.ActiveUserNotSetMsg)
+    }
+    val decisionRequest = DecisionRequest(this.activeUserId,
       this.actionType,
       this.scope,
       this.entityType,
       this.filter)
-
+    activeUserId.foreach(id => cmdOptions.addOption("activeUserId", id))
     val decision = DecisionDSL.findDecision(this.decisionTree, decisionRequest)
     val cmd = DynamicCmdLoader.provision(decision.name, database, scope, cmdOptions)
     return cmd.execute()
@@ -214,6 +204,10 @@ class Engine private (dbPath:String, decisionTree: Question) extends GraphDSL wi
     this.scope = CommandScopes.UserSpaceScope
     command = EngineCommands.CreateDataSet
     cmdOptions.reset
+    if (activeUserId.isEmpty){
+      throw new InternalErrorException(Engine.ActiveUserNotSetMsg)
+    }
+    activeUserId.foreach(id => cmdOptions.addOption("activeUserId", id))
     cmdOptions.addOption("mid", uuid)
     cmdOptions.addOption("name", name)
     cmdOptions.addOption("description", description)

@@ -106,7 +106,7 @@ class FindElementById(database: GraphDatabaseService,
     fields: GraphCommandOptions
   ):List[scala.collection.immutable.Map[String, List[String]]] = {
     val statement = """
-    |match (ds:internal_data_set {mid:{dsId}})-[:contains]->(n {mid:{mid}})
+    |match (ds:data_set {mid:{dsId}})-[:contains]->(n {mid:{mid}})
     |return keys(n) as keys, labels(n) as labels
     """.stripMargin
     val records = query[scala.collection.immutable.Map[String, List[String]]](database,
@@ -130,7 +130,7 @@ class FindElementById(database: GraphDatabaseService,
     val fetchClause = buildFetchClause(prefix, keys, List.empty[String])
     val labels:List[String] = elementDefintion.get("labels").get.asInstanceOf[List[String]]
     val template = """
-    |match (ds:internal_data_set {mid:{dsId}})-[:contains]->(e:label {mid:{mid}})
+    |match (ds:data_set {mid:{dsId}})-[:contains]->(e:label {mid:{mid}})
     |return fetch
     """.stripMargin
       .replaceAll("fetch", fetchClause)

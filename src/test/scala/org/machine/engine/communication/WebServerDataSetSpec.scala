@@ -68,11 +68,11 @@ class WebServerDataSetSpec extends FunSpecLike with Matchers with ScalaFutures w
   override def beforeAll(){
     engine = Engine.getInstance
     perge
-    createStarWarsSet()
     server.start()
     val newUserResponse = createUser(serviceCreds)
     activeUserId = getUserId(newUserResponse._2)
     jwtSessionToken = login(serviceCreds)
+    createStarWarsSet()
   }
 
   override def afterAll(){
@@ -81,6 +81,7 @@ class WebServerDataSetSpec extends FunSpecLike with Matchers with ScalaFutures w
   }
 
   def createStarWarsSet() = {
+    engine.setUser(activeUserId)
     starwarsDsId = engine.createDataSet("Star Wars", "Space Opera")
     val charEDId = engine.onDataSet(starwarsDsId)
       .defineElement("Character", "A person in the movie.")

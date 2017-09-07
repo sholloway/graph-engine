@@ -1,7 +1,7 @@
 {
   "name": "Find Upstream Elements",
   "description": "Find all elements that are one association upstream.",
-  "scope": "internal_data_set",
+  "scope": "data_set",
   "entityType": "Element",
   "actionType": "Retrieve",
   "filter": "Upstream",

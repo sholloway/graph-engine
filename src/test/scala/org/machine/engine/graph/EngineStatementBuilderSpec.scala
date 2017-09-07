@@ -41,7 +41,7 @@ class EngineStatementBuilderSpec extends FunSpec with Matchers with EasyMockSuga
       engine.createDataSet("Dataset C", "")
       val result:EngineCmdResult = engine
         .reset
-        .setUser(Some("da user"))
+        .setUser("da user")
         .setScope(CommandScopes.UserSpaceScope)
         .setActionType(ActionTypes.Retrieve)
         .setEntityType(EntityTypes.DataSet)

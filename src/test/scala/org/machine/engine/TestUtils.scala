@@ -20,7 +20,7 @@ object TestUtils{
       "element_definition",
       "property_definition",
       "element",
-      "internal_data_set",
+      "data_set",
       "user",
       "credential",
       "session"

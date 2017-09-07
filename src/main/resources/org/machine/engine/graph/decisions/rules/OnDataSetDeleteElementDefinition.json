@@ -1,7 +1,7 @@
 {
   "name": "Delete Element Definition",
   "description": "Delete an element definition.",
-  "scope": "internal_data_set",
+  "scope": "data_set",
   "entityType": "ElementDefinition",
   "actionType": "Delete",
   "filter": "None",
