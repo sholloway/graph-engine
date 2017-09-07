@@ -310,20 +310,21 @@ class WebServerDataSetSpec extends FunSpecLike
           }
         }
 
-/*         it ("should RemoveElementPropertyDefinition"){
-          val dsId = engine.createDataSet("Aliens", "A collection of alien types.")
+        it ("should RemoveElementPropertyDefinition"){
+          val dsId = engine.forUser(activeUserId).createDataSet("Aliens", "A collection of alien types.")
           val propName = "Weakness"
-          val edId = engine.onDataSet(dsId)
+          val edId = engine.forUser(activeUserId)
+            .onDataSet(dsId)
             .defineElement("Xenomorph", "Guy with personal boundry issues.")
             .withProperty(propName, "String", "Emotionally Insecure")
           .end
 
-          val request = buildWSRequest(user="Bob",
-            actionType="Delete",
-            scope="DataSet",
-            entityType="PropertyDefinition",
-            filter="None",
-            options=Map("dsId"-> dsId, "mid"->edId, "pname" -> propName)
+          val request = buildWSRequest(activeUserId,
+            "Delete",
+            "DataSet",
+            "PropertyDefinition",
+            "None",
+            Map("dsId"-> dsId, "mid"->edId, "pname" -> propName)
           )
 
           val closed:Future[Seq[Message]] = invokeWS(request, enginePath, PROTOCOL, jwtSessionToken)
@@ -335,12 +336,14 @@ class WebServerDataSetSpec extends FunSpecLike
             payloadMap.contains("id") should equal(true)
 
             //verify with engine that it has changed. :)
-            val ed = engine.onDataSet(dsId).findElementDefinitionById(edId)
+            val ed = engine.forUser(activeUserId)
+              .onDataSet(dsId)
+              .findElementDefinitionById(edId)
             ed.properties.length should equal(0)
           }
         }
 
-        it ("should DeleteElementDefintion"){
+/*         it ("should DeleteElementDefintion"){
           val dataset = engine.findDataSetByName("Aliens")
           val edId = engine.onDataSet(dataset.id)
             .defineElement("Preditor", "Bit of a bully.")

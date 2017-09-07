@@ -55,7 +55,7 @@ package object workflows{
       case CommandScopes.SystemSpaceScope => Empty
       case CommandScopes.UserSpaceScope => {
         val userFilter = if(options.contains(UserId)){
-          "where ss.mid={activeUserId}"
+          s"where ss.mid={${UserId}}"
         }else{
           throw new InternalErrorException(UserSpaceFilterRequiredErrorMsg)
         }
@@ -63,9 +63,9 @@ package object workflows{
       }
       case CommandScopes.DataSetScope => {
         val dsFilter = if(options.contains(DataSetId)){
-          "where ss.mid = {dsId}"
+          s"where ss.mid = {${DataSetId}}"
         }else if(options.contains(DataSetName)){
-          "where ss.name = {dsName}"
+          s"where ss.name = {${DataSetName}}"
         }else{
           throw new InternalErrorException(DataSetFilterRequiredErrorMsg)
         }
