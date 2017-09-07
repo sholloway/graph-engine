@@ -148,6 +148,8 @@ class Engine private (dbPath:String, decisionTree: Question) extends GraphDSL wi
     return this;
   }
 
+  def forUser(userId: String):GraphDSL = setUser(userId)
+
   def setScope(scope: CommandScope):GraphDSL = {
     this.scope = scope
     return this

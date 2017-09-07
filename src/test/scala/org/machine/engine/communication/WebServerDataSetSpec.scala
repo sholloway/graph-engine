@@ -104,7 +104,7 @@ class WebServerDataSetSpec extends FunSpecLike with Matchers with ScalaFutures w
     describe("WebSocket Requests"){
       describe("Datasets"){
         it ("should CreateElementDefinition By DS ID"){
-          val dsId = engine.createDataSet("dsQ", "DS")
+          val dsId = engine.forUser(activeUserId).createDataSet("dsQ", "DS")
           val edName = "Space Ship"
           val edDesc = "A ship that can traverse outer space."
           val edSpec = Map("dsId"->dsId,
@@ -135,10 +135,10 @@ class WebServerDataSetSpec extends FunSpecLike with Matchers with ScalaFutures w
           }
         }
 
-/*
+
         it ("should CreateElementDefinition By DS Name"){
           val dsName = "dsD"
-          val datasetId = engine.createDataSet(dsName, "DS")
+          val datasetId = engine.forUser(activeUserId).createDataSet(dsName, "DS")
           val edName = "Tardis"
           val edDesc = "A ship that can traverse outer space."
           val edSpec = Map("dsName"->dsName,
@@ -147,14 +147,14 @@ class WebServerDataSetSpec extends FunSpecLike with Matchers with ScalaFutures w
             "properties"->Seq(Map("name"->"p1", "propertyType"->"String", "description"->"p1"),
               Map("name"->"p2", "propertyType"->"String", "description"->"p2")))
 
-          val request = buildWSRequest(user="Bob",
-            actionType="Create",
-            scope="DataSet",
-            entityType="ElementDefinition",
-            filter="None",
-            options=edSpec)
+          val request = buildWSRequest(activeUserId,
+            "Create",
+            "DataSet",
+            "ElementDefinition",
+            "None",
+            edSpec)
 
-          val closed:Future[Seq[Message]] = invokeWS(request, enginePath)
+          val closed:Future[Seq[Message]] = invokeWS(request, enginePath, PROTOCOL, jwtSessionToken)
 
           whenReady(closed){ results =>
             results should have length 2
@@ -175,7 +175,7 @@ class WebServerDataSetSpec extends FunSpecLike with Matchers with ScalaFutures w
             }
           }
         }
-
+/*
         it ("should ListAllElementDefinitions"){
           val dataset = engine.findDataSetByName("dsD")
 

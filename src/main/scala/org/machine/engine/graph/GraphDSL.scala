@@ -312,6 +312,7 @@ trait GraphDSL{
   //Abstract handlers
   def reset():GraphDSL
   def setUser(userId: String):GraphDSL
+  def forUser(userId: String):GraphDSL
   def setScope(scope: CommandScope):GraphDSL
   def setActionType(actionType: ActionType):GraphDSL
   def setEntityType(entityType: EntityType):GraphDSL
