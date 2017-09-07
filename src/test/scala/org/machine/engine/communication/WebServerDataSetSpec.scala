@@ -27,7 +27,11 @@ import org.machine.engine.graph.commands.{CommandScopes}
 import org.machine.engine.graph.nodes._
 import org.machine.engine.flow.requests._
 
-class WebServerDataSetSpec extends FunSpecLike with Matchers with ScalaFutures with BeforeAndAfterAll{
+class WebServerDataSetSpec extends FunSpecLike
+  with Matchers
+  with ScalaFutures
+  with BeforeAndAfterAll
+  with BeforeAndAfterEach{
   import WSHelper._
   import TestUtils._
   import LoginHelper._
@@ -78,6 +82,10 @@ class WebServerDataSetSpec extends FunSpecLike with Matchers with ScalaFutures w
   override def afterAll(){
     server.stop()
     perge
+  }
+
+  override def afterEach(){
+    engine.reset()
   }
 
   def createStarWarsSet() = {
@@ -263,22 +271,23 @@ class WebServerDataSetSpec extends FunSpecLike with Matchers with ScalaFutures w
           }
         }
 
-/*        it ("should EditElementPropertyDefinition"){
+       it ("should EditElementPropertyDefinition"){
           val dsName = "Monsters"
-          val dsId = engine.createDataSet(dsName, "A collection of monster types.")
+          val dsId = engine.forUser(activeUserId).createDataSet(dsName, "A collection of monster types.")
           val propName = "Weakness"
-          val edId = engine.onDataSet(dsId)
+          val edId = engine.forUser(activeUserId)
+            .onDataSet(dsId)
             .defineElement("Wolfman", "Guy who gets hairy at night.")
             .withProperty(propName, "String", "Fatal Flay")
           .end
 
           val improvedDesc = "Fatal Flaw"
-          val request = buildWSRequest(user="Bob",
-            actionType="Update",
-            scope="DataSet",
-            entityType="PropertyDefinition",
-            filter="None",
-            options=Map("dsId" -> dsId,
+          val request = buildWSRequest(activeUserId,
+            "Update",
+            "DataSet",
+            "PropertyDefinition",
+            "None",
+            Map("dsId" -> dsId,
               "mid"->edId,
               "pname" -> propName,
               "description" -> improvedDesc)
@@ -293,7 +302,7 @@ class WebServerDataSetSpec extends FunSpecLike with Matchers with ScalaFutures w
             payloadMap.contains("id") should equal(true)
 
             //verify with engine that it has changed. :)
-            val ed = engine.onDataSet(dsId).findElementDefinitionById(edId)
+            val ed = engine.forUser(activeUserId).onDataSet(dsId).findElementDefinitionById(edId)
             ed.properties.length should equal(1)
             val weaknessPropOption = ed.properties.find{ prop => prop.name == propName }
             weaknessPropOption.isEmpty should equal(false)
@@ -301,7 +310,7 @@ class WebServerDataSetSpec extends FunSpecLike with Matchers with ScalaFutures w
           }
         }
 
-        it ("should RemoveElementPropertyDefinition"){
+/*         it ("should RemoveElementPropertyDefinition"){
           val dsId = engine.createDataSet("Aliens", "A collection of alien types.")
           val propName = "Weakness"
           val edId = engine.onDataSet(dsId)
