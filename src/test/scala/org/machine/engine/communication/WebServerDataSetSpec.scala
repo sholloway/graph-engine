@@ -176,8 +176,6 @@ class WebServerDataSetSpec extends FunSpecLike with Matchers with ScalaFutures w
         }
 
         it ("should ListAllElementDefinitions"){
-          import org.machine.engine.viz.GraphVizHelper
-          GraphVizHelper.visualize(engine.database)
           val dataset = engine.forUser(activeUserId).findDataSetByName("dsD")
           val opts = Map("dsId" -> dataset.id)
 
@@ -199,23 +197,26 @@ class WebServerDataSetSpec extends FunSpecLike with Matchers with ScalaFutures w
           }
         }
 
-/*        it ("should EditElementDefintion By DS ID"){
-          val dsId = engine.createDataSet("temp", "A data set.")
-          val edId = engine.onDataSet(dsId)
+        // import org.machine.engine.viz.GraphVizHelper
+        // GraphVizHelper.visualize(engine.database)
+        //Update this test to use the active user...
+        it ("should EditElementDefintion By DS ID"){
+          val dsId = engine.forUser(activeUserId).createDataSet("temp", "A data set.")
+          val edId = engine.forUser(activeUserId).onDataSet(dsId)
             .defineElement("blah", "A poorly named element definition.")
           .end
 
           val betterName = "Better Name"
 
-          val request = buildWSRequest(user="Bob",
-            actionType="Update",
-            scope="DataSet",
-            entityType="ElementDefinition",
-            filter="None",
-            options=Map("dsId" -> dsId, "mid"->edId, "name" -> betterName)
+          val request = buildWSRequest(activeUserId,
+            "Update",
+            "DataSet",
+            "ElementDefinition",
+            "None",
+            Map("dsId" -> dsId, "mid"->edId, "name" -> betterName)
           )
 
-          val closed:Future[Seq[Message]] = invokeWS(request, enginePath)
+          val closed:Future[Seq[Message]] = invokeWS(request, enginePath, PROTOCOL, jwtSessionToken)
 
           whenReady(closed){ results =>
             results should have length 2
@@ -224,12 +225,14 @@ class WebServerDataSetSpec extends FunSpecLike with Matchers with ScalaFutures w
             payloadMap.contains("id") should equal(true)
 
             //verify with engine that it has changed. :)
-            val ed = engine.onDataSet(dsId).findElementDefinitionById(edId)
+            val ed = engine.forUser(activeUserId)
+              .onDataSet(dsId)
+              .findElementDefinitionById(edId)
             ed.name should equal(betterName)
           }
         }
 
-        it ("should EditElementDefintion By DS Name"){
+/*        it ("should EditElementDefintion By DS Name"){
           val dsName = "Murphy"
           val dsId = engine.createDataSet(dsName, "A data set.")
           val edId = engine.onDataSet(dsId)
