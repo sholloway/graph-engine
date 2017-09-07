@@ -230,6 +230,10 @@ class Engine private (dbPath:String, decisionTree: Question) extends GraphDSL wi
   def findDataSetByName(name:String):DataSet = {
     this.scope = CommandScopes.UserSpaceScope
     cmdOptions.reset
+    if (activeUserId.isEmpty){
+      throw new InternalErrorException(Engine.ActiveUserNotSetMsg)
+    }
+    activeUserId.foreach(id => cmdOptions.addOption("activeUserId", id))
     cmdOptions.addOption("name", name)
     val cmd = new FindDataSetByName(database, scope, cmdOptions)
     val result:QueryCmdResult[DataSet] = cmd.execute()
@@ -240,6 +244,10 @@ class Engine private (dbPath:String, decisionTree: Question) extends GraphDSL wi
     scope = CommandScopes.DataSetScope
     command = EngineCommands.EditDataSet
     cmdOptions.reset
+    if (activeUserId.isEmpty){
+      throw new InternalErrorException(Engine.ActiveUserNotSetMsg)
+    }
+    activeUserId.foreach(id => cmdOptions.addOption("activeUserId", id))
     cmdOptions.addOption("dsId", id)
     return this;
   }
@@ -255,6 +263,10 @@ class Engine private (dbPath:String, decisionTree: Question) extends GraphDSL wi
   def findDataSetById(id: String):DataSet = {
     scope = CommandScopes.UserSpaceScope
     cmdOptions.reset
+    if (activeUserId.isEmpty){
+      throw new InternalErrorException(Engine.ActiveUserNotSetMsg)
+    }
+    activeUserId.foreach(id => cmdOptions.addOption("activeUserId", id))
     cmdOptions.addOption("dsId", id)
     val cmd = new FindDataSetById(database, scope, cmdOptions)
     val result:QueryCmdResult[DataSet] = cmd.execute()
@@ -295,6 +307,10 @@ class Engine private (dbPath:String, decisionTree: Question) extends GraphDSL wi
       cmdOptions.reset
     }
     cmdOptions.addOption("mid", id)
+    if (activeUserId.isEmpty){
+      throw new InternalErrorException(Engine.ActiveUserNotSetMsg)
+    }
+    activeUserId.foreach(id => cmdOptions.addOption("activeUserId", id))
     val cmd = new FindElementDefinitionById(database, scope, cmdOptions)
     val result:QueryCmdResult[ElementDefinition] = cmd.execute()
     handleErrorResult(result)
@@ -306,6 +322,10 @@ class Engine private (dbPath:String, decisionTree: Question) extends GraphDSL wi
       cmdOptions.reset
     }
     cmdOptions.addOption("name", name)
+    if (activeUserId.isEmpty){
+      throw new InternalErrorException(Engine.ActiveUserNotSetMsg)
+    }
+    activeUserId.foreach(id => cmdOptions.addOption("activeUserId", id))
     val cmd = new FindElementDefinitionByName(database, scope, cmdOptions)
     val elements = cmd.execute()
     val result:QueryCmdResult[ElementDefinition] = cmd.execute()
@@ -382,9 +402,6 @@ class Engine private (dbPath:String, decisionTree: Question) extends GraphDSL wi
       Executes the built up command.
       Only used for commands of type Insert, Update, Delete.
       No queries.
-
-      TODO: Replace CommandFactory with Decision Tree.
-      Do this after all commands have their ancestry updated.
   */
   def end():String = {
     logger.debug("Engine: Attempt to execute command.")

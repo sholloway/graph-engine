@@ -135,7 +135,6 @@ class WebServerDataSetSpec extends FunSpecLike with Matchers with ScalaFutures w
           }
         }
 
-
         it ("should CreateElementDefinition By DS Name"){
           val dsName = "dsD"
           val datasetId = engine.forUser(activeUserId).createDataSet(dsName, "DS")
@@ -175,20 +174,21 @@ class WebServerDataSetSpec extends FunSpecLike with Matchers with ScalaFutures w
             }
           }
         }
-/*
-        it ("should ListAllElementDefinitions"){
-          val dataset = engine.findDataSetByName("dsD")
 
+        it ("should ListAllElementDefinitions"){
+          import org.machine.engine.viz.GraphVizHelper
+          GraphVizHelper.visualize(engine.database)
+          val dataset = engine.forUser(activeUserId).findDataSetByName("dsD")
           val opts = Map("dsId" -> dataset.id)
 
-          val request = buildWSRequest(user="Bob",
-            actionType="Retrieve",
-            scope="DataSet",
-            entityType="ElementDefinition",
-            filter="All",
-            options=opts)
+          val request = buildWSRequest(activeUserId,
+            "Retrieve",
+            "DataSet",
+            "ElementDefinition",
+            "All",
+            opts)
 
-          val closed:Future[Seq[Message]] = invokeWS(request, enginePath)
+          val closed:Future[Seq[Message]] = invokeWS(request, enginePath, PROTOCOL, jwtSessionToken)
 
           whenReady(closed){ results =>
             results should have length 2
@@ -199,7 +199,7 @@ class WebServerDataSetSpec extends FunSpecLike with Matchers with ScalaFutures w
           }
         }
 
-        it ("should EditElementDefintion By DS ID"){
+/*        it ("should EditElementDefintion By DS ID"){
           val dsId = engine.createDataSet("temp", "A data set.")
           val edId = engine.onDataSet(dsId)
             .defineElement("blah", "A poorly named element definition.")
