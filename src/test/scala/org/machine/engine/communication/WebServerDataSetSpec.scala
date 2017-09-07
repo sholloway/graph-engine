@@ -197,9 +197,6 @@ class WebServerDataSetSpec extends FunSpecLike with Matchers with ScalaFutures w
           }
         }
 
-        // import org.machine.engine.viz.GraphVizHelper
-        // GraphVizHelper.visualize(engine.database)
-        //Update this test to use the active user...
         it ("should EditElementDefintion By DS ID"){
           val dsId = engine.forUser(activeUserId).createDataSet("temp", "A data set.")
           val edId = engine.forUser(activeUserId).onDataSet(dsId)
@@ -232,24 +229,27 @@ class WebServerDataSetSpec extends FunSpecLike with Matchers with ScalaFutures w
           }
         }
 
-/*        it ("should EditElementDefintion By DS Name"){
+        // import org.machine.engine.viz.GraphVizHelper
+        // GraphVizHelper.visualize(engine.database)
+        //Update this test to use the active user...
+        it ("should EditElementDefintion By DS Name"){
           val dsName = "Murphy"
-          val dsId = engine.createDataSet(dsName, "A data set.")
-          val edId = engine.onDataSet(dsId)
+          val dsId = engine.forUser(activeUserId).createDataSet(dsName, "A data set.")
+          val edId = engine.forUser(activeUserId).onDataSet(dsId)
             .defineElement("blah", "A poorly named element definition.")
           .end
 
           val betterName = "Better Name"
 
-          val request = buildWSRequest(user="Bob",
-            actionType="Update",
-            scope="DataSet",
-            entityType="ElementDefinition",
-            filter="None",
-            options=Map("dsName" -> dsName, "mid"->edId, "name" -> betterName)
+          val request = buildWSRequest(activeUserId,
+            "Update",
+            "DataSet",
+            "ElementDefinition",
+            "None",
+            Map("dsName" -> dsName, "mid"->edId, "name" -> betterName)
           )
 
-          val closed:Future[Seq[Message]] = invokeWS(request, enginePath)
+          val closed:Future[Seq[Message]] = invokeWS(request, enginePath, PROTOCOL, jwtSessionToken)
 
           whenReady(closed){ results =>
             results should have length 2
@@ -258,12 +258,12 @@ class WebServerDataSetSpec extends FunSpecLike with Matchers with ScalaFutures w
             payloadMap.contains("id") should equal(true)
 
             //verify with engine that it has changed. :)
-            val ed = engine.onDataSet(dsId).findElementDefinitionById(edId)
+            val ed = engine.forUser(activeUserId).onDataSet(dsId).findElementDefinitionById(edId)
             ed.name should equal(betterName)
           }
         }
 
-        it ("should EditElementPropertyDefinition"){
+/*        it ("should EditElementPropertyDefinition"){
           val dsName = "Monsters"
           val dsId = engine.createDataSet(dsName, "A collection of monster types.")
           val propName = "Weakness"
@@ -284,7 +284,7 @@ class WebServerDataSetSpec extends FunSpecLike with Matchers with ScalaFutures w
               "description" -> improvedDesc)
           )
 
-          val closed:Future[Seq[Message]] = invokeWS(request, enginePath)
+          val closed:Future[Seq[Message]] = invokeWS(request, enginePath, PROTOCOL, jwtSessionToken)
 
           whenReady(closed){ results =>
             results should have length 2
@@ -317,7 +317,7 @@ class WebServerDataSetSpec extends FunSpecLike with Matchers with ScalaFutures w
             options=Map("dsId"-> dsId, "mid"->edId, "pname" -> propName)
           )
 
-          val closed:Future[Seq[Message]] = invokeWS(request, enginePath)
+          val closed:Future[Seq[Message]] = invokeWS(request, enginePath, PROTOCOL, jwtSessionToken)
 
           whenReady(closed){ results =>
             results should have length 2
@@ -346,7 +346,7 @@ class WebServerDataSetSpec extends FunSpecLike with Matchers with ScalaFutures w
             options=Map("dsId" -> dataset.id, "mid" -> edId)
           )
 
-          val closed:Future[Seq[Message]] = invokeWS(request, enginePath)
+          val closed:Future[Seq[Message]] = invokeWS(request, enginePath, PROTOCOL, jwtSessionToken)
 
           whenReady(closed){ results =>
             results should have length 2
@@ -375,7 +375,7 @@ class WebServerDataSetSpec extends FunSpecLike with Matchers with ScalaFutures w
             options=Map("dsId" -> dataset.id, "mid" -> xenomorph.id)
           )
 
-          val closed:Future[Seq[Message]] = invokeWS(request, enginePath)
+          val closed:Future[Seq[Message]] = invokeWS(request, enginePath, PROTOCOL, jwtSessionToken)
 
           whenReady(closed){ results =>
             results should have length 2
@@ -402,7 +402,7 @@ class WebServerDataSetSpec extends FunSpecLike with Matchers with ScalaFutures w
             options=Map("dsId" -> dataset.id, "name" -> xenomorph.name)
           )
 
-          val closed:Future[Seq[Message]] = invokeWS(request, enginePath)
+          val closed:Future[Seq[Message]] = invokeWS(request, enginePath, PROTOCOL, jwtSessionToken)
 
           whenReady(closed){ results =>
             results should have length 2
@@ -441,7 +441,7 @@ class WebServerDataSetSpec extends FunSpecLike with Matchers with ScalaFutures w
             )
           )
 
-          val closed:Future[Seq[Message]] = invokeWS(request, enginePath)
+          val closed:Future[Seq[Message]] = invokeWS(request, enginePath, PROTOCOL, jwtSessionToken)
 
           whenReady(closed){ results =>
             results should have length 2
@@ -478,7 +478,7 @@ class WebServerDataSetSpec extends FunSpecLike with Matchers with ScalaFutures w
               "mid" -> gnrOpt.get.id)
           )
 
-          val closed:Future[Seq[Message]] = invokeWS(request, enginePath)
+          val closed:Future[Seq[Message]] = invokeWS(request, enginePath, PROTOCOL, jwtSessionToken)
 
           whenReady(closed){ results =>
             results should have length 2
@@ -508,7 +508,7 @@ class WebServerDataSetSpec extends FunSpecLike with Matchers with ScalaFutures w
             options=Map("dsId" -> dataset.id)
           )
 
-          val closed:Future[Seq[Message]] = invokeWS(request, enginePath)
+          val closed:Future[Seq[Message]] = invokeWS(request, enginePath, PROTOCOL, jwtSessionToken)
 
           whenReady(closed){ results =>
             results should have length 2
@@ -541,7 +541,7 @@ class WebServerDataSetSpec extends FunSpecLike with Matchers with ScalaFutures w
               "Name" -> updatedField)
           )
 
-          val closed:Future[Seq[Message]] = invokeWS(request, enginePath)
+          val closed:Future[Seq[Message]] = invokeWS(request, enginePath, PROTOCOL, jwtSessionToken)
 
           whenReady(closed){ results =>
             results should have length 2
@@ -573,7 +573,7 @@ class WebServerDataSetSpec extends FunSpecLike with Matchers with ScalaFutures w
               "DeadlyRanking" -> "4")
           )
 
-          val closed:Future[Seq[Message]] = invokeWS(request, enginePath)
+          val closed:Future[Seq[Message]] = invokeWS(request, enginePath, PROTOCOL, jwtSessionToken)
 
           whenReady(closed){ results =>
             results should have length 2
@@ -602,7 +602,7 @@ class WebServerDataSetSpec extends FunSpecLike with Matchers with ScalaFutures w
               "DeadlyRanking" -> "DeadlyRanking")
           )
 
-          val closed:Future[Seq[Message]] = invokeWS(request, enginePath)
+          val closed:Future[Seq[Message]] = invokeWS(request, enginePath, PROTOCOL, jwtSessionToken)
 
           whenReady(closed){ results =>
             results should have length 2
@@ -630,7 +630,7 @@ class WebServerDataSetSpec extends FunSpecLike with Matchers with ScalaFutures w
               "elementId" -> zombieAttack.id)
           )
 
-          val closed:Future[Seq[Message]] = invokeWS(request, enginePath)
+          val closed:Future[Seq[Message]] = invokeWS(request, enginePath, PROTOCOL, jwtSessionToken)
 
           whenReady(closed){ results =>
             results should have length 2
@@ -658,7 +658,7 @@ class WebServerDataSetSpec extends FunSpecLike with Matchers with ScalaFutures w
             )
           )
 
-          val closed:Future[Seq[Message]] = invokeWS(request, enginePath)
+          val closed:Future[Seq[Message]] = invokeWS(request, enginePath, PROTOCOL, jwtSessionToken)
 
           whenReady(closed){ results =>
             results should have length 2
@@ -692,7 +692,7 @@ class WebServerDataSetSpec extends FunSpecLike with Matchers with ScalaFutures w
             )
           )
 
-          val closed:Future[Seq[Message]] = invokeWS(request, enginePath)
+          val closed:Future[Seq[Message]] = invokeWS(request, enginePath, PROTOCOL, jwtSessionToken)
 
           whenReady(closed){ results =>
             results should have length 2
@@ -727,7 +727,7 @@ class WebServerDataSetSpec extends FunSpecLike with Matchers with ScalaFutures w
             )
           )
 
-          val closed:Future[Seq[Message]] = invokeWS(request, enginePath)
+          val closed:Future[Seq[Message]] = invokeWS(request, enginePath, PROTOCOL, jwtSessionToken)
 
           whenReady(closed){ results =>
             results should have length 2
@@ -759,7 +759,7 @@ class WebServerDataSetSpec extends FunSpecLike with Matchers with ScalaFutures w
             )
           )
 
-          val closed:Future[Seq[Message]] = invokeWS(request, enginePath)
+          val closed:Future[Seq[Message]] = invokeWS(request, enginePath, PROTOCOL, jwtSessionToken)
 
           whenReady(closed){ results =>
             results should have length 2
@@ -788,7 +788,7 @@ class WebServerDataSetSpec extends FunSpecLike with Matchers with ScalaFutures w
             )
           )
 
-          val closed:Future[Seq[Message]] = invokeWS(request, enginePath)
+          val closed:Future[Seq[Message]] = invokeWS(request, enginePath, PROTOCOL, jwtSessionToken)
 
           whenReady(closed){ results =>
             results should have length 2
@@ -818,7 +818,7 @@ class WebServerDataSetSpec extends FunSpecLike with Matchers with ScalaFutures w
             )
           )
 
-          val closed:Future[Seq[Message]] = invokeWS(request, enginePath)
+          val closed:Future[Seq[Message]] = invokeWS(request, enginePath, PROTOCOL, jwtSessionToken)
 
           whenReady(closed){ results =>
             results should have length 2
@@ -845,7 +845,7 @@ class WebServerDataSetSpec extends FunSpecLike with Matchers with ScalaFutures w
             )
           )
 
-          val closed:Future[Seq[Message]] = invokeWS(request, enginePath)
+          val closed:Future[Seq[Message]] = invokeWS(request, enginePath, PROTOCOL, jwtSessionToken)
 
           whenReady(closed){ results =>
             results should have length 2
@@ -877,7 +877,7 @@ class WebServerDataSetSpec extends FunSpecLike with Matchers with ScalaFutures w
             )
           )
 
-          val closed:Future[Seq[Message]] = invokeWS(request, enginePath)
+          val closed:Future[Seq[Message]] = invokeWS(request, enginePath, PROTOCOL, jwtSessionToken)
 
           whenReady(closed){ results =>
             results should have length 2
@@ -908,7 +908,7 @@ class WebServerDataSetSpec extends FunSpecLike with Matchers with ScalaFutures w
             )
           )
 
-          val closed:Future[Seq[Message]] = invokeWS(request, enginePath)
+          val closed:Future[Seq[Message]] = invokeWS(request, enginePath, PROTOCOL, jwtSessionToken)
 
           whenReady(closed){ results =>
             results should have length 2
@@ -937,7 +937,7 @@ class WebServerDataSetSpec extends FunSpecLike with Matchers with ScalaFutures w
             )
           )
 
-          val closed:Future[Seq[Message]] = invokeWS(request, enginePath)
+          val closed:Future[Seq[Message]] = invokeWS(request, enginePath, PROTOCOL, jwtSessionToken)
 
           whenReady(closed){ results =>
             results should have length 2
@@ -964,7 +964,7 @@ class WebServerDataSetSpec extends FunSpecLike with Matchers with ScalaFutures w
             )
           )
 
-          val closed:Future[Seq[Message]] = invokeWS(request, enginePath)
+          val closed:Future[Seq[Message]] = invokeWS(request, enginePath, PROTOCOL, jwtSessionToken)
 
           whenReady(closed){ results =>
             results should have length 2
