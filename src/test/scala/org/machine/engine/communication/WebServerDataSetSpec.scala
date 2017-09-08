@@ -686,8 +686,6 @@ class WebServerDataSetSpec extends FunSpecLike
           }
         }
 
-        //11 tests left... Then user space, system space and the Command unit tests. At that point,
-        // I should be able to go back to working on the Cockpit.
         it ("should AssociateElements"){
           val associationType = "friends_with"
           val request = buildWSRequest(activeUserId,
@@ -722,17 +720,21 @@ class WebServerDataSetSpec extends FunSpecLike
           }
         }
 
-  /*      it ("should FindAssociationById"){
-          val associations = engine.onDataSet(starwarsDsId).onElement(hanId).findOutboundAssociations()
+        it ("should FindAssociationById"){
+          val associations = engine.forUser(activeUserId)
+            .onDataSet(starwarsDsId)
+            .onElement(hanId)
+            .findOutboundAssociations()
           associations.length should equal(2)
+
           val friendsWith = associations.find({a => a.associationType == "friends_with"}).get
 
-          val request = buildWSRequest(user="Bob",
-            actionType="Retrieve",
-            scope="DataSet",
-            entityType="Association",
-            filter="ID",
-            options=Map(
+          val request = buildWSRequest(activeUserId,
+            "Retrieve",
+            "DataSet",
+            "Association",
+            "ID",
+            Map(
               "associationId" -> friendsWith.id
             )
           )
@@ -755,7 +757,7 @@ class WebServerDataSetSpec extends FunSpecLike
           }
         }
 
-        it ("should EditAssociation"){
+  /*      it ("should EditAssociation"){
           val associations = engine.onDataSet(starwarsDsId).onElement(hanId).findOutboundAssociations()
           associations.length should equal(2)
           val friendsWith = associations.find({a => a.associationType == "friends_with"}).get
