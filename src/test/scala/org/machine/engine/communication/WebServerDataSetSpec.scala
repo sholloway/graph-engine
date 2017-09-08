@@ -512,8 +512,6 @@ class WebServerDataSetSpec extends FunSpecLike
           }
         }
 
-//16 tests left... Then user space, system space and the Command unit tests. At that point,
-// I should be able to go back to working on the Cockpit.
         it("should FindAllElements"){
           val dataset = engine.forUser(activeUserId).findDataSetByName("Bands")
           val ed = engine.forUser(activeUserId)
@@ -550,24 +548,29 @@ class WebServerDataSetSpec extends FunSpecLike
           }
         }
 
-  /*      it ("should EditElement"){
-          val dsId = engine.createDataSet("Un-natural Disasters", "Epic Events of Calamity")
-          val edId = engine.onDataSet(dsId)
+        //15 tests left... Then user space, system space and the Command unit tests. At that point,
+        // I should be able to go back to working on the Cockpit.
+
+        it ("should EditElement"){
+          val dsId = engine.forUser(activeUserId)
+            .createDataSet("Un-natural Disasters", "Epic Events of Calamity")
+          val edId = engine.forUser(activeUserId)
+            .onDataSet(dsId)
             .defineElement("Disaster", "Oh No!")
             .withProperty("Name", "String", "The name of the disaster.")
           .end
 
-          val zaId = engine.onDataSet(dsId).provision(edId).withField("Name", "Zombie Attack!").end()
-          val maId = engine.onDataSet(dsId).provision(edId).withField("Name", "Monster Attack!").end()
-          val zimID = engine.onDataSet(dsId).provision(edId).withField("Name", "Martians!").end()
+          val zaId = engine.forUser(activeUserId).onDataSet(dsId).provision(edId).withField("Name", "Zombie Attack!").end()
+          val maId = engine.forUser(activeUserId).onDataSet(dsId).provision(edId).withField("Name", "Monster Attack!").end()
+          val zimID = engine.forUser(activeUserId).onDataSet(dsId).provision(edId).withField("Name", "Martians!").end()
 
           val updatedField = "Invader Zim Attack!"
-          val request = buildWSRequest(user="Bob",
-            actionType="Update",
-            scope="DataSet",
-            entityType="Element",
-            filter="None",
-            options=Map("dsId" -> dsId,
+          val request = buildWSRequest(activeUserId,
+            "Update",
+            "DataSet",
+            "Element",
+            "None",
+            Map("dsId" -> dsId,
               "elementId" -> zimID,
               "Name" -> updatedField)
           )
@@ -583,12 +586,12 @@ class WebServerDataSetSpec extends FunSpecLike
 
             //get the ID and verify it is zimID.
             //Using the engine to get the element and verify it has been updated.
-            val martian = engine.onDataSet(dsId).findElement(zimID)
+            val martian = engine.forUser(activeUserId).onDataSet(dsId).findElement(zimID)
             martian.field[String]("Name") should equal(updatedField)
           }
         }
 
-        it ("should AddElementField"){
+  /*      it ("should AddElementField"){
           val dataset = engine.findDataSetByName("Un-natural Disasters")
           val elements = engine.onDataSet(dataset.id).elements()
           val zombieAttack = elements.find(e => e.field[String]("Name") == "Zombie Attack!").get
