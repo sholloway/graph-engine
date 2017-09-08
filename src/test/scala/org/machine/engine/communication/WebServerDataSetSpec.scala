@@ -586,8 +586,6 @@ class WebServerDataSetSpec extends FunSpecLike
           }
         }
 
-        //14 tests left... Then user space, system space and the Command unit tests. At that point,
-        // I should be able to go back to working on the Cockpit.
         it ("should AddElementField"){
           val dataset = engine.forUser(activeUserId)
             .findDataSetByName("Un-natural Disasters")
@@ -622,18 +620,22 @@ class WebServerDataSetSpec extends FunSpecLike
           }
         }
 
-  /*      it ("should RemoveElementField"){
-          val dataset = engine.findDataSetByName("Un-natural Disasters")
-          val elements = engine.onDataSet(dataset.id).elements()
+        //13 tests left... Then user space, system space and the Command unit tests. At that point,
+        // I should be able to go back to working on the Cockpit.
+        it ("should RemoveElementField"){
+          val dataset = engine.forUser(activeUserId).findDataSetByName("Un-natural Disasters")
+          val elements = engine.forUser(activeUserId)
+            .onDataSet(dataset.id)
+            .elements()
           val zombieAttack = elements.find(e => e.field[String]("Name") == "Zombie Attack!").get
           zombieAttack.fields.size should equal(2)
 
-          val request = buildWSRequest(user="Bob",
-            actionType="Delete",
-            scope="DataSet",
-            entityType="ElementField",
-            filter="None",
-            options=Map("dsId" -> dataset.id,
+          val request = buildWSRequest(activeUserId,
+            "Delete",
+            "DataSet",
+            "ElementField",
+            "None",
+            Map("dsId" -> dataset.id,
               "elementId" -> zombieAttack.id,
               "DeadlyRanking" -> "DeadlyRanking")
           )
@@ -646,12 +648,14 @@ class WebServerDataSetSpec extends FunSpecLike
             val payloadMap = strToMap(envelopeMap("textMessage").asInstanceOf[String])
             payloadMap.contains("id") should equal(true)
             payloadMap("id") should equal(zombieAttack.id)
-            val updatedElement = engine.onDataSet(dataset.id).findElement(zombieAttack.id)
+            val updatedElement = engine.forUser(activeUserId)
+              .onDataSet(dataset.id)
+              .findElement(zombieAttack.id)
             updatedElement.fields.size should equal(1)
           }
         }
 
-        it ("should DeleteElement"){
+    /*    it ("should DeleteElement"){
           val dataset = engine.findDataSetByName("Un-natural Disasters")
           val elements = engine.onDataSet(dataset.id).elements()
           elements.length should equal(3)
