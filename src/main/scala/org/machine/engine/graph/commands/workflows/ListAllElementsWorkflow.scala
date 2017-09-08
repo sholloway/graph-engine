@@ -9,7 +9,7 @@ import scala.collection.mutable.{ArrayBuffer, ListBuffer, Map}
 
 import org.machine.engine.exceptions.InternalErrorException
 import org.machine.engine.graph.Neo4JHelper
-import org.machine.engine.graph.commands.{CommandScope, CommandScopes}
+import org.machine.engine.graph.commands.{CommandScope, CommandScopes, GraphCommandOptions}
 import org.machine.engine.graph.nodes.Element
 
 object ListAllElementsWorkflow extends LazyLogging{
@@ -49,13 +49,12 @@ object ListAllElementsWorkflow extends LazyLogging{
       if(!isDefinedAt(capsule)) return capsule
       var status:Status = null
       try{
-        val scopeFilter = generateScopeFilter(capsule._2, capsule._3)
-        val query:String = """
-        |match (ss:data_set) filter
-        |match (ss)-[:contains]->(e:element)
+        val activeUserId = capsule._3.field[String]("activeUserId")
+        val dataSetFilter = getDataSetFilter(capsule._3)
+        val query:String = s"""
+        |match (u:user {mid:{activeUserId}})-[:owns]->(d:data_set ${dataSetFilter})-[:contains]->(e:element)
         |return e as node, labels(e) as labels, keys(e) as keys
         """.stripMargin
-        .replaceAll("filter", scopeFilter)
         capsule._4 += (FindElementsQuery -> query)
         status = Left(WorkflowStatuses.OK)
       }catch{
@@ -153,5 +152,16 @@ object ListAllElementsWorkflow extends LazyLogging{
       }else{
         Right(ElementsCouldNotBeListedErrorMsg)
       }
+  }
+
+  private def getDataSetFilter(cmdOptions: GraphCommandOptions):String = {
+    val dsFilter = if(cmdOptions.contains(DataSetId)){
+      s"{mid:{dsId}}"
+    }else if(cmdOptions.contains(DataSetName)){
+      s"{name:{dsName}}"
+    }else{
+      throw new InternalErrorException(DataSetFilterRequiredErrorMsg)
+    }
+    dsFilter
   }
 }

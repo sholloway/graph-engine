@@ -484,9 +484,7 @@ class WebServerDataSetSpec extends FunSpecLike
           }
         }
 
-        // import org.machine.engine.viz.GraphVizHelper
-        // GraphVizHelper.visualize(engine.database)
-         it ("should FindElementById"){
+        it ("should FindElementById"){
           val dataset = engine.forUser(activeUserId).findDataSetByName("Bands")
           val bands = engine.forUser(activeUserId).onDataSet(dataset.id).elements()
           val gnrOpt = bands.find{ prop =>
@@ -514,22 +512,31 @@ class WebServerDataSetSpec extends FunSpecLike
           }
         }
 
-/*        it("should FindAllElements"){
-          val dataset = engine.findDataSetByName("Bands")
-          val ed = engine.onDataSet(dataset.id).findElementDefinitionByName("RockBand")
-          engine.onDataSet(dataset.id)
+//16 tests left... Then user space, system space and the Command unit tests. At that point,
+// I should be able to go back to working on the Cockpit.
+        it("should FindAllElements"){
+          val dataset = engine.forUser(activeUserId).findDataSetByName("Bands")
+          val ed = engine.forUser(activeUserId)
+            .onDataSet(dataset.id)
+            .findElementDefinitionByName("RockBand")
+
+          engine.forUser(activeUserId)
+            .onDataSet(dataset.id)
             .provision(ed.id)
             .withField("Name", "Daft Punk")
           .end
 
-          val expectedElementsCount = engine.onDataSet(dataset.id).elements().length
+          val expectedElementsCount = engine.forUser(activeUserId)
+            .onDataSet(dataset.id)
+            .elements()
+            .length
 
-          val request = buildWSRequest(user="Bob",
-            actionType="Retrieve",
-            scope="DataSet",
-            entityType="Element",
-            filter="All",
-            options=Map("dsId" -> dataset.id)
+          val request = buildWSRequest(activeUserId,
+            "Retrieve",
+            "DataSet",
+            "Element",
+            "All",
+            Map("dsId" -> dataset.id)
           )
 
           val closed:Future[Seq[Message]] = invokeWS(request, enginePath, PROTOCOL, jwtSessionToken)
@@ -543,7 +550,7 @@ class WebServerDataSetSpec extends FunSpecLike
           }
         }
 
-        it ("should EditElement"){
+  /*      it ("should EditElement"){
           val dsId = engine.createDataSet("Un-natural Disasters", "Epic Events of Calamity")
           val edId = engine.onDataSet(dsId)
             .defineElement("Disaster", "Oh No!")
