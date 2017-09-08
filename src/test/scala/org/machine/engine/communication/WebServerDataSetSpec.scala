@@ -620,8 +620,6 @@ class WebServerDataSetSpec extends FunSpecLike
           }
         }
 
-        //13 tests left... Then user space, system space and the Command unit tests. At that point,
-        // I should be able to go back to working on the Cockpit.
         it ("should RemoveElementField"){
           val dataset = engine.forUser(activeUserId).findDataSetByName("Un-natural Disasters")
           val elements = engine.forUser(activeUserId)
@@ -655,18 +653,23 @@ class WebServerDataSetSpec extends FunSpecLike
           }
         }
 
-    /*    it ("should DeleteElement"){
-          val dataset = engine.findDataSetByName("Un-natural Disasters")
-          val elements = engine.onDataSet(dataset.id).elements()
+        //12 tests left... Then user space, system space and the Command unit tests. At that point,
+        // I should be able to go back to working on the Cockpit.
+        it ("should DeleteElement"){
+          val dataset = engine.forUser(activeUserId)
+            .findDataSetByName("Un-natural Disasters")
+          val elements = engine.forUser(activeUserId)
+            .onDataSet(dataset.id)
+            .elements()
           elements.length should equal(3)
           val zombieAttack = elements.find(e => e.field[String]("Name") == "Zombie Attack!").get
 
-          val request = buildWSRequest(user="Bob",
-            actionType="Delete",
-            scope="DataSet",
-            entityType="Element",
-            filter="None",
-            options=Map("dsId" -> dataset.id,
+          val request = buildWSRequest(activeUserId,
+            "Delete",
+            "DataSet",
+            "Element",
+            "None",
+            Map("dsId" -> dataset.id,
               "elementId" -> zombieAttack.id)
           )
 
@@ -678,12 +681,14 @@ class WebServerDataSetSpec extends FunSpecLike
             val payloadMap = strToMap(envelopeMap("textMessage").asInstanceOf[String])
             payloadMap.contains("id") should equal(true)
             payloadMap("id") should equal(zombieAttack.id)
-            val updatedElementList = engine.onDataSet(dataset.id).elements
+            val updatedElementList = engine.forUser(activeUserId)
+              .onDataSet(dataset.id)
+              .elements
             updatedElementList.length should equal(2)
           }
         }
 
-        it ("should AssociateElements"){
+  /*      it ("should AssociateElements"){
           val associationType = "friends_with"
           val request = buildWSRequest(user="Bob",
             actionType="Create",
