@@ -472,9 +472,6 @@ class WebServerDataSetSpec extends FunSpecLike
               .onDataSet(dsId)
               .findElement(eId)
 
-            import org.machine.engine.viz.GraphVizHelper
-            GraphVizHelper.visualize(engine.database)
-            
             element.id should equal(eId)
             element.elementType should equal(edName)
             element.elementDescription should equal(edDesc)
@@ -487,21 +484,22 @@ class WebServerDataSetSpec extends FunSpecLike
           }
         }
 
-/*         it ("should FindElementById"){
-          val dataset = engine.findDataSetByName("Bands")
-          val bands = engine.onDataSet(dataset.id).elements()
+        // import org.machine.engine.viz.GraphVizHelper
+        // GraphVizHelper.visualize(engine.database)
+         it ("should FindElementById"){
+          val dataset = engine.forUser(activeUserId).findDataSetByName("Bands")
+          val bands = engine.forUser(activeUserId).onDataSet(dataset.id).elements()
           val gnrOpt = bands.find{ prop =>
             prop.fields.contains("Name") &&
             prop.fields("Name") == "Guns N' Roses"
           }
 
-          val request = buildWSRequest(user="Bob",
-            actionType="Retrieve",
-            scope="DataSet",
-            entityType="Element",
-            filter="ID",
-            options=Map("dsId" -> dataset.id,
-              "mid" -> gnrOpt.get.id)
+          val request = buildWSRequest(activeUserId,
+            "Retrieve",
+            "DataSet",
+            "Element",
+            "ID",
+            Map("dsId" -> dataset.id, "mid" -> gnrOpt.get.id)
           )
 
           val closed:Future[Seq[Message]] = invokeWS(request, enginePath, PROTOCOL, jwtSessionToken)
@@ -516,7 +514,7 @@ class WebServerDataSetSpec extends FunSpecLike
           }
         }
 
-        it("should FindAllElements"){
+/*        it("should FindAllElements"){
           val dataset = engine.findDataSetByName("Bands")
           val ed = engine.onDataSet(dataset.id).findElementDefinitionByName("RockBand")
           engine.onDataSet(dataset.id)
