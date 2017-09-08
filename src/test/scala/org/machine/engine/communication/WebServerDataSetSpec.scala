@@ -865,16 +865,19 @@ class WebServerDataSetSpec extends FunSpecLike
           }
         }
 
-    /*    it ("should FindInboundAssociationsByElementId"){
-          val associations = engine.onDataSet(starwarsDsId).onElement(hanId).findInboundAssociations()
+        it ("should FindInboundAssociationsByElementId"){
+          val associations = engine.forUser(activeUserId)
+            .onDataSet(starwarsDsId)
+            .onElement(hanId)
+            .findInboundAssociations()
           associations.length should equal(1) //From Leia
 
-          val request = buildWSRequest(user="Bob",
-            actionType="Retrieve",
-            scope="DataSet",
-            entityType="InboundAssociation",
-            filter="None",
-            options=Map(
+          val request = buildWSRequest(activeUserId,
+            "Retrieve",
+            "DataSet",
+            "InboundAssociation",
+            "None",
+            Map(
               "elementId"  -> hanId
             )
           )
@@ -893,15 +896,18 @@ class WebServerDataSetSpec extends FunSpecLike
         }
 
         it ("should FindOutboundAssociationsByElementId"){
-          val associations = engine.onDataSet(starwarsDsId).onElement(leiaId).findOutboundAssociations()
+          val associations = engine.forUser(activeUserId)
+            .onDataSet(starwarsDsId)
+            .onElement(leiaId)
+            .findOutboundAssociations()
           associations.length should equal(2) //To Han & Luke
 
-          val request = buildWSRequest(user="Bob",
-            actionType="Retrieve",
-            scope="DataSet",
-            entityType="OutboundAssociation",
-            filter="None",
-            options=Map(
+          val request = buildWSRequest("Bob",
+            "Retrieve",
+            "DataSet",
+            "OutboundAssociation",
+            "None",
+            Map(
               "elementId"  -> leiaId
             )
           )
@@ -918,22 +924,21 @@ class WebServerDataSetSpec extends FunSpecLike
           }
         }
 
-
-        // import org.machine.engine.viz.GraphVizHelper
-        // GraphVizHelper.visualize(engine.database)
-
         it ("should FindDownStreamElementsByElementId"){
-          val downstream = engine.onDataSet(starwarsDsId).onElement(lukeId).findDownStreamElements()
+          val downstream = engine.forUser(activeUserId)
+            .onDataSet(starwarsDsId)
+            .onElement(lukeId)
+            .findDownStreamElements()
           downstream.length should equal(1)
           val r2 = downstream.head
           r2.field[String]("Name") should equal("R2D2")
 
-          val request = buildWSRequest(user="Bob",
-            actionType="Retrieve",
-            scope="DataSet",
-            entityType="Element",
-            filter="Downstream",
-            options=Map(
+          val request = buildWSRequest(activeUserId,
+            "Retrieve",
+            "DataSet",
+            "Element",
+            "Downstream",
+            Map(
               "elementId"  -> lukeId
             )
           )
@@ -954,17 +959,20 @@ class WebServerDataSetSpec extends FunSpecLike
         }
 
         it ("should FindUpStreamElementsByElementId"){
-          val upstream = engine.onDataSet(starwarsDsId).onElement(lukeId).findUpStreamElements()
+          val upstream = engine.forUser(activeUserId)
+            .onDataSet(starwarsDsId)
+            .onElement(lukeId)
+            .findUpStreamElements()
           upstream.length should equal(1)
           val leia = upstream.head
           leia.field[String]("Name") should equal("Princess Leia Organa")
 
-          val request = buildWSRequest(user="Bob",
-            actionType="Retrieve",
-            scope="DataSet",
-            entityType="Element",
-            filter="Upstream",
-            options=Map(
+          val request = buildWSRequest(activeUserId,
+            "Retrieve",
+            "DataSet",
+            "Element",
+            "Upstream",
+            Map(
               "elementId"  -> lukeId
             )
           )
@@ -985,15 +993,17 @@ class WebServerDataSetSpec extends FunSpecLike
         }
 
         it ("should RemoveInboundAssociations"){
-          engine.onDataSet(starwarsDsId).onElement(hanId)
+          engine.forUser(activeUserId)
+            .onDataSet(starwarsDsId)
+            .onElement(hanId)
             .findInboundAssociations().length should equal(1)
 
-          val request = buildWSRequest(user="Bob",
-            actionType="Delete",
-            scope="DataSet",
-            entityType="InboundAssociation",
-            filter="None",
-            options=Map(
+          val request = buildWSRequest(activeUserId,
+            "Delete",
+            "DataSet",
+            "InboundAssociation",
+            "None",
+            Map(
               "elementId"  -> hanId
             )
           )
@@ -1006,21 +1016,26 @@ class WebServerDataSetSpec extends FunSpecLike
             val payloadMap  = strToMap(envelopeMap("textMessage").asInstanceOf[String])
             payloadMap.contains("status") should equal(true)
             payloadMap("status").toString should equal("OK")
-            engine.onDataSet(starwarsDsId).onElement(hanId)
+            engine.forUser(activeUserId)
+              .onDataSet(starwarsDsId)
+              .onElement(hanId)
               .findInboundAssociations().length should equal(0)
           }
         }
 
         it ("should RemoveOutboundAssociations"){
-          engine.onDataSet(starwarsDsId).onElement(hanId)
-            .findOutboundAssociations().length should equal(1) //To Leia
+          engine.forUser(activeUserId)
+            .onDataSet(starwarsDsId)
+            .onElement(hanId)
+            .findOutboundAssociations()
+            .length should equal(1) //To Leia
 
-          val request = buildWSRequest(user="Bob",
-            actionType="Delete",
-            scope="DataSet",
-            entityType="OutboundAssociation",
-            filter="None",
-            options=Map(
+          val request = buildWSRequest(activeUserId,
+            "Delete",
+            "DataSet",
+            "OutboundAssociation",
+            "None",
+            Map(
               "elementId"  -> hanId
             )
           )
@@ -1033,11 +1048,13 @@ class WebServerDataSetSpec extends FunSpecLike
             val payloadMap  = strToMap(envelopeMap("textMessage").asInstanceOf[String])
             payloadMap.contains("status") should equal(true)
             payloadMap("status").toString should equal("OK")
-            engine.onDataSet(starwarsDsId).onElement(hanId)
-              .findOutboundAssociations().length should equal(0)
+            engine.forUser(activeUserId)
+              .onDataSet(starwarsDsId)
+              .onElement(hanId)
+              .findOutboundAssociations()
+              .length should equal(0)
           }
         }
-        */
       }
     }
   }
