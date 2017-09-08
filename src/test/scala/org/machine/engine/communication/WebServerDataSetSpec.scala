@@ -757,17 +757,21 @@ class WebServerDataSetSpec extends FunSpecLike
           }
         }
 
-  /*      it ("should EditAssociation"){
-          val associations = engine.onDataSet(starwarsDsId).onElement(hanId).findOutboundAssociations()
+        it ("should EditAssociation"){
+          val associations = engine.forUser(activeUserId)
+            .onDataSet(starwarsDsId)
+            .onElement(hanId)
+            .findOutboundAssociations()
+
           associations.length should equal(2)
           val friendsWith = associations.find({a => a.associationType == "friends_with"}).get
 
-          val request = buildWSRequest(user="Bob",
-            actionType="Update",
-            scope="DataSet",
-            entityType="Association",
-            filter="None",
-            options=Map(
+          val request = buildWSRequest(activeUserId,
+            "Update",
+            "DataSet",
+            "Association",
+            "None",
+            Map(
               "associationId"  -> friendsWith.id,
               "friendshipType" -> "meaningful",
               "duration"       -> "A long time."
@@ -782,14 +786,17 @@ class WebServerDataSetSpec extends FunSpecLike
             val payloadMap  = strToMap(envelopeMap("textMessage").asInstanceOf[String])
             payloadMap.contains("id") should equal(true)
             payloadMap("id") should equal(friendsWith.id)
-            val updatedAssoc = engine.onDataSet(starwarsDsId).findAssociation(friendsWith.id)
+
+            val updatedAssoc = engine.forUser(activeUserId)
+              .onDataSet(starwarsDsId)
+              .findAssociation(friendsWith.id)
             updatedAssoc.fields.size should equal(2)
             updatedAssoc.field[String]("friendshipType") should equal("meaningful")
             updatedAssoc.field[String]("duration") should equal("A long time.")
           }
         }
 
-        it ("should RemoveAssociationField"){
+    /*    it ("should RemoveAssociationField"){
           val associations = engine.onDataSet(starwarsDsId).onElement(hanId).findOutboundAssociations()
           associations.length should equal(2)
           val friendsWith = associations.find({a => a.associationType == "friends_with"}).get

@@ -31,7 +31,7 @@ class EditAssociation(database: GraphDatabaseService,
     cmdOptions: GraphCommandOptions):Unit = {
     logger.debug("EditAssociation: Editing association.")
     val prefix = "association"
-    val exclude = List("dsId", "associationId")
+    val exclude = List("dsId", "associationId", "activeUserId")
     val setClause = buildSetClause(prefix, cmdOptions.keys, exclude)
     val statement = """
     |match (x)-[association {associationId:{associationId}}]->(y)
