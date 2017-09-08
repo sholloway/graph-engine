@@ -653,8 +653,6 @@ class WebServerDataSetSpec extends FunSpecLike
           }
         }
 
-        //12 tests left... Then user space, system space and the Command unit tests. At that point,
-        // I should be able to go back to working on the Cockpit.
         it ("should DeleteElement"){
           val dataset = engine.forUser(activeUserId)
             .findDataSetByName("Un-natural Disasters")
@@ -688,14 +686,16 @@ class WebServerDataSetSpec extends FunSpecLike
           }
         }
 
-  /*      it ("should AssociateElements"){
+        //11 tests left... Then user space, system space and the Command unit tests. At that point,
+        // I should be able to go back to working on the Cockpit.
+        it ("should AssociateElements"){
           val associationType = "friends_with"
-          val request = buildWSRequest(user="Bob",
-            actionType="Create",
-            scope="DataSet",
-            entityType="Association",
-            filter="None",
-            options=Map("dsId"    -> starwarsDsId,
+          val request = buildWSRequest(activeUserId,
+            "Create",
+            "DataSet",
+            "Association",
+            "None",
+            Map("dsId"    -> starwarsDsId,
               "startingElementId" -> hanId,
               "endingElementId"   -> chewieId,
               "associationName"   -> associationType,
@@ -712,7 +712,7 @@ class WebServerDataSetSpec extends FunSpecLike
 
             payloadMap.contains("id") should equal(true)
             val assocId           = payloadMap("id").toString
-            val friendshipEternal = engine.onDataSet(starwarsDsId).findAssociation(assocId)
+            val friendshipEternal = engine.forUser(activeUserId).onDataSet(starwarsDsId).findAssociation(assocId)
 
             friendshipEternal.id                should equal(assocId)
             friendshipEternal.associationType   should equal(associationType)
@@ -722,7 +722,7 @@ class WebServerDataSetSpec extends FunSpecLike
           }
         }
 
-        it ("should FindAssociationById"){
+  /*      it ("should FindAssociationById"){
           val associations = engine.onDataSet(starwarsDsId).onElement(hanId).findOutboundAssociations()
           associations.length should equal(2)
           val friendsWith = associations.find({a => a.associationType == "friends_with"}).get
