@@ -475,8 +475,6 @@ class WebServerDataSetSpec extends FunSpecLike
             element.id should equal(eId)
             element.elementType should equal(edName)
             element.elementDescription should equal(edDesc)
-            println(element)
-            println(element.fields)
             element.fields.size should equal(3)
             element.fields("Singer") should equal("Axl Rose")
             element.fields("LeadGuitarist") should equal("Slash")
@@ -548,9 +546,6 @@ class WebServerDataSetSpec extends FunSpecLike
           }
         }
 
-        //15 tests left... Then user space, system space and the Command unit tests. At that point,
-        // I should be able to go back to working on the Cockpit.
-
         it ("should EditElement"){
           val dsId = engine.forUser(activeUserId)
             .createDataSet("Un-natural Disasters", "Epic Events of Calamity")
@@ -591,18 +586,23 @@ class WebServerDataSetSpec extends FunSpecLike
           }
         }
 
-  /*      it ("should AddElementField"){
-          val dataset = engine.findDataSetByName("Un-natural Disasters")
-          val elements = engine.onDataSet(dataset.id).elements()
+        //14 tests left... Then user space, system space and the Command unit tests. At that point,
+        // I should be able to go back to working on the Cockpit.
+        it ("should AddElementField"){
+          val dataset = engine.forUser(activeUserId)
+            .findDataSetByName("Un-natural Disasters")
+          val elements = engine.forUser(activeUserId)
+            .onDataSet(dataset.id)
+            .elements()
           val zombieAttack = elements.find(e => e.field[String]("Name") == "Zombie Attack!").get
           zombieAttack.fields.size should equal(1)
 
-          val request = buildWSRequest(user="Bob",
-            actionType="Update",
-            scope="DataSet",
-            entityType="Element",
-            filter="None",
-            options=Map("dsId" -> dataset.id,
+          val request = buildWSRequest(activeUserId,
+            "Update",
+            "DataSet",
+            "Element",
+            "None",
+            Map("dsId" -> dataset.id,
               "elementId" -> zombieAttack.id,
               "DeadlyRanking" -> "4")
           )
@@ -615,12 +615,14 @@ class WebServerDataSetSpec extends FunSpecLike
             val payloadMap = strToMap(envelopeMap("textMessage").asInstanceOf[String])
             payloadMap.contains("id") should equal(true)
             payloadMap("id") should equal(zombieAttack.id)
-            val updatedElement = engine.onDataSet(dataset.id).findElement(zombieAttack.id)
+            val updatedElement = engine.forUser(activeUserId)
+              .onDataSet(dataset.id)
+              .findElement(zombieAttack.id)
             updatedElement.fields.size should equal(2)
           }
         }
 
-        it ("should RemoveElementField"){
+  /*      it ("should RemoveElementField"){
           val dataset = engine.findDataSetByName("Un-natural Disasters")
           val elements = engine.onDataSet(dataset.id).elements()
           val zombieAttack = elements.find(e => e.field[String]("Name") == "Zombie Attack!").get
