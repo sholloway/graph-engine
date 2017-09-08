@@ -6,13 +6,12 @@ import org.neo4j.graphdb._
 import scala.collection.JavaConversions._
 import scala.collection.mutable.{ArrayBuffer, ListBuffer, Map}
 
-
 import org.machine.engine.exceptions._
 import org.machine.engine.graph._
 import org.machine.engine.graph.commands._
-import org.machine.engine.graph.nodes._
-import org.machine.engine.graph.labels._
 import org.machine.engine.graph.internal._
+import org.machine.engine.graph.labels._
+import org.machine.engine.graph.nodes._
 
 /*
 FIXME: Element Definitions that contain spaces cannot be uses.
@@ -85,7 +84,7 @@ class CreateElement(database: GraphDatabaseService,
     logger.debug("CreateElement: Creating data set.")
     cmdOptions.addOption("element_description", elementDef.description)
     cmdOptions.addOption("creation_time", time)
-    val exclude = List("dsId", "dsName", "edId", "elementId")
+    val exclude = List("dsId", "dsName", "edId", "elementId", "activeUserId")
 
     transaction(graphDB, (tx: GraphDatabaseService) => {
       val node = tx.createNode(DynamicLabel.label(elementDef.name))
@@ -105,7 +104,7 @@ class CreateElement(database: GraphDatabaseService,
     logger.debug("CreateElement: Associating the new element to the dataset.")
     val associateToDataSet = """
       |match (e:label) where e.mid = {mid}
-      |match (ds:data_set) where ds.mid = {dsId}
+      |match (u:user)-[:owns]->(ds:data_set) where u.mid={activeUserId} and ds.mid = {dsId}
       |create (ds)-[:contains]->(e)
       """.stripMargin.replaceAll("label", elementDef.name)
       run(graphDB,

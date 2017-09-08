@@ -237,9 +237,6 @@ class WebServerDataSetSpec extends FunSpecLike
           }
         }
 
-        // import org.machine.engine.viz.GraphVizHelper
-        // GraphVizHelper.visualize(engine.database)
-        //Update this test to use the active user...
         it ("should EditElementDefintion By DS Name"){
           val dsName = "Murphy"
           val dsId = engine.forUser(activeUserId).createDataSet(dsName, "A data set.")
@@ -435,23 +432,26 @@ class WebServerDataSetSpec extends FunSpecLike
           }
         }
 
-  /*      it ("should CreateElement"){
-          val dsId = engine.createDataSet("Bands", "Interesting Music Groups")
+       it ("should CreateElement"){
+          val dsId = engine.forUser(activeUserId)
+            .createDataSet("Bands", "Interesting Music Groups")
+
           val edName = "RockBand"
           val edDesc = "A band that likes to roll..."
-          val edId = engine.onDataSet(dsId)
+          val edId = engine.forUser(activeUserId)
+            .onDataSet(dsId)
             .defineElement(edName, edDesc)
             .withProperty("Name", "String", "The name of the band.")
             .withProperty("Singer", "String", "A person responsible for singing.")
             .withProperty("LeadGuitarist", "String", "The primary guitarists.")
           .end
 
-          val request = buildWSRequest(user="Bob",
-            actionType="Create",
-            scope="DataSet",
-            entityType="Element",
-            filter="None",
-            options=Map("dsId" -> dsId,
+          val request = buildWSRequest(activeUserId,
+            "Create",
+            "DataSet",
+            "Element",
+            "None",
+            Map("dsId" -> dsId,
               "edId" -> edId,
               "Singer" -> "Axl Rose",
               "LeadGuitarist" -> "Slash",
@@ -468,10 +468,18 @@ class WebServerDataSetSpec extends FunSpecLike
 
             payloadMap.contains("id") should equal(true)
             val eId = payloadMap("id").asInstanceOf[String]
-            val element = engine.onDataSet(dsId).findElement(eId)
+            val element = engine.forUser(activeUserId)
+              .onDataSet(dsId)
+              .findElement(eId)
+
+            import org.machine.engine.viz.GraphVizHelper
+            GraphVizHelper.visualize(engine.database)
+            
             element.id should equal(eId)
             element.elementType should equal(edName)
             element.elementDescription should equal(edDesc)
+            println(element)
+            println(element.fields)
             element.fields.size should equal(3)
             element.fields("Singer") should equal("Axl Rose")
             element.fields("LeadGuitarist") should equal("Slash")
@@ -479,7 +487,7 @@ class WebServerDataSetSpec extends FunSpecLike
           }
         }
 
-        it ("should FindElementById"){
+/*         it ("should FindElementById"){
           val dataset = engine.findDataSetByName("Bands")
           val bands = engine.onDataSet(dataset.id).elements()
           val gnrOpt = bands.find{ prop =>
