@@ -6,13 +6,13 @@ import org.neo4j.graphdb._
 import scala.collection.JavaConversions._
 import scala.collection.mutable.{ArrayBuffer, Map}
 
-
 import org.machine.engine.exceptions._
 import org.machine.engine.graph._
 import org.machine.engine.graph.commands._
-import org.machine.engine.graph.nodes._
-import org.machine.engine.graph.labels._
+import org.machine.engine.graph.commands.workflows._
 import org.machine.engine.graph.internal._
+import org.machine.engine.graph.labels._
+import org.machine.engine.graph.nodes._
 
 class DeleteElementDefintion(database: GraphDatabaseService,
   cmdScope: CommandScope,
@@ -61,16 +61,29 @@ class DeleteElementDefintion(database: GraphDatabaseService,
   protected def buildScope(cmdScope: CommandScope, options: GraphCommandOptions):String = {
     val scope = cmdScope match{
       case CommandScopes.SystemSpaceScope => CommandScopes.SystemSpaceScope.scope
-      case CommandScopes.UserSpaceScope => CommandScopes.UserSpaceScope.scope
+      case CommandScopes.UserSpaceScope => {
+        val filter:String = if (options.contains(UserId)){
+          s"${CommandScopes.UserSpaceScope.scope} {mid:{${UserId}}}"
+        }else{
+          throw new InternalErrorException(UserSpaceFilterRequiredErrorMsg)
+        }
+        filter
+      }
       case CommandScopes.DataSetScope => {
-        var str:String = null
-        if(options.contains("dsId")){
-          str = "%s {mid:{dsId}}".format(CommandScopes.DataSetScope.scope)
+        val str:String = if(options.contains("dsId")){
+          s"${CommandScopes.DataSetScope.scope} {mid:{${DataSetId}}}"
         }else if(options.contains("dsName")){
-          str = "%s {name:{dsName}}".format(CommandScopes.DataSetScope.scope)
+          s"${CommandScopes.DataSetScope.scope} {name:{${DataSetName}}}"
+        }else{
+          val msg = """
+          |DeleteElementDefintion requires that dsId or dsName is provided on
+          |cmdOptions when the scope is of type CommandScopes.DataSet.
+          """.stripMargin
+          throw new InternalErrorException(msg)
         }
         str
       }
+      case _ => throw new InternalErrorException(s"No Matching Scope Found: ${cmdScope}")
     }
     return scope
   }

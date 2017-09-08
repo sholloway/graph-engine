@@ -343,19 +343,20 @@ class WebServerDataSetSpec extends FunSpecLike
           }
         }
 
-/*         it ("should DeleteElementDefintion"){
-          val dataset = engine.findDataSetByName("Aliens")
-          val edId = engine.onDataSet(dataset.id)
+         it ("should DeleteElementDefintion"){
+          val dataset = engine.forUser(activeUserId).findDataSetByName("Aliens")
+          val edId = engine.forUser(activeUserId)
+            .onDataSet(dataset.id)
             .defineElement("Preditor", "Bit of a bully.")
             .withProperty("Weakness", "String", "Skin Condition")
           .end
 
-          val request = buildWSRequest(user="Bob",
-            actionType="Delete",
-            scope="DataSet",
-            entityType="ElementDefinition",
-            filter="None",
-            options=Map("dsId" -> dataset.id, "mid" -> edId)
+          val request = buildWSRequest(activeUserId,
+            "Delete",
+            "DataSet",
+            "ElementDefinition",
+            "None",
+            Map("dsId" -> dataset.id, "mid" -> edId)
           )
 
           val closed:Future[Seq[Message]] = invokeWS(request, enginePath, PROTOCOL, jwtSessionToken)
@@ -369,13 +370,14 @@ class WebServerDataSetSpec extends FunSpecLike
             val expectedIdMsg = "No element definition with ID: %s could be found in dataset: %s".format(edId, dataset.id)
             the [InternalErrorException] thrownBy{
               engine
+                .forUser(activeUserId)
                 .onDataSet(dataset.id)
                 .findElementDefinitionById(edId)
             }should have message expectedIdMsg
           }
         }
 
-        it ("should FindElementDefinitionById"){
+  /*      it ("should FindElementDefinitionById"){
           val dataset = engine.findDataSetByName("Aliens")
           val xenomorph = engine.onDataSet(dataset.id).findElementDefinitionByName("Xenomorph")
 
