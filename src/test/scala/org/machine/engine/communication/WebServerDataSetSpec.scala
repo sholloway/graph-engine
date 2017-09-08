@@ -831,17 +831,20 @@ class WebServerDataSetSpec extends FunSpecLike
           }
         }
 
-    /*    it ("should DeleteAssociation"){
-          val associations = engine.onDataSet(starwarsDsId).onElement(hanId).findOutboundAssociations()
+        it ("should DeleteAssociation"){
+          val associations = engine.forUser(activeUserId)
+            .onDataSet(starwarsDsId)
+            .onElement(hanId)
+            .findOutboundAssociations()
           associations.length should equal(2)
           val friendsWith = associations.find({a => a.associationType == "friends_with"}).get
 
-          val request = buildWSRequest(user="Bob",
-            actionType="Delete",
-            scope="DataSet",
-            entityType="Association",
-            filter="None",
-            options=Map(
+          val request = buildWSRequest(activeUserId,
+            "Delete",
+            "DataSet",
+            "Association",
+            "None",
+            Map(
               "associationId"  -> friendsWith.id
             )
           )
@@ -862,7 +865,7 @@ class WebServerDataSetSpec extends FunSpecLike
           }
         }
 
-        it ("should FindInboundAssociationsByElementId"){
+    /*    it ("should FindInboundAssociationsByElementId"){
           val associations = engine.onDataSet(starwarsDsId).onElement(hanId).findInboundAssociations()
           associations.length should equal(1) //From Leia
 
