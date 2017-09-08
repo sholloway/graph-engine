@@ -377,16 +377,18 @@ class WebServerDataSetSpec extends FunSpecLike
           }
         }
 
-  /*      it ("should FindElementDefinitionById"){
-          val dataset = engine.findDataSetByName("Aliens")
-          val xenomorph = engine.onDataSet(dataset.id).findElementDefinitionByName("Xenomorph")
+        it ("should FindElementDefinitionById"){
+          val dataset = engine.forUser(activeUserId).findDataSetByName("Aliens")
+          val xenomorph = engine.forUser(activeUserId)
+            .onDataSet(dataset.id)
+            .findElementDefinitionByName("Xenomorph")
 
-          val request = buildWSRequest(user="Bob",
-            actionType="Retrieve",
-            scope="DataSet",
-            entityType="ElementDefinition",
-            filter="ID",
-            options=Map("dsId" -> dataset.id, "mid" -> xenomorph.id)
+          val request = buildWSRequest(activeUserId,
+            "Retrieve",
+            "DataSet",
+            "ElementDefinition",
+            "ID",
+            Map("dsId" -> dataset.id, "mid" -> xenomorph.id)
           )
 
           val closed:Future[Seq[Message]] = invokeWS(request, enginePath, PROTOCOL, jwtSessionToken)
@@ -404,7 +406,7 @@ class WebServerDataSetSpec extends FunSpecLike
           }
         }
 
-        it ("should FindElementDefinitionByName"){
+/*        it ("should FindElementDefinitionByName"){
           val dataset = engine.findDataSetByName("Aliens")
           val xenomorph = engine.onDataSet(dataset.id).findElementDefinitionByName("Xenomorph")
 
