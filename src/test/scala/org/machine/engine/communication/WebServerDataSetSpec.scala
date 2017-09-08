@@ -796,18 +796,20 @@ class WebServerDataSetSpec extends FunSpecLike
           }
         }
 
-    /*    it ("should RemoveAssociationField"){
-          val associations = engine.onDataSet(starwarsDsId).onElement(hanId).findOutboundAssociations()
+        it ("should RemoveAssociationField"){
+          val associations = engine.forUser(activeUserId)
+            .onDataSet(starwarsDsId)
+            .onElement(hanId).findOutboundAssociations()
           associations.length should equal(2)
           val friendsWith = associations.find({a => a.associationType == "friends_with"}).get
           friendsWith.fields.size should equal(2)
 
-          val request = buildWSRequest(user="Bob",
-            actionType="Delete",
-            scope="DataSet",
-            entityType="AssociationField",
-            filter="None",
-            options=Map(
+          val request = buildWSRequest(activeUserId,
+            "Delete",
+            "DataSet",
+            "AssociationField",
+            "None",
+            Map(
               "associationId"  -> friendsWith.id,
               "duration"       -> "duration"
             )
@@ -821,13 +823,15 @@ class WebServerDataSetSpec extends FunSpecLike
             val payloadMap  = strToMap(envelopeMap("textMessage").asInstanceOf[String])
             payloadMap.contains("id") should equal(true)
             payloadMap("id") should equal(friendsWith.id)
-            val updatedAssoc = engine.onDataSet(starwarsDsId).findAssociation(friendsWith.id)
+            val updatedAssoc = engine.forUser(activeUserId)
+              .onDataSet(starwarsDsId)
+              .findAssociation(friendsWith.id)
             updatedAssoc.fields.size should equal(1)
             updatedAssoc.field[String]("friendshipType") should equal("meaningful")
           }
         }
 
-        it ("should DeleteAssociation"){
+    /*    it ("should DeleteAssociation"){
           val associations = engine.onDataSet(starwarsDsId).onElement(hanId).findOutboundAssociations()
           associations.length should equal(2)
           val friendsWith = associations.find({a => a.associationType == "friends_with"}).get
