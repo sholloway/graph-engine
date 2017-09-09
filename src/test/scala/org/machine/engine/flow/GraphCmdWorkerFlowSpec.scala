@@ -22,19 +22,32 @@ import org.machine.engine.Engine
 import org.machine.engine.TestUtils
 import org.machine.engine.flow.requests._
 
-class GraphCmdWorkerFlowSpec extends TestKit(ActorSystem("GraphCmdWorkerFlowSpec")) with ImplicitSender
-  with FunSpecLike with Matchers with BeforeAndAfterAll{
+class GraphCmdWorkerFlowSpec extends TestKit(ActorSystem("GraphCmdWorkerFlowSpec"))
+  with ImplicitSender
+  with FunSpecLike
+  with Matchers
+  with BeforeAndAfterAll
+  with BeforeAndAfterEach{
   import TestUtils._
   private val config = ConfigFactory.load()
-  var engine:Engine = null
-  var notesDataSetId:String = null
-  var noteElementDefininitionId:String = null
-
+  private var engine:Engine = null
+  private var notesDataSetId:String = null
+  private var noteElementDefininitionId:String = null
+  private var activeUserId:String = null
 
   override def beforeAll(){
     engine = Engine.getInstance
     perge
-    notesDataSetId = engine.createDataSet("notes", "My collection of notes.")
+    activeUserId = Engine.getInstance
+      .createUser
+      .withFirstName("Bob")
+      .withLastName("Grey")
+      .withEmailAddress("onebadclown@derry-maine.com")
+      .withUserName("pennywise")
+      .withUserPassword("You'll float too...")
+    .end
+    notesDataSetId = engine.forUser(activeUserId)
+      .createDataSet("notes", "My collection of notes.")
   }
 
   override def afterAll(){
@@ -47,9 +60,11 @@ class GraphCmdWorkerFlowSpec extends TestKit(ActorSystem("GraphCmdWorkerFlowSpec
       implicit val materializer = ActorMaterializer()
       implicit val ec: ExecutionContext = scala.concurrent.ExecutionContext.Implicits.global
 
-      val request = RequestMessage(userId="123...",
-        actionType="Retrieve", scope="UserSpace",
-        entityType="DataSet", filter="All")
+      val request = RequestMessage(activeUserId,
+        "Retrieve",
+        "UserSpace",
+        "DataSet",
+        "All")
 
       val requestStr = RequestMessage.toJSON(request)
       val capsule = EngineCapsule(ClientMessage(requestStr), "123")
@@ -64,7 +79,7 @@ class GraphCmdWorkerFlowSpec extends TestKit(ActorSystem("GraphCmdWorkerFlowSpec
       result.onSuccess{
         case r => {
           Console.println("Flow Ran Succesfully!")
-          Console.println(r)
+          r.length should be(1)
         }
       }
 
