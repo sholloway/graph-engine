@@ -20,17 +20,29 @@ import org.machine.engine.exceptions._
 import org.machine.engine.graph.nodes._
 
 
-class DataSetSpec extends FunSpec with Matchers with EasyMockSugar with BeforeAndAfterAll{
+class DataSetSpec extends FunSpec
+  with Matchers
+  with EasyMockSugar
+  with BeforeAndAfterEach{
   import Neo4JHelper._
   import TestUtils._
-  var engine:Engine = null
+  private var engine:Engine = null
+  private var activeUserId:String = null
 
-  override def beforeAll(){
+  override def beforeEach(){
     engine = Engine.getInstance
     perge
+    activeUserId = Engine.getInstance
+      .createUser
+      .withFirstName("Bob")
+      .withLastName("Grey")
+      .withEmailAddress("onebadclown@derry-maine.com")
+      .withUserName("pennywise")
+      .withUserPassword("You'll float too...")
+    .end
   }
 
-  override def afterAll(){
+  override def afterEach(){
     perge
   }
 
@@ -39,8 +51,8 @@ class DataSetSpec extends FunSpec with Matchers with EasyMockSugar with BeforeAn
       it("should create a DataSet"){
         val datasetName = "Capability Definitions"
         val datasetDescription = "A collection of business capabilities."
-        engine.createDataSet(datasetName, datasetDescription)
-        val dsOption = engine.datasets().find(ds => {ds.name == datasetName})
+        engine.forUser(activeUserId).createDataSet(datasetName, datasetDescription)
+        val dsOption = engine.forUser(activeUserId).datasets().find(ds => {ds.name == datasetName})
         dsOption.get should have(
           'name (datasetName),
           'description (datasetDescription)
@@ -50,8 +62,8 @@ class DataSetSpec extends FunSpec with Matchers with EasyMockSugar with BeforeAn
       it("should retrieve a DataSet by name"){
         val datasetName = "Capability Definitions"
         val datasetDescription = "A collection of business capabilities."
-        engine.createDataSet(datasetName, datasetDescription)
-        val ds = engine.findDataSetByName(datasetName)
+        engine.forUser(activeUserId).createDataSet(datasetName, datasetDescription)
+        val ds = engine.forUser(activeUserId).findDataSetByName(datasetName)
         ds should have(
           'name (datasetName),
           'description (datasetDescription)
@@ -61,18 +73,18 @@ class DataSetSpec extends FunSpec with Matchers with EasyMockSugar with BeforeAn
       it("should update both name & defintion"){
         val datasetName = "Capability Definitions"
         val datasetDescription = "A collection of business capabilities."
-        engine.createDataSet(datasetName, datasetDescription)
-        val ds = engine.findDataSetByName(datasetName)
+        engine.forUser(activeUserId).createDataSet(datasetName, datasetDescription)
+        val ds = engine.forUser(activeUserId).findDataSetByName(datasetName)
 
         val newName = "Capability Definitions: V1"
         val newDescription = "Version 1 of business capabilities definitions."
-        engine
+        engine.forUser(activeUserId)
           .onDataSet(ds.id)
           .setName(newName)
           .setDescription(newDescription)
         .end
 
-        val modifiedDS = engine.findDataSetById(ds.id)
+        val modifiedDS = engine.forUser(activeUserId).findDataSetById(ds.id)
 
         modifiedDS should have(
           'id (ds.id),
@@ -87,19 +99,19 @@ class DataSetSpec extends FunSpec with Matchers with EasyMockSugar with BeforeAn
       it("should delete a DataSet")(pending)
 
       it("should list all available DataSets"){
-        engine
+        engine.forUser(activeUserId)
           .createDataSet("A", "Empty Data Set")
 
-        engine
+        engine.forUser(activeUserId)
           .createDataSet("B", "Empty Data Set")
 
-        engine
+        engine.forUser(activeUserId)
           .createDataSet("C", "Empty Data Set")
 
-        engine
+        engine.forUser(activeUserId)
           .createDataSet("D", "Empty Data Set")
 
-        engine.datasets().length should be >= 4
+        engine.forUser(activeUserId).datasets().length should be >= 4
       }
     }
   }
