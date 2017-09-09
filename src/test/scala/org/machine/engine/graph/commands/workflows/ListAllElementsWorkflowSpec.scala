@@ -21,18 +21,28 @@ import org.machine.engine.graph.nodes.{Element, PropertyDefinition, PropertyDefi
 import org.machine.engine.viz.GraphVizHelper
 
 class ListAllElementsWorkflowSpec extends FunSpecLike
-  with Matchers  with BeforeAndAfterAll{
+  with Matchers
+  with BeforeAndAfterAll{
   import ListAllElementsWorkflow._
   import TestUtils._
   import Neo4JHelper._
 
   private val config = ConfigFactory.load()
-  var engine:Engine = null
-  val options = GraphCommandOptions()
+  private var engine:Engine = null
+  private val options = GraphCommandOptions()
+  private var activeUserId:String = null
 
   override def beforeAll(){
     engine = Engine.getInstance
     perge
+    activeUserId = Engine.getInstance
+      .createUser
+      .withFirstName("Bob")
+      .withLastName("Grey")
+      .withEmailAddress("onebadclown@derry-maine.com")
+      .withUserName("pennywise")
+      .withUserPassword("You'll float too...")
+    .end
   }
 
   override def afterAll(){
@@ -94,6 +104,7 @@ class ListAllElementsWorkflowSpec extends FunSpecLike
       it ("should generate a query with dataset ID"){
         options.reset
         options.addOption(DataSetId, "123")
+        options.addOption("activeUserId", activeUserId)
         val capsule = (null, CommandScopes.DataSetScope, options, mutable.Map.empty[String, Any], Left(WorkflowStatuses.OK))
         val processed = generateQuery(capsule)
         processed._5 should equal(Left(WorkflowStatuses.OK))
@@ -103,6 +114,7 @@ class ListAllElementsWorkflowSpec extends FunSpecLike
       it ("should generate a query with dataset NAME"){
         options.reset
         options.addOption(DataSetName, "Blah")
+        options.addOption("activeUserId", activeUserId)
         val capsule = (null, CommandScopes.DataSetScope, options, mutable.Map.empty[String, Any], Left(WorkflowStatuses.OK))
         val processed = generateQuery(capsule)
         processed._5 should equal(Left(WorkflowStatuses.OK))
@@ -112,6 +124,7 @@ class ListAllElementsWorkflowSpec extends FunSpecLike
       it ("should return an error if no dataset identifiers are provided in the options"){
         {
           options.reset
+          options.addOption("activeUserId", activeUserId)
           val capsule = (null, CommandScopes.DataSetScope, options, mutable.Map.empty[String, Any], Left(WorkflowStatuses.OK))
           val processed = generateQuery(capsule)
           processed._5 should equal(Right(DataSetFilterRequiredErrorMsg))
@@ -142,26 +155,31 @@ class ListAllElementsWorkflowSpec extends FunSpecLike
       }
 
       it ("should find all elements in a dataset"){
-        val dsId = engine.createDataSet("Moody Play List", "Songs for when I'm feeling dark.")
-        val edId = engine.onDataSet(dsId)
+        val dsId = engine.forUser(activeUserId)
+          .createDataSet("Moody Play List", "Songs for when I'm feeling dark.")
+        val edId = engine.forUser(activeUserId)
+          .onDataSet(dsId)
           .defineElement("Song", "Kicking Beats")
           .withProperty("Title", "String", "Name of the song.")
           .withProperty("Artist", "String", "Name of the musician or band.")
         .end
 
-        val trackAId = engine.onDataSet(dsId)
+        val trackAId = engine.forUser(activeUserId)
+          .onDataSet(dsId)
           .provision(edId)
           .withField("Title", "Far From Any Road")
           .withField("Artist", "The Handsome Family")
         .end
 
-        val trackBId = engine.onDataSet(dsId)
+        val trackBId = engine.forUser(activeUserId)
+          .onDataSet(dsId)
           .provision(edId)
           .withField("Title", "Red Right Hand")
           .withField("Artist", "Nick Cave")
         .end
 
-        val trackCId = engine.onDataSet(dsId)
+        val trackCId = engine.forUser(activeUserId)
+          .onDataSet(dsId)
           .provision(edId)
           .withField("Title", "Doubting Thomas")
           .withField("Artist", "Nickel Creek")
@@ -169,6 +187,7 @@ class ListAllElementsWorkflowSpec extends FunSpecLike
 
         options.reset
         options.addOption(DataSetId, dsId)
+        options.addOption("activeUserId", activeUserId)
         val capsule = (engine.database,
           CommandScopes.DataSetScope,
           options,
