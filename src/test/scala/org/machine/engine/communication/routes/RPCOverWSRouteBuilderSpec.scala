@@ -16,6 +16,9 @@ import org.machine.engine.TestUtils
 import org.machine.engine.communication.{WSHelper, LoginHelper, WebServer}
 import org.scalatest._
 
+import net.liftweb.json._
+import net.liftweb.json.DefaultFormats
+
 class RPCOverWSRouteBuilderSpec extends FunSpecLike
   with Matchers
   with BeforeAndAfterAll
@@ -23,25 +26,27 @@ class RPCOverWSRouteBuilderSpec extends FunSpecLike
   import TestUtils._
   import LoginHelper._
 
-  val config = ConfigFactory.load()
-  val username = config.getString("engine.communication.webserver.user")
-  val pwd = config.getString("engine.communication.webserver.password")
-  val SESSION_HEADER:String = config.getString("engine.communication.webserver.session.header")
-  val validCredentials = BasicHttpCredentials(username, pwd)
-  val invalidCredentials = BasicHttpCredentials("bad user", "bad password")
-  val wsClient = WSProbe()
-  val routes = RPCOverWSRouteBuilder.buildRoutes()
+  private val config = ConfigFactory.load()
+  private val username = config.getString("engine.communication.webserver.user")
+  private val pwd = config.getString("engine.communication.webserver.password")
+  private val SESSION_HEADER:String = config.getString("engine.communication.webserver.session.header")
+  private val validCredentials = BasicHttpCredentials(username, pwd)
+  private val invalidCredentials = BasicHttpCredentials("bad user", "bad password")
+  private val wsClient = WSProbe()
+  private val routes = RPCOverWSRouteBuilder.buildRoutes()
 
-  var engine:Engine = null
-  val server = new WebServer()
-  var jwtToken:String = null
-  val serviceCreds = serviceCredentials()
+  private var engine:Engine = null
+  private val server = new WebServer()
+  private var activeUserId:String = null
+  private var jwtToken:String = null
+  private val serviceCreds = serviceCredentials()
 
   override def beforeAll(){
     engine = Engine.getInstance
     perge
     server.start()
-    createUser(serviceCreds)
+    val newUserResponse = createUser(serviceCreds)
+    activeUserId = getUserId(newUserResponse._2)
     jwtToken = login(serviceCreds)
   }
 
@@ -91,7 +96,7 @@ class RPCOverWSRouteBuilderSpec extends FunSpecLike
 
   it ("should accept valid credentials"){
     WS("/ws", wsClient.flow, Seq("engine.json.v1")) ~>
-      addCredentials(validCredentials) ~> routes ~> check {
+      addCredentials(validCredentials) ~> addHeader("X-Session", jwtToken) ~> routes ~> check {
         isWebSocketUpgrade shouldEqual true
         val message = "Hello World"
         val requestOpts = Map("message"->message)
@@ -108,5 +113,15 @@ class RPCOverWSRouteBuilderSpec extends FunSpecLike
           wsClient.sendCompletion()
           // wsClient.expectCompletion()
       }
+  }
+
+  def getUserId(newUserResponse: String):String = {
+    val responseMap = strToMap(newUserResponse)
+    return responseMap.get("userId").get.toString()
+  }
+
+  def strToMap(str: String):Map[String, Any] = {
+    val payloadDom = parse(str)
+    return payloadDom.values.asInstanceOf[Map[String, Any]]
   }
 }
