@@ -19,18 +19,31 @@ import org.machine.engine.graph._
 import org.machine.engine.exceptions._
 import org.machine.engine.graph.nodes._
 
-class DataSetElementDefinitionSpec extends FunSpec with Matchers with EasyMockSugar with BeforeAndAfterAll{
+class DataSetElementDefinitionSpec extends FunSpec
+  with Matchers
+  with EasyMockSugar
+  with BeforeAndAfterEach{
   import Neo4JHelper._
   import TestUtils._
-  var engine:Engine = null
+  private var engine:Engine = null
+  private var activeUserId:String = null
 
-  override def beforeAll(){
+  override def beforeEach(){
     engine = Engine.getInstance
     perge
+    activeUserId = Engine.getInstance
+      .createUser
+      .withFirstName("Bob")
+      .withLastName("Grey")
+      .withEmailAddress("onebadclown@derry-maine.com")
+      .withUserName("pennywise")
+      .withUserPassword("You'll float too...")
+    .end
   }
 
-  override def afterAll(){
+  override def afterEach(){
     perge
+    engine.reset()
   }
 
   describe("Machine Engine"){
@@ -45,10 +58,10 @@ class DataSetElementDefinitionSpec extends FunSpec with Matchers with EasyMockSu
           expertise an organization needs in order to perform core functions.
           """
 
-          engine
+          engine.forUser(activeUserId)
             .createDataSet(datasetName, "A collection of business capabilities.")
 
-          engine
+          engine.forUser(activeUserId)
             .onDataSetByName(datasetName)
             .defineElement(bizCapName, bizCapDef)
               .withProperty("name", "String", "The name of the business capability.")
@@ -56,7 +69,7 @@ class DataSetElementDefinitionSpec extends FunSpec with Matchers with EasyMockSu
             .end
 
           val bizCap =
-            engine
+            engine.forUser(activeUserId)
               .onDataSetByName(datasetName)
               .findElementDefinitionByName(bizCapName)
 
@@ -70,19 +83,30 @@ class DataSetElementDefinitionSpec extends FunSpec with Matchers with EasyMockSu
 
         it("should retrieve an ElementDefinition by ID"){
           val datasetName = "Capability Definitions"
+
           val bizCapName = "Business Capability"
           val bizCapDef = """
           The expression or the articulation of the capacity, materials and
           expertise an organization needs in order to perform core functions.
           """
 
+          engine.forUser(activeUserId)
+            .createDataSet(datasetName, "A collection of business capabilities.")
+
+          engine.forUser(activeUserId)
+            .onDataSetByName(datasetName)
+            .defineElement(bizCapName, bizCapDef)
+              .withProperty("name", "String", "The name of the business capability.")
+              .withProperty("description", "String", "A short paragraph describing the business capability.")
+            .end
+
           val bizCapByName =
-            engine
+            engine.forUser(activeUserId)
               .onDataSetByName(datasetName)
               .findElementDefinitionByName(bizCapName)
 
           val bizCapById =
-            engine
+            engine.forUser(activeUserId)
               .onDataSetByName(datasetName)
               .findElementDefinitionById(bizCapByName.id)
 
@@ -96,17 +120,17 @@ class DataSetElementDefinitionSpec extends FunSpec with Matchers with EasyMockSu
 
         it("should update both name & defintion"){
           val datasetName = "Architecture Components"
-          engine
+          engine.forUser(activeUserId)
             .createDataSet(datasetName, "A collection of system architecture components.")
 
-          engine
+          engine.forUser(activeUserId)
             .onDataSetByName(datasetName)
             .defineElement("System", "A thing about a thing...")
             .withProperty("Name", "String", "The name of the system.")
           .end
 
           val system =
-            engine
+            engine.forUser(activeUserId)
               .onDataSetByName(datasetName)
               .findElementDefinitionByName("System")
 
@@ -116,7 +140,7 @@ class DataSetElementDefinitionSpec extends FunSpec with Matchers with EasyMockSu
           | forming an integrated whole.
           """.stripMargin
 
-          engine
+          engine.forUser(activeUserId)
             .onDataSetByName(datasetName)
             .onElementDefinition(system.id)
             .setName(updatedName)
@@ -124,7 +148,7 @@ class DataSetElementDefinitionSpec extends FunSpec with Matchers with EasyMockSu
           .end
 
           val updatedSystem =
-            engine
+            engine.forUser(activeUserId)
               .onDataSetByName(datasetName)
               .findElementDefinitionById(system.id)
 
@@ -134,17 +158,17 @@ class DataSetElementDefinitionSpec extends FunSpec with Matchers with EasyMockSu
 
         it("should update an ElementDefinition's PropertyDefintion"){
           val datasetName = "Architecture Components"
-          engine
+          engine.forUser(activeUserId)
             .createDataSet(datasetName, "A collection of system architecture components.")
 
-          engine
+          engine.forUser(activeUserId)
             .onDataSetByName(datasetName)
             .defineElement("System", "A thing about a thing...")
             .withProperty("Name", "String", "The name of the system.")
           .end
 
           val system =
-            engine
+            engine.forUser(activeUserId)
               .onDataSetByName(datasetName)
               .findElementDefinitionByName("System")
 
@@ -153,7 +177,7 @@ class DataSetElementDefinitionSpec extends FunSpec with Matchers with EasyMockSu
           val updatedDescription = "Illogical field. The type doesn't make sense."
 
           //find the property by its name, then change the name, type and description.
-          engine
+          engine.forUser(activeUserId)
             .onDataSetByName(datasetName)
             .onElementDefinition(system.id)
             .editPropertyDefinition("Name")
@@ -163,7 +187,7 @@ class DataSetElementDefinitionSpec extends FunSpec with Matchers with EasyMockSu
           .end
 
           val updatedSystem =
-            engine
+            engine.forUser(activeUserId)
               .onDataSetByName(datasetName)
               .findElementDefinitionById(system.id)
 
@@ -178,8 +202,8 @@ class DataSetElementDefinitionSpec extends FunSpec with Matchers with EasyMockSu
         it("should remove an ElementDefinition's PropertyDefintion"){
           val datasetName = "Architecture Components"
           val edName = "Committee Review"
-          engine.createDataSet(datasetName, "A collection of system architecture components.")
-          engine
+          engine.forUser(activeUserId).createDataSet(datasetName, "A collection of system architecture components.")
+          engine.forUser(activeUserId)
             .onDataSetByName(datasetName)
             .defineElement(edName, "Critical examination of a document or plan, resulting in a score and/or written feedback.")
             .withProperty("Status", "String", "The current status of the review in the review process.")
@@ -188,21 +212,21 @@ class DataSetElementDefinitionSpec extends FunSpec with Matchers with EasyMockSu
           .end
 
           val committeReview =
-            engine
+            engine.forUser(activeUserId)
               .onDataSetByName(datasetName)
               .findElementDefinitionByName(edName)
 
           committeReview.properties should have length 3
           committeReview.properties.exists(_.name == "Rating") shouldBe true
 
-          engine
+          engine.forUser(activeUserId)
             .onDataSetByName(datasetName)
             .onElementDefinition(committeReview.id)
             .removePropertyDefinition("Rating")
           .end
 
           val updatedCommitteReview =
-            engine
+            engine.forUser(activeUserId)
               .onDataSetByName(datasetName)
               .findElementDefinitionById(committeReview.id)
 
@@ -220,10 +244,10 @@ class DataSetElementDefinitionSpec extends FunSpec with Matchers with EasyMockSu
           |well articulated, testable, and significant.
           """.stripMargin
 
-          engine
+          engine.forUser(activeUserId)
             .createDataSet(datasetName, "A collection of system architecture components.")
 
-          engine
+          engine.forUser(activeUserId)
             .onDataSetByName(datasetName)
             .defineElement("Architecture Principle", definition)
             .withProperty("Description", "String", "A paragraph about the principle.")
@@ -232,11 +256,11 @@ class DataSetElementDefinitionSpec extends FunSpec with Matchers with EasyMockSu
             .end
 
           val archPrinciple =
-            engine
+            engine.forUser(activeUserId)
               .onDataSetByName(datasetName)
               .findElementDefinitionByName("Architecture Principle")
 
-          engine
+          engine.forUser(activeUserId)
             .onDataSetByName(datasetName)
             .onElementDefinition(archPrinciple.id)
             .delete
@@ -244,49 +268,48 @@ class DataSetElementDefinitionSpec extends FunSpec with Matchers with EasyMockSu
 
           val expectedIdMsg = "No element definition with ID: %s could be found in dataset: %s".format(archPrinciple.id, datasetName)
           the [InternalErrorException] thrownBy{
-            engine
+            engine.forUser(activeUserId)
               .onDataSetByName(datasetName)
               .findElementDefinitionById(archPrinciple.id)
 
           }should have message expectedIdMsg
 
           the [InternalErrorException] thrownBy{
-            engine
+            engine.forUser(activeUserId)
               .onDataSetByName(datasetName)
               .findElementDefinitionByName(archPrinciple.name)
           }should have message Engine.EmptyResultErrorMsg
         }
 
         it("should list all ElementDefintions"){
-          engine
+          engine.forUser(activeUserId)
             .createDataSet("X", "A mysterious dataset.")
 
-          engine
+          engine.forUser(activeUserId)
             .onDataSetByName("X")
             .defineElement("AA", "blah")
             .withProperty("AA:P", "String", "Blah blah")
           .end
 
-          engine
+          engine.forUser(activeUserId)
             .onDataSetByName("X")
             .defineElement("BB", "blah")
             .withProperty("BB:P", "String", "Blah blah")
           .end
 
-          engine
+          engine.forUser(activeUserId)
             .onDataSetByName("X")
             .defineElement("CC", "blah")
             .withProperty("CC:P", "String", "Blah blah")
           .end
 
           val elementDefs =
-            engine
+            engine.forUser(activeUserId)
               .onDataSetByName("X")
               .elementDefinitions
 
           elementDefs should have length 3
         }
-
       }
     }
   }
