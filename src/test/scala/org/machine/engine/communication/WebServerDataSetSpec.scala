@@ -1058,10 +1058,4 @@ class WebServerDataSetSpec extends FunSpecLike
       }
     }
   }
-
-  def getUserId(newUserResponse: String):String = {
-    val responseMap = strToMap(newUserResponse)
-    val userId = responseMap.get("userId").get.toString()
-    return userId
-  }
 }

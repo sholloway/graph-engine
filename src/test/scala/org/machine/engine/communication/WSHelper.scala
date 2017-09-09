@@ -193,4 +193,9 @@ object WSHelper{
     envelopeMap("messageType") should equal("CmdResult")
     return envelopeMap
   }
+
+  def getUserId(newUserResponse: String):String = {
+    val responseMap = strToMap(newUserResponse)
+    return responseMap.get("userId").get.toString()
+  }
 }

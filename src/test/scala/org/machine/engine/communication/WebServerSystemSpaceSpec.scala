@@ -26,15 +26,23 @@ import org.machine.engine.exceptions._
 import org.machine.engine.graph.nodes._
 import org.machine.engine.flow.requests._
 
-class WebServerSystemSpaceSpec extends FunSpecLike with Matchers with ScalaFutures with BeforeAndAfterAll{
+class WebServerSystemSpaceSpec extends FunSpecLike
+  with Matchers with ScalaFutures
+  with BeforeAndAfterAll
+  with BeforeAndAfterEach{
   import WSHelper._
   import TestUtils._
+  import LoginHelper._
 
   //Configure the whenReady for how long to wait.
   implicit val defaultPatience = PatienceConfig(timeout = Span(5, Seconds), interval = Span(500, Millis))
 
   private val config = ConfigFactory.load()
   val server = new WebServer()
+  private val serviceCreds = serviceCredentials()
+  private val PROTOCOL: String = "engine.json.v1"
+  private var jwtSessionToken:String = null
+  private var activeUserId:String = null
   val dbPath = config.getString("engine.graphdb.path")
   val dbFile = new File(dbPath)
   var engine:Engine = null
@@ -56,11 +64,18 @@ class WebServerSystemSpaceSpec extends FunSpecLike with Matchers with ScalaFutur
     engine = Engine.getInstance
     perge
     server.start()
+    val newUserResponse = createUser(serviceCreds)
+    activeUserId = getUserId(newUserResponse._2)
+    jwtSessionToken = login(serviceCreds)
   }
 
   override def afterAll(){
     server.stop()
     perge
+  }
+
+  override def afterEach(){
+    engine.reset()
   }
 
   describe("Receiving Requests"){
@@ -72,14 +87,14 @@ class WebServerSystemSpaceSpec extends FunSpecLike with Matchers with ScalaFutur
             "properties"->Seq(Map("name"->"Model", "propertyType"->"String", "description"->"The specific manufacture model."),
               Map("name"->"Manufacture", "propertyType"->"String", "description"->"The company that made the device.")))
 
-          val request = buildWSRequest(userId="Bob",
-            actionType="Create",
-            scope="SystemSpace",
-            entityType="ElementDefinition",
-            filter="None",
-            options=edSpec)
+          val request = buildWSRequest(activeUserId,
+            "Create",
+            "SystemSpace",
+            "ElementDefinition",
+            "None",
+            edSpec)
 
-          val closed:Future[Seq[Message]] = invokeWS(request, enginePath)
+          val closed:Future[Seq[Message]] = invokeWS(request, enginePath, PROTOCOL, jwtSessionToken)
 
           whenReady(closed){ results =>
             results should have length 2
@@ -89,7 +104,9 @@ class WebServerSystemSpaceSpec extends FunSpecLike with Matchers with ScalaFutur
             val payloadMap = strToMap(envelopeMap("textMessage").asInstanceOf[String])
             payloadMap.contains("id") should equal(true)
             val edId = payloadMap("id").asInstanceOf[String]
-            val ed = engine.inSystemSpace.findElementDefinitionById(edId)
+            val ed = engine.forUser(activeUserId)
+              .inSystemSpace
+              .findElementDefinitionById(edId)
             ed.name should equal("Mobile Device")
             ed.description should equal("A computer that can be carried by the userId.")
             ed.properties should have length 2
@@ -98,18 +115,19 @@ class WebServerSystemSpaceSpec extends FunSpecLike with Matchers with ScalaFutur
 
         it ("should list all element definitions"){
           engine
+            .forUser(activeUserId)
             .inSystemSpace
             .defineElement("Note", "A brief record of something, captured to assist the memory or for future reference.")
             .withProperty("Note Text", "String", "The body of the note.")
           .end
 
-          val request = buildWSRequest(userId="Bob",
-            actionType="Retrieve",
-            scope="SystemSpace",
-            entityType="ElementDefinition",
-            filter="All")
+          val request = buildWSRequest(activeUserId,
+            "Retrieve",
+            "SystemSpace",
+            "ElementDefinition",
+            "All")
 
-          val closed:Future[Seq[Message]] = invokeWS(request, enginePath)
+          val closed:Future[Seq[Message]] = invokeWS(request, enginePath, PROTOCOL, jwtSessionToken)
 
           whenReady(closed){ results =>
             results should have length 2
@@ -125,13 +143,13 @@ class WebServerSystemSpaceSpec extends FunSpecLike with Matchers with ScalaFutur
         it ("should provide an empty payload if no element definitions exist"){
           purgeAllElementDefinitions()
 
-          val request = buildWSRequest(userId="Bob",
-            actionType="Retrieve",
-            scope="SystemSpace",
-            entityType="ElementDefinition",
-            filter="All")
+          val request = buildWSRequest(activeUserId,
+            "Retrieve",
+            "SystemSpace",
+            "ElementDefinition",
+            "All")
 
-          val closed:Future[Seq[Message]] = invokeWS(request, enginePath)
+          val closed:Future[Seq[Message]] = invokeWS(request, enginePath, PROTOCOL, jwtSessionToken)
 
           whenReady(closed){ results =>
             results should have length 2
@@ -149,15 +167,15 @@ class WebServerSystemSpaceSpec extends FunSpecLike with Matchers with ScalaFutur
           purgeAllElementDefinitions()
           val edId = createTimepieceElementDefinition()
 
-          val request = buildWSRequest(userId="Bob",
-            actionType="Update",
-            scope="SystemSpace",
-            entityType="ElementDefinition",
-            filter="None",
-            options=Map("mid"->edId, "name" -> "Watch")
+          val request = buildWSRequest(activeUserId,
+            "Update",
+            "SystemSpace",
+            "ElementDefinition",
+            "None",
+            Map("mid"->edId, "name" -> "Watch")
           )
 
-          val closed:Future[Seq[Message]] = invokeWS(request, enginePath)
+          val closed:Future[Seq[Message]] = invokeWS(request, enginePath, PROTOCOL, jwtSessionToken)
 
           whenReady(closed){ results =>
             results should have length 2
@@ -167,42 +185,27 @@ class WebServerSystemSpaceSpec extends FunSpecLike with Matchers with ScalaFutur
             val payloadMap = strToMap(envelopeMap("textMessage").asInstanceOf[String])
             payloadMap.contains("id") should equal(true)
 
-            //verify with engine that it has changed. :)
-            val ed = engine.inSystemSpace.findElementDefinitionById(edId)
+            val ed = engine.forUser(activeUserId)
+              .inSystemSpace
+              .findElementDefinitionById(edId)
             ed.name should equal("Watch")
           }
         }
 
-        /*
-        Next Steps
-        Finish this test.
-        1. Create an ED
-        2. Through the WS API editity a property on the ED.
-        3. Verify through the Engine API the change occured.
-
-        FIXME There is no way to add properties to an existing ElementDefinition.
-        FIXME The code flow is confusing.
-        1. RequestMessage.jsonToMap (DeserializeClientMessage)
-        2. RequestRuleValidator.validate (DeserializeClientMessage)
-        3. RequestMessage.parseJSON (DeserializeClientMessage)
-        4. buildOptions(EngineWorkerPoolManager)
-
-        Could we get rid of the initial jsonToMap?
-        */
         it ("should EditElementPropertyDefinition"){
           purgeAllElementDefinitions()
           val edId = createTimepieceElementDefinition()
 
-          val request = buildWSRequest(userId="Bob",
-            actionType="Update",
-            scope="SystemSpace",
-            entityType="PropertyDefinition",
-            filter="None",
-            options=Map("mid"->edId, "pname" -> "Hours",
+          val request = buildWSRequest(activeUserId,
+            "Update",
+            "SystemSpace",
+            "PropertyDefinition",
+            "None",
+            Map("mid"->edId, "pname" -> "Hours",
               "description" -> "Tracks the passing of hours.")
           )
 
-          val closed:Future[Seq[Message]] = invokeWS(request, enginePath)
+          val closed:Future[Seq[Message]] = invokeWS(request, enginePath, PROTOCOL, jwtSessionToken)
 
           whenReady(closed){ results =>
             results should have length 2
@@ -213,7 +216,9 @@ class WebServerSystemSpaceSpec extends FunSpecLike with Matchers with ScalaFutur
             payloadMap.contains("id") should equal(true)
 
             //verify with engine that it has changed. :)
-            val ed = engine.inSystemSpace.findElementDefinitionById(edId)
+            val ed = engine.forUser(activeUserId)
+              .inSystemSpace
+              .findElementDefinitionById(edId)
             ed.properties.length should equal(3)
             val hoursPropOption = ed.properties.find{ prop => prop.name == "Hours" }
             hoursPropOption.isEmpty should equal(false)
@@ -225,15 +230,15 @@ class WebServerSystemSpaceSpec extends FunSpecLike with Matchers with ScalaFutur
           purgeAllElementDefinitions()
           val edId = createTimepieceElementDefinition()
 
-          val request = buildWSRequest(userId="Bob",
-            actionType="Delete",
-            scope="SystemSpace",
-            entityType="PropertyDefinition",
-            filter="None",
-            options=Map("mid"->edId, "pname" -> "Hours")
+          val request = buildWSRequest(activeUserId,
+            "Delete",
+            "SystemSpace",
+            "PropertyDefinition",
+            "None",
+            Map("mid"->edId, "pname" -> "Hours")
           )
 
-          val closed:Future[Seq[Message]] = invokeWS(request, enginePath)
+          val closed:Future[Seq[Message]] = invokeWS(request, enginePath, PROTOCOL, jwtSessionToken)
 
           whenReady(closed){ results =>
             results should have length 2
@@ -244,7 +249,9 @@ class WebServerSystemSpaceSpec extends FunSpecLike with Matchers with ScalaFutur
             payloadMap.contains("id") should equal(true)
 
             //verify with engine that it has changed. :)
-            val ed = engine.inSystemSpace.findElementDefinitionById(edId)
+            val ed = engine.forUser(activeUserId)
+              .inSystemSpace
+              .findElementDefinitionById(edId)
             ed.properties.length should equal(2)
             val hoursPropOption = ed.properties.find{ prop => prop.name == "Hours" }
             hoursPropOption.isEmpty should equal(true)
@@ -255,15 +262,15 @@ class WebServerSystemSpaceSpec extends FunSpecLike with Matchers with ScalaFutur
           purgeAllElementDefinitions()
           val edId = createTimepieceElementDefinition()
 
-          val request = buildWSRequest(userId="Bob",
-            actionType="Delete",
-            scope="SystemSpace",
-            entityType="ElementDefinition",
-            filter="None",
-            options=Map("mid"->edId)
+          val request = buildWSRequest(activeUserId,
+            "Delete",
+            "SystemSpace",
+            "ElementDefinition",
+            "None",
+            Map("mid"->edId)
           )
 
-          val closed:Future[Seq[Message]] = invokeWS(request, enginePath)
+          val closed:Future[Seq[Message]] = invokeWS(request, enginePath, PROTOCOL, jwtSessionToken)
 
           whenReady(closed){ results =>
             results should have length 2
@@ -276,6 +283,7 @@ class WebServerSystemSpaceSpec extends FunSpecLike with Matchers with ScalaFutur
             val expectedIdMsg = "No element definition with ID: %s could be found in %s".format(edId, "internal_system_space")
             the [InternalErrorException] thrownBy{
               engine
+                .forUser(activeUserId)
                 .inSystemSpace
                 .findElementDefinitionById(edId)
             }should have message expectedIdMsg
@@ -286,15 +294,15 @@ class WebServerSystemSpaceSpec extends FunSpecLike with Matchers with ScalaFutur
           purgeAllElementDefinitions()
           val edId = createTimepieceElementDefinition()
 
-          val request = buildWSRequest(userId="Bob",
-            actionType="Retrieve",
-            scope="SystemSpace",
-            entityType="ElementDefinition",
-            filter="ID",
-            options=Map("mid"->edId)
+          val request = buildWSRequest(activeUserId,
+            "Retrieve",
+            "SystemSpace",
+            "ElementDefinition",
+            "ID",
+            Map("mid"->edId)
           )
 
-          val closed:Future[Seq[Message]] = invokeWS(request, enginePath)
+          val closed:Future[Seq[Message]] = invokeWS(request, enginePath, PROTOCOL, jwtSessionToken)
 
           whenReady(closed){ results =>
             results should have length 2
@@ -315,15 +323,15 @@ class WebServerSystemSpaceSpec extends FunSpecLike with Matchers with ScalaFutur
           purgeAllElementDefinitions()
           val edId = createTimepieceElementDefinition()
 
-          val request = buildWSRequest(userId="Bob",
-            actionType="Retrieve",
-            scope="SystemSpace",
-            entityType="ElementDefinition",
-            filter="Name",
-            options=Map("name"->"Timepiece")
+          val request = buildWSRequest(activeUserId,
+            "Retrieve",
+            "SystemSpace",
+            "ElementDefinition",
+            "Name",
+            Map("name"->"Timepiece")
           )
 
-          val closed:Future[Seq[Message]] = invokeWS(request, enginePath)
+          val closed:Future[Seq[Message]] = invokeWS(request, enginePath, PROTOCOL, jwtSessionToken)
 
           whenReady(closed){ results =>
             results should have length 2
