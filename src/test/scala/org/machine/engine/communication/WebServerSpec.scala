@@ -26,15 +26,24 @@ import org.machine.engine.exceptions._
 import org.machine.engine.graph.nodes._
 import org.machine.engine.flow.requests._
 
-class WebServerSpec extends FunSpecLike with Matchers with ScalaFutures with BeforeAndAfterAll{
+class WebServerSpec extends FunSpecLike
+  with Matchers
+  with ScalaFutures
+  with BeforeAndAfterAll
+  with BeforeAndAfterEach{
   import WSHelper._
   import TestUtils._
+  import LoginHelper._
 
   //Configure the whenReady for how long to wait.
   implicit val defaultPatience = PatienceConfig(timeout = Span(5, Seconds), interval = Span(500, Millis))
 
   private val config = ConfigFactory.load()
   val server = new WebServer()
+  private val serviceCreds = serviceCredentials()
+  private val PROTOCOL: String = "engine.json.v1"
+  private var jwtSessionToken:String = null
+  private var activeUserId:String = null
   val dbPath = config.getString("engine.graphdb.path")
   val dbFile = new File(dbPath)
   var engine:Engine = null
@@ -50,6 +59,9 @@ class WebServerSpec extends FunSpecLike with Matchers with ScalaFutures with Bef
     engine = Engine.getInstance
     perge
     server.start()
+    val newUserResponse = createUser(serviceCreds)
+    activeUserId = getUserId(newUserResponse._2)
+    jwtSessionToken = login(serviceCreds)
   }
 
   override def afterAll(){
@@ -57,11 +69,16 @@ class WebServerSpec extends FunSpecLike with Matchers with ScalaFutures with Bef
     perge
   }
 
+  override def afterEach(){
+    engine.reset()
+  }
+
   describe("Receiving Requests"){
     describe("WebSocket Requests"){
       it ("should echo commands for /ping"){
         val request = Source.fromIterator(() => Seq(tm("A"), tm("B"), tm("C"), tm("D"), tm("E"), tm("F")).toIterator)
-        val closed = invokeWS(request, echoPath)
+        // val closed = invokeWS(request, echoPath)
+        val closed = invokeWS(request, echoPath, PROTOCOL, jwtSessionToken)
         whenReady(closed){ results =>
           results should equal(Vector(TextMessage.Strict("A"),
             TextMessage.Strict("B"),
