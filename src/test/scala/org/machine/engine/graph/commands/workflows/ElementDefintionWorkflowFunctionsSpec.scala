@@ -27,10 +27,19 @@ class ElementDefintionWorkflowFunctionsSpec extends FunSpecLike
   private val config = ConfigFactory.load()
   var engine:Engine = null
   val options = GraphCommandOptions()
+  private var activeUserId:String = null
 
   override def beforeAll(){
     engine = Engine.getInstance
     perge
+    activeUserId = Engine.getInstance
+      .createUser
+      .withFirstName("Bob")
+      .withLastName("Grey")
+      .withEmailAddress("onebadclown@derry-maine.com")
+      .withUserName("pennywise")
+      .withUserPassword("You'll float too...")
+    .end
   }
 
   override def afterAll(){
@@ -81,6 +90,7 @@ class ElementDefintionWorkflowFunctionsSpec extends FunSpecLike
       it("should require name"){
         options.reset
         options.addOption("mid","123")
+        options.addOption("activeUserId", "abc123")
         val capsule = (null, null, options, Left(WorkflowStatuses.OK))
         verifyRequiredCmdOptions(capsule)._4 should equal(Right(MissingNameErrorMsg))
       }
@@ -89,6 +99,7 @@ class ElementDefintionWorkflowFunctionsSpec extends FunSpecLike
         options.reset
         options.addOption("mid","123")
         options.addOption("name","abc")
+        options.addOption("activeUserId", "abc123")
         val capsule = (null, null, options, Left(WorkflowStatuses.OK))
         verifyRequiredCmdOptions(capsule)._4 should equal(Right(MissingDescErrorMsg))
       }
@@ -98,6 +109,7 @@ class ElementDefintionWorkflowFunctionsSpec extends FunSpecLike
         options.addOption("mid","123")
         options.addOption("name","abc")
         options.addOption("description","asdfas")
+        options.addOption("activeUserId", "abc123")
         val capsule = (null, null, options, Left(WorkflowStatuses.OK))
         verifyRequiredCmdOptions(capsule)._4 should equal(Right(MissingCreationTimeErrorMsg))
       }
@@ -108,6 +120,7 @@ class ElementDefintionWorkflowFunctionsSpec extends FunSpecLike
         options.addOption("name","abc")
         options.addOption("description","asdfas")
         options.addOption("creationTime", Neo4JHelper.time)
+        options.addOption("activeUserId", "abc123")
         val capsule = (null, null, options, Left(WorkflowStatuses.OK))
         verifyRequiredCmdOptions(capsule)._4 should equal(Left(WorkflowStatuses.OK))
       }
@@ -129,9 +142,10 @@ class ElementDefintionWorkflowFunctionsSpec extends FunSpecLike
       */
       it("should pass status of OK when no element definition exists in scope of dataset"){
         options.reset
-        val dsId = engine.createDataSet("Dataset A", "A dataset")
+        val dsId = engine.forUser(activeUserId).createDataSet("Dataset A", "A dataset")
         options.addOption("dsId", dsId)
         options.addOption("name", "Gem") //The Element Definitions name...
+        options.addOption("activeUserId", activeUserId)
         val capsule = (engine.database, CommandScopes.DataSetScope, options, Left(WorkflowStatuses.OK))
         val processed = verifyUniqueness(capsule)
         processed._4 should equal(Left(WorkflowStatuses.OK))
@@ -139,8 +153,8 @@ class ElementDefintionWorkflowFunctionsSpec extends FunSpecLike
 
       it("should pass error message when an element definition exists in scope of dataset"){
         options.reset
-        val dsId = engine.createDataSet("Dataset B", "Another dataset")
-        engine
+        val dsId = engine.forUser(activeUserId).createDataSet("Dataset B", "Another dataset")
+        engine.forUser(activeUserId)
           .onDataSet(dsId)
           .defineElement("Gem", "A precious stone.")
           .withProperty("color", "String", "The color of light the gem reflects.")
@@ -148,6 +162,7 @@ class ElementDefintionWorkflowFunctionsSpec extends FunSpecLike
 
         options.addOption("dsId", dsId)
         options.addOption("name", "Gem")
+        options.addOption("activeUserId", activeUserId)
 
         val capsule = (engine.database, CommandScopes.DataSetScope, options, Left(WorkflowStatuses.OK))
         val processed = verifyUniqueness(capsule)
@@ -209,12 +224,13 @@ class ElementDefintionWorkflowFunctionsSpec extends FunSpecLike
 
       it ("should generate a create statement in user space scope"){
         options.reset
+        options.addOption("activeUserId", activeUserId)
         val capsule = (null, CommandScopes.UserSpaceScope, options, Left(WorkflowStatuses.OK))
         val processed = createElementDefinitionStmt(capsule)
         processed._4 should equal(Left(WorkflowStatuses.OK))
         processed._3.contains("createElementDefinitionStmt") should equal(true)
         val expected = normalize("""
-        |match (ss:internal_user_space)
+        |match (ss:user) where ss.mid={activeUserId}
         |create (ss)-[:exists_in]->(ed:element_definition {
         |  mid:{mid},
         |  name:{name},
@@ -323,6 +339,7 @@ class ElementDefintionWorkflowFunctionsSpec extends FunSpecLike
         options.addOption("name", "box")
         options.addOption("description", "A container with equal sized dimensions on all axis.")
         options.addOption("creationTime", time)
+        options.addOption("activeUserId", activeUserId)
 
         val capsule = (engine.database, CommandScopes.UserSpaceScope, options, Left(WorkflowStatuses.OK))
         val processed = minimalCreateWF(capsule)
@@ -409,6 +426,7 @@ class ElementDefintionWorkflowFunctionsSpec extends FunSpecLike
         options.addOption("name", "box")
         options.addOption("description", "A container with equal sized dimensions on all axis.")
         options.addOption("creationTime", time)
+        options.addOption("activeUserId", activeUserId)
 
         val props = new PropertyDefinitions().addProperty(PropertyDefinition(uuid, "pA", "String", "A property"))
         options.addOption("properties", props)
@@ -477,6 +495,7 @@ class ElementDefintionWorkflowFunctionsSpec extends FunSpecLike
         options.addOption("name", "box")
         options.addOption("description", "A container with equal sized dimensions on all axis.")
         options.addOption("creationTime", time)
+        options.addOption("activeUserId", activeUserId)
 
         val props = new PropertyDefinitions().addProperty(PropertyDefinition(uuid, "pA", "String", "A property"))
         options.addOption("properties", props)
@@ -497,6 +516,7 @@ class ElementDefintionWorkflowFunctionsSpec extends FunSpecLike
         options.addOption("name", "Happy Happy, Joy Joy")
         options.addOption("description", "Silly saying from a childhood cartoon.")
         options.addOption("creationTime", time)
+        options.addOption("activeUserId", activeUserId)
 
         val props = new PropertyDefinitions().addProperty(PropertyDefinition(uuid, "pA", "String", "A property"))
         options.addOption("properties", props)
@@ -530,11 +550,13 @@ class ElementDefintionWorkflowFunctionsSpec extends FunSpecLike
 
   def findEdInUsById(edId: String):Seq[String] = {
     val stmt = """
-    |match (ds:internal_user_space)-[:exists_in]->(ed:element_definition {mid:{mid}})
+    |match (u:user {mid:{activeUserId}})-[:exists_in]->(ed:element_definition {mid:{mid}})
     |return ed.mid as edId
     """.stripMargin
 
-    val validationOptions = GraphCommandOptions().addOption("mid", edId)
+    val validationOptions = GraphCommandOptions()
+      .addOption("mid", edId)
+      .addOption("activeUserId", activeUserId)
 
     val mappedEdIds:Array[String] = query[String](engine.database,
       stmt,
