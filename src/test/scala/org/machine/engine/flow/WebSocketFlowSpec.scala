@@ -21,21 +21,34 @@ import com.typesafe.config._
 import org.machine.engine.Engine
 import org.machine.engine.TestUtils
 
-class WebSocketFlowSpec extends TestKit(ActorSystem("WebSocketFlowSpec")) with ImplicitSender
-  with FunSpecLike with Matchers with BeforeAndAfterAll{
+class WebSocketFlowSpec extends TestKit(ActorSystem("WebSocketFlowSpec"))
+  with ImplicitSender
+  with FunSpecLike
+  with Matchers
+  with BeforeAndAfterAll
+  with BeforeAndAfterEach{
   import TestUtils._
 
   private val config = ConfigFactory.load()
-  var engine:Engine = null
-  var notesDataSetId:String = null
+  private var engine:Engine = null
+  private var activeUserId:String = null
+  private var notesDataSetId:String = null
   implicit val materializer = ActorMaterializer()
   implicit val ec: ExecutionContext = scala.concurrent.ExecutionContext.Implicits.global
-  val sink = Sink.seq[Message]
+  private val sink = Sink.seq[Message]
 
   override def beforeAll(){
     engine = Engine.getInstance
     perge
-    notesDataSetId = engine.createDataSet("notes", "My collection of notes.")
+    activeUserId = Engine.getInstance
+      .createUser
+      .withFirstName("Bob")
+      .withLastName("Grey")
+      .withEmailAddress("onebadclown@derry-maine.com")
+      .withUserName("pennywise")
+      .withUserPassword("You'll float too...")
+    .end
+    notesDataSetId = engine.forUser(activeUserId).createDataSet("notes", "My collection of notes.")
   }
 
   override def afterAll(){
@@ -45,9 +58,9 @@ class WebSocketFlowSpec extends TestKit(ActorSystem("WebSocketFlowSpec")) with I
 
   describe("Websocket Flow"){
     it("should process the list of datasets associated with a user"){
-      val cmd = """
+      val cmd = s"""
       |{
-      | "user": "Sam",
+      | "userId": "${activeUserId}",
       | "actionType": "Retrieve",
       | "scope": "UserSpace",
       | "entityType": "DataSet",
@@ -60,13 +73,15 @@ class WebSocketFlowSpec extends TestKit(ActorSystem("WebSocketFlowSpec")) with I
 
       result.onSuccess{
         case r => {
-          Console.println(r) //should be a Seq of TextMessages. Should get a receipt and response
+          // println(r) //should be a Seq of TextMessages. Should get a receipt and response
+          //Should return a receipt and response
+          r.length should be(2)
         }
       }
 
       result.onFailure{
         case error => {
-          Console.println(error)
+          println(s"An error occured: ${error}")
           fail()
         }
       }
