@@ -16,7 +16,8 @@ import org.machine.engine.graph.internal._
 
 class ListDataSets(database: GraphDatabaseService,
   cmdScope: CommandScope,
-  commandOptions: GraphCommandOptions) extends Neo4JQueryCommand[DataSet] with LazyLogging{
+  cmdOptions: GraphCommandOptions) extends Neo4JQueryCommand[DataSet]
+  with LazyLogging{
   import Neo4JHelper._
 
   def execute():QueryCmdResult[DataSet] = {
@@ -24,17 +25,16 @@ class ListDataSets(database: GraphDatabaseService,
     //#TODO:20 Currently this only returns ElementDefinitions that have associated PropertyDefinitions.
     //#TODO:90 Return creation_time & last_modified_time
     val findDataSets = """
-      |match (ss:space)-[:contains]->(ds:data_set)
+      |match (u:user {mid:{activeUserId}})-[:owns]->(ds:data_set)
       |return ds.mid as id,
       |  ds.name as name,
       |  ds.description as description,
       |  ds.creation_time as creationTime,
       |  ds.last_modified_time as lastModifiedTime
       """.stripMargin
-        .replaceAll("space", cmdScope.scope)
 
     val records = query[DataSet](database,
-      findDataSets, null,
+      findDataSets, cmdOptions.toJavaMap,
       dataSetMapper)
 
     return QueryCmdResult[DataSet](records.toList)

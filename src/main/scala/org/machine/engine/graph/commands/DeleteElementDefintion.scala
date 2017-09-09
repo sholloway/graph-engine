@@ -51,7 +51,6 @@ class DeleteElementDefintion(database: GraphDatabaseService,
     |detach delete ed
     """.stripMargin
        .replaceAll("space", scope)
-
     run( graphDB,
       statement,
       cmdOptions.toJavaMap,

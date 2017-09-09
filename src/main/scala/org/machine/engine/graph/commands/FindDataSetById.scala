@@ -22,7 +22,7 @@ class FindDataSetById(database: GraphDatabaseService,
   def execute():QueryCmdResult[DataSet] = {
     logger.debug("FindDataSetById: Executing Command")
     val findDataSets = """
-      |match (us:internal_user_space)-[:contains]->(ds:data_set {mid:{dsId}})
+      |match (u:user {mid:{activeUserId}})-[:owns]->(ds:data_set {mid:{dsId}})
       |return ds.mid as id,
       |  ds.name as name,
       |  ds.description as description,

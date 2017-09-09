@@ -23,6 +23,7 @@ package object workflows{
 
   val ElementDefAlreadyExistsErrorMsg           = "Element Definition already exists with the provided name."
   val MissingMidErrorMsg                        = "The command CreateElementDefinition requires the option mid."
+  val MissingUserIdErrorMsg                     = "The the option activeUserId is required."
   val MissingNameErrorMsg                       = "The command CreateElementDefinition requires the option name."
   val MissingDescErrorMsg                       = "The command CreateElementDefinition requires the option description."
   val MissingCreationTimeErrorMsg               = "The command CreateElementDefinition requires the option creationTime."

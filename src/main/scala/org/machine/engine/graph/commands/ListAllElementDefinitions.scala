@@ -45,13 +45,16 @@ class ListAllElementDefinitions(database: GraphDatabaseService,
   protected def buildScope(cmdScope: CommandScope, cmdOptions: GraphCommandOptions):String = {
     val scope = cmdScope match{
       case CommandScopes.SystemSpaceScope => CommandScopes.SystemSpaceScope.scope
-      case CommandScopes.UserSpaceScope => CommandScopes.UserSpaceScope.scope
+      case CommandScopes.UserSpaceScope => {
+        s"${CommandScopes.UserSpaceScope.scope} {mid:{activeUserId}}"
+      }
       case CommandScopes.DataSetScope => {
-        var str:String = null
-        if(cmdOptions.contains("dsId")){
-          str = "%s {mid:{dsId}}".format(CommandScopes.DataSetScope.scope)
+        val str:String = if(cmdOptions.contains("dsId")){
+          s"${CommandScopes.DataSetScope.scope} {mid:{dsId}}"
         }else if(cmdOptions.contains("dsName")){
-          str = "%s {name:{dsName}}".format(CommandScopes.DataSetScope.scope)
+          s"${CommandScopes.DataSetScope.scope} {name:{dsName}}"
+        }else{
+          throw new InternalErrorException("For scope type of DataSetScope, the option dsId or dsName must be provided.")
         }
         str
       }

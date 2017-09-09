@@ -1,7 +1,7 @@
 {
   "name": "Create Dataset",
   "description": "Create a dataset in a user's space.",
-  "scope": "internal_user_space",
+  "scope": "user",
   "entityType": "DataSet",
   "actionType": "Create",
   "filter": "None",

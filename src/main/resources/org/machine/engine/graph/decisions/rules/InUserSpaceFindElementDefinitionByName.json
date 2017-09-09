@@ -1,7 +1,7 @@
 {
   "name": "List Element Definitions",
   "description": "List all element definitions.",
-  "scope": "internal_user_space",
+  "scope": "user",
   "entityType": "ElementDefinition",
   "actionType": "Retrieve",
   "filter": "Name",

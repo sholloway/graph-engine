@@ -31,7 +31,7 @@ class EditDataSet(database: GraphDatabaseService,
     logger.debug("EditDataSet: Editing element definition.")
     val setClause = buildSetClause("ds", cmdOptions.keys, List("mid"))
     val editDataSetStatement = """
-    |match (us:internal_user_space)-[:contains]->(ds:data_set {mid:{dsId}})
+    |match (u:user {mid:{activeUserId}})-[:owns]->(ds:data_set {mid:{dsId}})
     |set setClause, ds.last_modified_time = timestamp()
     """.stripMargin
        .replaceAll("setClause", setClause)

@@ -29,11 +29,23 @@ class Question(at: String) extends Node{
     return options.getOrElseUpdate(optionName, option)
   }
 
-  /*
-  FIXME This could blow up if the request is null or options returns null.
-  */
   def evaluate(request: Map[String, Option[String]]):Opt = {
-    val requestValue = request(attribute).getOrElse(throw new InternalErrorException("Bad..."))
+    if (request == null){
+      val nullRequestMsg = "A question cannot evalute a null request."
+      throw new InternalErrorException(nullRequestMsg)
+    }
+
+    val requestOption:Option[String] = request(attribute)
+    if (requestOption.isEmpty){
+      val emptyReqAttrMsg = s"The attribute on a question's request for ${attribute} was null."
+      throw new InternalErrorException(emptyReqAttrMsg)
+    }
+
+    val requestValue = request(attribute).get
+    if (!options.contains(requestValue)){
+      val missingOptionMsg = s"A question's available options did not contain the request value: ${requestValue}"
+      throw new InternalErrorException(missingOptionMsg)
+    }
     return options(requestValue)
   }
 

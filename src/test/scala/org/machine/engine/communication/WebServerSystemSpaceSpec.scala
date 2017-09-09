@@ -23,6 +23,7 @@ import com.typesafe.config._
 import org.machine.engine.Engine
 import org.machine.engine.TestUtils
 import org.machine.engine.exceptions._
+import org.machine.engine.graph.commands.{CommandScope, CommandScopes}
 import org.machine.engine.graph.nodes._
 import org.machine.engine.flow.requests._
 
@@ -165,7 +166,7 @@ class WebServerSystemSpaceSpec extends FunSpecLike
 
         it ("should EditElementDefintion"){
           purgeAllElementDefinitions()
-          val edId = createTimepieceElementDefinition()
+          val edId = createTimepieceElementDefinition(CommandScopes.SystemSpaceScope, activeUserId)
 
           val request = buildWSRequest(activeUserId,
             "Update",
@@ -194,7 +195,7 @@ class WebServerSystemSpaceSpec extends FunSpecLike
 
         it ("should EditElementPropertyDefinition"){
           purgeAllElementDefinitions()
-          val edId = createTimepieceElementDefinition()
+          val edId = createTimepieceElementDefinition(CommandScopes.SystemSpaceScope, activeUserId)
 
           val request = buildWSRequest(activeUserId,
             "Update",
@@ -228,7 +229,7 @@ class WebServerSystemSpaceSpec extends FunSpecLike
 
         it ("should RemoveElementPropertyDefinition"){
           purgeAllElementDefinitions()
-          val edId = createTimepieceElementDefinition()
+          val edId = createTimepieceElementDefinition(CommandScopes.SystemSpaceScope, activeUserId)
 
           val request = buildWSRequest(activeUserId,
             "Delete",
@@ -260,7 +261,7 @@ class WebServerSystemSpaceSpec extends FunSpecLike
 
         it ("should DeleteElementDefintion"){
           purgeAllElementDefinitions()
-          val edId = createTimepieceElementDefinition()
+          val edId = createTimepieceElementDefinition(CommandScopes.SystemSpaceScope, activeUserId)
 
           val request = buildWSRequest(activeUserId,
             "Delete",
@@ -292,7 +293,7 @@ class WebServerSystemSpaceSpec extends FunSpecLike
 
         it ("should FindElementDefinitionById"){
           purgeAllElementDefinitions()
-          val edId = createTimepieceElementDefinition()
+          val edId = createTimepieceElementDefinition(CommandScopes.SystemSpaceScope, activeUserId)
 
           val request = buildWSRequest(activeUserId,
             "Retrieve",
@@ -321,7 +322,7 @@ class WebServerSystemSpaceSpec extends FunSpecLike
 
         it ("should FindElementDefinitionByName"){
           purgeAllElementDefinitions()
-          val edId = createTimepieceElementDefinition()
+          val edId = createTimepieceElementDefinition(CommandScopes.SystemSpaceScope, activeUserId)
 
           val request = buildWSRequest(activeUserId,
             "Retrieve",

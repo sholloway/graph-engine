@@ -55,6 +55,8 @@ object ElementDefintionWorkflowFunctions extends LazyLogging{
       if(!isDefinedAt(capsule)) return capsule
       val errorMsg:Option[String] = if (!capsule._3.contains(Mid)){
         Some(MissingMidErrorMsg)
+      }else if(!capsule._3.contains(UserId)){
+        Some(MissingUserIdErrorMsg)
       }else if (!capsule._3.contains(Name)){
         Some(MissingNameErrorMsg)
       }else if (!capsule._3.contains(Description)){

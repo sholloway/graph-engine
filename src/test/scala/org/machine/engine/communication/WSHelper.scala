@@ -166,10 +166,15 @@ object WSHelper{
   Deletes all element definitions.
   WARNING: Don't run on a data set you care about.
   */
-  def purgeAllElementDefinitions(scope: CommandScope = CommandScopes.SystemSpaceScope) = {
-    val eds = Engine.getInstance.setScope(scope).elementDefinitions
+  def purgeAllElementDefinitions(scope: CommandScope = CommandScopes.SystemSpaceScope, activeUserId: String = "none") = {
+    val eds = Engine.getInstance
+      .forUser(activeUserId)
+      .setScope(scope)
+      .elementDefinitions
+
     eds.foreach{ ed =>
       Engine.getInstance
+        .setUser(activeUserId)
         .setScope(scope)
         .onElementDefinition(ed.id)
         .delete
@@ -177,8 +182,9 @@ object WSHelper{
     }
   }
 
-  def createTimepieceElementDefinition(scope: CommandScope = CommandScopes.SystemSpaceScope):String = {
+  def createTimepieceElementDefinition(scope: CommandScope = CommandScopes.SystemSpaceScope, activeUserId: String = "none"):String = {
     val edId = Engine.getInstance
+      .forUser(activeUserId)
       .setScope(scope)
       .defineElement("Timepiece", "A time tracking apparatus.")
       .withProperty("Hours", "Int", "Tracks the passing.")

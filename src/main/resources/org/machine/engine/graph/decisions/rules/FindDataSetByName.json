@@ -1,7 +1,7 @@
 {
   "name": "Find Data Set by Name",
   "description": "Query for a specific dataset associated with a specific user.",
-  "scope": "internal_user_space",
+  "scope": "user",
   "entityType": "DataSet",
   "actionType": "Retrieve",
   "filter": "Name",
