@@ -21,24 +21,34 @@ import org.machine.engine.graph.nodes.Association
 import org.machine.engine.viz.GraphVizHelper
 
 class RemoveAssociationsWorkflowsSpec extends FunSpecLike
-  with Matchers  with BeforeAndAfterAll{
+  with Matchers
+  with BeforeAndAfterAll{
   import RemoveAssociationsWorkflows._
   import TestUtils._
   import Neo4JHelper._
 
   private val config = ConfigFactory.load()
-  var engine:Engine = null
-  val options = GraphCommandOptions()
-  val emptyCapsule = (null, null, options, mutable.Map.empty[String, Any], Left(WorkflowStatuses.OK))
-  var dsId:String = null
-  var edId:String = null
-  var hanId:String = null
-  var chewieId:String = null
-  var leiaId:String = null
+  private var engine:Engine = null
+  private val options = GraphCommandOptions()
+  private val emptyCapsule = (null, null, options, mutable.Map.empty[String, Any], Left(WorkflowStatuses.OK))
+  private var dsId:String = null
+  private var edId:String = null
+  private var hanId:String = null
+  private var chewieId:String = null
+  private var leiaId:String = null
+  private var activeUserId:String = null
 
   override def beforeAll(){
     engine = Engine.getInstance
     perge
+    activeUserId = Engine.getInstance
+      .createUser
+      .withFirstName("Bob")
+      .withLastName("Grey")
+      .withEmailAddress("onebadclown@derry-maine.com")
+      .withUserName("pennywise")
+      .withUserPassword("You'll float too...")
+    .end
     val sw = buildDataset()
     dsId = sw._1
     edId = sw._2
@@ -52,19 +62,21 @@ class RemoveAssociationsWorkflowsSpec extends FunSpecLike
   }
 
   def buildDataset():(String, String, String, String, String) = {
-    val dsId = engine.createDataSet("Star Wars", "Space Opera")
-    val edId = engine.onDataSet(dsId)
+    val dsId = engine.forUser(activeUserId)
+      .createDataSet("Star Wars", "Space Opera")
+    val edId = engine.forUser(activeUserId)
+      .onDataSet(dsId)
       .defineElement("Character", "A person in the movie.")
       .withProperty("Name", "String", "The name of the character.")
     .end
 
-    val hanId = engine.onDataSet(dsId).provision(edId).withField("Name", "Han Solo").end
-    val chewieId = engine.onDataSet(dsId).provision(edId).withField("Name", "Chewbacca").end
-    val leiaId = engine.onDataSet(dsId).provision(edId).withField("Name", "Princess Leia Organa").end
+    val hanId = engine.forUser(activeUserId).onDataSet(dsId).provision(edId).withField("Name", "Han Solo").end
+    val chewieId = engine.forUser(activeUserId).onDataSet(dsId).provision(edId).withField("Name", "Chewbacca").end
+    val leiaId = engine.forUser(activeUserId).onDataSet(dsId).provision(edId).withField("Name", "Princess Leia Organa").end
 
-    engine.inDataSet(dsId).attach(leiaId).to(hanId).as("married_to").withField("wears_the_pants", true).end
-    engine.inDataSet(dsId).attach(hanId).to(leiaId).as("married_to").end
-    engine.inDataSet(dsId).attach(hanId).to(chewieId).as("friends_with").end
+    engine.forUser(activeUserId).inDataSet(dsId).attach(leiaId).to(hanId).as("married_to").withField("wears_the_pants", true).end
+    engine.forUser(activeUserId).inDataSet(dsId).attach(hanId).to(leiaId).as("married_to").end
+    engine.forUser(activeUserId).inDataSet(dsId).attach(hanId).to(chewieId).as("friends_with").end
     return (dsId, edId, hanId, chewieId, leiaId)
   }
 
