@@ -81,7 +81,7 @@ class CreateElement(database: GraphDatabaseService,
     cmdOptions: GraphCommandOptions,
     elementDef: ElementDefinition
   ):Unit = {
-    logger.debug("CreateElement: Creating data set.")
+    logger.debug("CreateElement: Creating Element.")
     cmdOptions.addOption("element_description", elementDef.description)
     cmdOptions.addOption("creation_time", time)
     val exclude = List("dsId", "dsName", "edId", "elementId", "activeUserId")

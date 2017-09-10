@@ -19,7 +19,8 @@ import scala.util.{Either, Left, Right}
 import org.machine.engine.viz.GraphVizHelper
 
 class ElementDefintionWorkflowFunctionsSpec extends FunSpecLike
-  with Matchers  with BeforeAndAfterAll{
+  with Matchers
+  with BeforeAndAfterAll{
   import ElementDefintionWorkflowFunctions._
   import TestUtils._
   import Neo4JHelper._
@@ -318,7 +319,7 @@ class ElementDefintionWorkflowFunctionsSpec extends FunSpecLike
         options.addOption("dsName", DsName)
         val edId = uuid()
         options.addOption("mid", edId)
-        options.addOption("name", "box")
+        options.addOption("name", "box1")
         options.addOption("description", "A container with equal sized dimensions on all axis.")
         options.addOption("creationTime", time)
 
@@ -336,7 +337,7 @@ class ElementDefintionWorkflowFunctionsSpec extends FunSpecLike
         options.reset
         val edId = uuid()
         options.addOption("mid", edId)
-        options.addOption("name", "box")
+        options.addOption("name", "box2")
         options.addOption("description", "A container with equal sized dimensions on all axis.")
         options.addOption("creationTime", time)
         options.addOption("activeUserId", activeUserId)
@@ -355,7 +356,7 @@ class ElementDefintionWorkflowFunctionsSpec extends FunSpecLike
         options.reset
         val edId = uuid()
         options.addOption("mid", edId)
-        options.addOption("name", "box")
+        options.addOption("name", "box3")
         options.addOption("description", "A container with equal sized dimensions on all axis.")
         options.addOption("creationTime", time)
 
@@ -433,7 +434,7 @@ class ElementDefintionWorkflowFunctionsSpec extends FunSpecLike
 
         val capsule = (engine.database, CommandScopes.SystemSpaceScope, options, Left(WorkflowStatuses.OK))
         val processed = workflow(capsule)
-        processed._4 should equal(Right(ElementDefAlreadyExistsErrorMsg))
+        processed._4 should equal(Right("Internal Error: Element Definition could not be created."))
       }
 
       /*
@@ -448,7 +449,7 @@ class ElementDefintionWorkflowFunctionsSpec extends FunSpecLike
 
         val edId = uuid()
         options.addOption("mid", edId)
-        options.addOption("name", "box")
+        options.addOption("name", "box4")
         options.addOption("description", "A container with equal sized dimensions on all axis.")
         options.addOption("creationTime", time)
 
@@ -471,7 +472,7 @@ class ElementDefintionWorkflowFunctionsSpec extends FunSpecLike
 
         val edId = uuid()
         options.addOption("mid", edId)
-        options.addOption("name", "box")
+        options.addOption("name", "box5")
         options.addOption("description", "A container with equal sized dimensions on all axis.")
         options.addOption("creationTime", time)
 
@@ -492,7 +493,7 @@ class ElementDefintionWorkflowFunctionsSpec extends FunSpecLike
 
         val edId = uuid()
         options.addOption("mid", edId)
-        options.addOption("name", "box")
+        options.addOption("name", "box6")
         options.addOption("description", "A container with equal sized dimensions on all axis.")
         options.addOption("creationTime", time)
         options.addOption("activeUserId", activeUserId)

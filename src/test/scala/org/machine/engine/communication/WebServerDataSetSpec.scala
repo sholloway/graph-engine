@@ -241,10 +241,10 @@ class WebServerDataSetSpec extends FunSpecLike
           val dsName = "Murphy"
           val dsId = engine.forUser(activeUserId).createDataSet(dsName, "A data set.")
           val edId = engine.forUser(activeUserId).onDataSet(dsId)
-            .defineElement("blah", "A poorly named element definition.")
+            .defineElement("Bad name", "A poorly named element definition.")
           .end
 
-          val betterName = "Better Name"
+          val betterName = "Another Better Name"
 
           val request = buildWSRequest(activeUserId,
             "Update",

@@ -82,13 +82,6 @@ class UserSpaceSpec extends FunSpec
   describe("Machine Engine"){
 
     describe("User Space"){
-      it("should have one and only one user space"){
-        val findUserSpace = "match (us:internal_user_space) return us.mid as id, us.name as name"
-        val userSpaces = query[UserSpace](engine.database, findUserSpace, null, UserSpace.queryMapper)
-        userSpaces.isEmpty shouldBe false
-        userSpaces.length shouldBe 1
-      }
-
       describe("Element Definitions"){
         it("should create an ElementDefinition"){
           val name = "Use Case"

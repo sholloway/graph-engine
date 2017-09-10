@@ -58,12 +58,9 @@ object Engine{
 
 class Engine private (dbPath:String, decisionTree: Question) extends GraphDSL with LazyLogging{
   import Neo4JHelper._
-  import SystemSpaceManager._
-  import UserSpaceManager._
+  import SchemaCreator._
 
   var graphDBOption: Option[GraphDatabaseService] = None
-  var systemSpaceOption:Option[SystemSpace] = None
-  var userSpaceOption:Option[UserSpace] = None
   var scope:CommandScope = CommandScopes.SystemSpaceScope
   var command:EngineCommand = EngineCommands.DefineElement
   var cmdOptions:GraphCommandOptions = new GraphCommandOptions()
@@ -72,17 +69,13 @@ class Engine private (dbPath:String, decisionTree: Question) extends GraphDSL wi
   var entityType:EntityType = EntityTypes.None
   var filter:Filter = Filters.None
 
-  def systemSpace:SystemSpace = this.systemSpaceOption.getOrElse(throw new InternalErrorException("SystemSpace has not be initialized."))
-  def userSpace:UserSpace = this.userSpaceOption.getOrElse(throw new InternalErrorException("UserSpace has not be initialized."))
-
   setup
 
   private def setup(){
     logger.debug("Engine: Setting Up")
     verifyFile(dbPath)
     initializeDatabase(dbPath)
-    setSystemSpace(verifySystemSpace(database))
-    setUserSpace(verifyUserSpace(database))
+    createPropertyGraphDataModel(database)
   }
 
   def shutdown(){
@@ -120,16 +113,6 @@ class Engine private (dbPath:String, decisionTree: Question) extends GraphDSL wi
       .newGraphDatabase()
 
     graphDBOption = Some(graphDB)
-  }
-
-  private def setSystemSpace(ss:SystemSpace):SystemSpace = {
-    this.systemSpaceOption = Some(ss)
-    return this.systemSpaceOption.get
-  }
-
-  private def setUserSpace(us:UserSpace):UserSpace = {
-    this.userSpaceOption = Some(us)
-    return this.userSpaceOption.get
   }
 
   //////////////////////////////////////////////////////////////////////////////
