@@ -28,7 +28,9 @@ import org.machine.engine.TestUtils
 import akka.http.scaladsl.unmarshalling.Unmarshal
 
 class HttpRequestsSpec extends FunSpecLike
-  with Matchers with ScalaFutures with BeforeAndAfterAll{
+  with Matchers
+  with ScalaFutures
+  with BeforeAndAfterAll{
   import WSHelper._
   import TestUtils._
   // implicit val defaultPatience = PatienceConfig(timeout = Span(5, Seconds), interval = Span(500, Millis))
