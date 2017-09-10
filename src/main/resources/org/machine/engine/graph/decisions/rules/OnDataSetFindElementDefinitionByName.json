@@ -1,7 +1,7 @@
 {
   "name": "Find an Element Definition by Name",
   "description": "Find a specific element definition by its Name.",
-  "scope": "internal_data_set",
+  "scope": "data_set",
   "entityType": "ElementDefinition",
   "actionType": "Retrieve",
   "filter": "Name",

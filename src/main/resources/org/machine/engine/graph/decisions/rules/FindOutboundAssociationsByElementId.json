@@ -1,7 +1,7 @@
 {
   "name": "Find Outbound Association",
   "description": "Find all outbound associations associated with a given element.",
-  "scope": "internal_data_set",
+  "scope": "data_set",
   "entityType": "OutboundAssociation",
   "actionType": "Retrieve",
   "filter": "None",

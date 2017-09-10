@@ -22,14 +22,13 @@ class FindDataSetByName(database: GraphDatabaseService,
   def execute():QueryCmdResult[DataSet] = {
     logger.debug("FindDataSetByName: Executing Command")
     val findDataSets = """
-      |match (ss:space)-[:contains]->(ds:internal_data_set {name:{name}})
+      |match (u:user {mid: {activeUserId}})-[:owns]->(ds:data_set {name:{name}})
       |return ds.mid as id,
       |  ds.name as name,
       |  ds.description as description,
       |  ds.creation_time as creationTime,
       |  ds.last_modified_time as lastModifiedTime
       """.stripMargin
-        .replaceAll("space", cmdScope.scope)
 
     val records = query[DataSet](database,
       findDataSets, cmdOptions.toJavaMap, dataSetMapper)

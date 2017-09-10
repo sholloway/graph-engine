@@ -1,17 +1,16 @@
 package org.machine.engine.graph.commands
 
-import org.neo4j.graphdb._
-
 import scala.collection.JavaConversions._
 import scala.collection.mutable.{ArrayBuffer, ListBuffer, Map}
 
-
+import org.neo4j.graphdb._
 import org.machine.engine.exceptions._
 import org.machine.engine.graph._
 import org.machine.engine.graph.commands._
-import org.machine.engine.graph.nodes._
-import org.machine.engine.graph.labels._
+import org.machine.engine.graph.commands.workflows._
 import org.machine.engine.graph.internal._
+import org.machine.engine.graph.labels._
+import org.machine.engine.graph.nodes._
 
 /** Find an ElementDefinition in a specified graph space by ID or Name.
 */
@@ -20,16 +19,25 @@ trait FindElementDefinition extends Neo4JQueryCommand[ElementDefinition]{
     cmdOptions: GraphCommandOptions):String = {
     val scope = cmdScope match{
       case CommandScopes.SystemSpaceScope => CommandScopes.SystemSpaceScope.scope
-      case CommandScopes.UserSpaceScope => CommandScopes.UserSpaceScope.scope
+      case CommandScopes.UserSpaceScope => {
+        val userScope = if(cmdOptions.contains(UserId)){
+          s"${CommandScopes.UserSpaceScope.scope} {mid:{activeUserId}}"
+        }else{
+          throw new InternalErrorException(UserSpaceFilterRequiredErrorMsg)
+        }
+        userScope
+      }
       case CommandScopes.DataSetScope => {
-        var str:String = null
-        if(cmdOptions.contains("dsId")){
-          str = "%s {mid:{dsId}}".format(CommandScopes.DataSetScope.scope)
+        val str:String = if(cmdOptions.contains("dsId")){
+          s"${CommandScopes.DataSetScope.scope} {mid:{dsId}}"
         }else if(cmdOptions.contains("dsName")){
-          str = "%s {name:{dsName}}".format(CommandScopes.DataSetScope.scope)
+          s"${CommandScopes.DataSetScope.scope} {name:{dsName}}"
+        }else{
+          throw new InternalErrorException(DataSetFilterRequiredErrorMsg)
         }
         str
       }
+      case CommandScopes.SystemScope => throw new InternalErrorException(SystemSpaceIsNotSupportedMsg)
     }
     return scope
   }

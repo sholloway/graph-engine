@@ -22,6 +22,12 @@ parameters:
     description: The unquie identifier of a user.
     required: true
     type: string
+  session:
+    name: Session
+    in: header
+    description: "Session JWT token."
+    required: true
+    type: string
 
 paths:
   /login:
@@ -56,14 +62,14 @@ paths:
           description: "Internal Error"
           schema:
             type: "string"
-  /logout/{userId}:
-    post:
+  /logout:
+    get:
       summary: "Logout User"
       description: |
-        "Logs a user out by their User ID (not their username). Does nothing
+        "Logs a user out by their session token. Does nothing
         if the user doesn't exist or is not logged in."
       parameters:
-        - $ref: '#/parameters/userId'
+        - $ref: '#/parameters/session'
       responses:
         200:
           description: |

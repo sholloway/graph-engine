@@ -26,7 +26,7 @@ import org.machine.engine.graph.internal._
 
 object Engine{
   val EmptyResultErrorMsg = "Empty Result"
-
+  val ActiveUserNotSetMsg = "An active user must be specified for the engine."
   private val config = ConfigFactory.load()
   private val dbPath = config.getString("engine.graphdb.path")
   private implicit var engine:Option[Engine] = None
@@ -58,22 +58,16 @@ object Engine{
 
 class Engine private (dbPath:String, decisionTree: Question) extends GraphDSL with LazyLogging{
   import Neo4JHelper._
-  import SystemSpaceManager._
-  import UserSpaceManager._
+  import SchemaCreator._
 
   var graphDBOption: Option[GraphDatabaseService] = None
-  var systemSpaceOption:Option[SystemSpace] = None
-  var userSpaceOption:Option[UserSpace] = None
   var scope:CommandScope = CommandScopes.SystemSpaceScope
   var command:EngineCommand = EngineCommands.DefineElement
   var cmdOptions:GraphCommandOptions = new GraphCommandOptions()
   var actionType:ActionType = ActionTypes.None
-  var user:Option[String] = None
+  var activeUserId:Option[String] = None
   var entityType:EntityType = EntityTypes.None
   var filter:Filter = Filters.None
-
-  def systemSpace:SystemSpace = this.systemSpaceOption.getOrElse(throw new InternalErrorException("SystemSpace has not be initialized."))
-  def userSpace:UserSpace = this.userSpaceOption.getOrElse(throw new InternalErrorException("UserSpace has not be initialized."))
 
   setup
 
@@ -81,8 +75,7 @@ class Engine private (dbPath:String, decisionTree: Question) extends GraphDSL wi
     logger.debug("Engine: Setting Up")
     verifyFile(dbPath)
     initializeDatabase(dbPath)
-    setSystemSpace(verifySystemSpace(database))
-    setUserSpace(verifyUserSpace(database))
+    createPropertyGraphDataModel(database)
   }
 
   def shutdown(){
@@ -122,31 +115,23 @@ class Engine private (dbPath:String, decisionTree: Question) extends GraphDSL wi
     graphDBOption = Some(graphDB)
   }
 
-  private def setSystemSpace(ss:SystemSpace):SystemSpace = {
-    this.systemSpaceOption = Some(ss)
-    return this.systemSpaceOption.get
-  }
-
-  private def setUserSpace(us:UserSpace):UserSpace = {
-    this.userSpaceOption = Some(us)
-    return this.userSpaceOption.get
-  }
-
   //////////////////////////////////////////////////////////////////////////////
   //Abstract handlers
   def reset():GraphDSL = {
     cmdOptions.reset
     actionType = ActionTypes.None
-    user = None
+    activeUserId = None
     entityType = EntityTypes.None
     filter = Filters.None
     return this
   }
 
-  def setUser(user: Option[String]):GraphDSL = {
-    this.user = user
+  def setUser(userId: String):GraphDSL = {
+    this.activeUserId = Some(userId)
     return this;
   }
+
+  def forUser(userId: String):GraphDSL = setUser(userId)
 
   def setScope(scope: CommandScope):GraphDSL = {
     this.scope = scope
@@ -174,12 +159,12 @@ class Engine private (dbPath:String, decisionTree: Question) extends GraphDSL wi
   }
 
   def run():EngineCmdResult = {
-    val decisionRequest = DecisionRequest(this.user,
+    cmdOptions.addOption("activeUserId",activeUserId.getOrElse(throw new InternalErrorException(Engine.ActiveUserNotSetMsg)))
+    val decisionRequest = DecisionRequest(this.activeUserId,
       this.actionType,
       this.scope,
       this.entityType,
       this.filter)
-
     val decision = DecisionDSL.findDecision(this.decisionTree, decisionRequest)
     val cmd = DynamicCmdLoader.provision(decision.name, database, scope, cmdOptions)
     return cmd.execute()
@@ -201,6 +186,7 @@ class Engine private (dbPath:String, decisionTree: Question) extends GraphDSL wi
     this.scope = CommandScopes.UserSpaceScope
     command = EngineCommands.CreateDataSet
     cmdOptions.reset
+    cmdOptions.addOption("activeUserId",activeUserId.getOrElse(throw new InternalErrorException(Engine.ActiveUserNotSetMsg)))
     cmdOptions.addOption("mid", uuid)
     cmdOptions.addOption("name", name)
     cmdOptions.addOption("description", description)
@@ -213,6 +199,7 @@ class Engine private (dbPath:String, decisionTree: Question) extends GraphDSL wi
   def datasets():Seq[DataSet] = {
     this.scope = CommandScopes.UserSpaceScope
     cmdOptions.reset
+    cmdOptions.addOption("activeUserId",activeUserId.getOrElse(throw new InternalErrorException(Engine.ActiveUserNotSetMsg)))
     val cmd = new ListDataSets(database, scope, cmdOptions)
     val result:QueryCmdResult[DataSet] = cmd.execute()
     return result.results
@@ -221,6 +208,7 @@ class Engine private (dbPath:String, decisionTree: Question) extends GraphDSL wi
   def findDataSetByName(name:String):DataSet = {
     this.scope = CommandScopes.UserSpaceScope
     cmdOptions.reset
+    cmdOptions.addOption("activeUserId",activeUserId.getOrElse(throw new InternalErrorException(Engine.ActiveUserNotSetMsg)))
     cmdOptions.addOption("name", name)
     val cmd = new FindDataSetByName(database, scope, cmdOptions)
     val result:QueryCmdResult[DataSet] = cmd.execute()
@@ -231,6 +219,7 @@ class Engine private (dbPath:String, decisionTree: Question) extends GraphDSL wi
     scope = CommandScopes.DataSetScope
     command = EngineCommands.EditDataSet
     cmdOptions.reset
+    cmdOptions.addOption("activeUserId",activeUserId.getOrElse(throw new InternalErrorException(Engine.ActiveUserNotSetMsg)))
     cmdOptions.addOption("dsId", id)
     return this;
   }
@@ -246,6 +235,7 @@ class Engine private (dbPath:String, decisionTree: Question) extends GraphDSL wi
   def findDataSetById(id: String):DataSet = {
     scope = CommandScopes.UserSpaceScope
     cmdOptions.reset
+    cmdOptions.addOption("activeUserId",activeUserId.getOrElse(throw new InternalErrorException(Engine.ActiveUserNotSetMsg)))
     cmdOptions.addOption("dsId", id)
     val cmd = new FindDataSetById(database, scope, cmdOptions)
     val result:QueryCmdResult[DataSet] = cmd.execute()
@@ -258,6 +248,7 @@ class Engine private (dbPath:String, decisionTree: Question) extends GraphDSL wi
     if(scope != CommandScopes.DataSetScope){
       cmdOptions.reset
     }
+    cmdOptions.addOption("activeUserId",activeUserId.getOrElse(throw new InternalErrorException(Engine.ActiveUserNotSetMsg)))
     cmdOptions.addOption("mid",uuid)
     cmdOptions.addOption("name",name)
     cmdOptions.addOption("description",description)
@@ -276,6 +267,7 @@ class Engine private (dbPath:String, decisionTree: Question) extends GraphDSL wi
   }
 
   def elementDefinitions():Seq[ElementDefinition] = {
+    cmdOptions.addOption("activeUserId",activeUserId.getOrElse(throw new InternalErrorException(Engine.ActiveUserNotSetMsg)))
     val cmd = new ListAllElementDefinitions(database, scope, cmdOptions)
     val result:QueryCmdResult[ElementDefinition] = cmd.execute()
     return result.results
@@ -286,6 +278,7 @@ class Engine private (dbPath:String, decisionTree: Question) extends GraphDSL wi
       cmdOptions.reset
     }
     cmdOptions.addOption("mid", id)
+    cmdOptions.addOption("activeUserId",activeUserId.getOrElse(throw new InternalErrorException(Engine.ActiveUserNotSetMsg)))
     val cmd = new FindElementDefinitionById(database, scope, cmdOptions)
     val result:QueryCmdResult[ElementDefinition] = cmd.execute()
     handleErrorResult(result)
@@ -297,6 +290,7 @@ class Engine private (dbPath:String, decisionTree: Question) extends GraphDSL wi
       cmdOptions.reset
     }
     cmdOptions.addOption("name", name)
+    cmdOptions.addOption("activeUserId",activeUserId.getOrElse(throw new InternalErrorException(Engine.ActiveUserNotSetMsg)))
     val cmd = new FindElementDefinitionByName(database, scope, cmdOptions)
     val elements = cmd.execute()
     val result:QueryCmdResult[ElementDefinition] = cmd.execute()
@@ -320,6 +314,7 @@ class Engine private (dbPath:String, decisionTree: Question) extends GraphDSL wi
     if(scope != CommandScopes.DataSetScope){
       cmdOptions.reset
     }
+    cmdOptions.addOption("activeUserId",activeUserId.getOrElse(throw new InternalErrorException(Engine.ActiveUserNotSetMsg)))
     cmdOptions.addOption("mid", id)
     return this
   }
@@ -373,9 +368,6 @@ class Engine private (dbPath:String, decisionTree: Question) extends GraphDSL wi
       Executes the built up command.
       Only used for commands of type Insert, Update, Delete.
       No queries.
-
-      TODO: Replace CommandFactory with Decision Tree.
-      Do this after all commands have their ancestry updated.
   */
   def end():String = {
     logger.debug("Engine: Attempt to execute command.")

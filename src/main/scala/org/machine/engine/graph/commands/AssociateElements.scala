@@ -44,11 +44,11 @@ class AssociateElements(database:GraphDatabaseService,
   private def associateElements(graphDB:GraphDatabaseService):Unit = {
     logger.debug("AssociateElements: Associating elements.")
     val associationType = buildAssociationLabel(cmdOptions)
-    val exclude = List("dsId", "startingElementId", "endingElementId", "associationName")
+    val exclude = List("dsId", "startingElementId", "endingElementId", "associationName", "activeUserId")
     val setClause = buildRelationshipClause(cmdOptions.keys, exclude)
     val statement = """
-      |match (ds:internal_data_set {mid:{dsId}})-[:contains]->(startingElement {mid:{startingElementId}})
-      |match (ds:internal_data_set {mid:{dsId}})-[:contains]->(endingElement {mid:{endingElementId}})
+      |match (u:user {mid:{activeUserId}})-[:owns]->(ds:data_set {mid:{dsId}})-[:contains]->(startingElement {mid:{startingElementId}})
+      |match (u:user {mid:{activeUserId}})-[:owns]->(ds:data_set {mid:{dsId}})-[:contains]->(endingElement {mid:{endingElementId}})
       |create (startingElement)-[a:association {setClause}]->(endingElement)
       """.stripMargin
         .replaceAll("association", associationType)

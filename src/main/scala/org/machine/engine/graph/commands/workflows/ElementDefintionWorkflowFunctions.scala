@@ -12,6 +12,7 @@ import org.neo4j.graphdb.GraphDatabaseService
 
 object ElementDefintionWorkflowFunctions extends LazyLogging{
   import Neo4JHelper._
+  private val ElementDefinitionStatusCouldNotBeCreatedErrorMsg = "Element Definition could not be created."
 
   def workflow(capsule: Capsule):Capsule = {
     val wf = Function.chain(Seq(
@@ -55,6 +56,8 @@ object ElementDefintionWorkflowFunctions extends LazyLogging{
       if(!isDefinedAt(capsule)) return capsule
       val errorMsg:Option[String] = if (!capsule._3.contains(Mid)){
         Some(MissingMidErrorMsg)
+      }else if(!capsule._3.contains(UserId)){
+        Some(MissingUserIdErrorMsg)
       }else if (!capsule._3.contains(Name)){
         Some(MissingNameErrorMsg)
       }else if (!capsule._3.contains(Description)){
@@ -159,7 +162,6 @@ object ElementDefintionWorkflowFunctions extends LazyLogging{
     results += id
   }
 
-  val ElementDefinitionStatusCouldNotBeCreatedErrorMsg = "Element Definition could not be created."
   private def determineCreateElementDefinitionStatus(createdEdIds: Option[List[String]],
     capsule: Capsule):Status =
     if(createdEdIds.isDefined && createdEdIds.get.length == 1){
@@ -169,6 +171,8 @@ object ElementDefintionWorkflowFunctions extends LazyLogging{
       if(createdEdIds.isDefined && createdEdIds.get.length > 1){
         logger.error("Created more than one element definition.")
       }else if(createdEdIds.isDefined && createdEdIds.get.isEmpty){
+        logger.error("Statement ran, but no element definitions were created.")
+      }else{
         logger.error("Statement ran, but no element definitions were created.")
       }
       Right(ElementDefinitionStatusCouldNotBeCreatedErrorMsg)

@@ -46,18 +46,21 @@ lazy val root = (project in file(".")).
 	settings(projectSettings: _*).
   enablePlugins(AssemblyPlugin)
 
+val AKKA_VERSION = "2.5.4"
+val AKKA_HTTP_VERSION = "10.0.10"
 //Maven Format: groupID % artifactID % revision
 libraryDependencies ++= Seq(
 	"org.scalatest" % "scalatest_2.11" % "2.2.6" % Test,
 	"org.easymock" % "easymock" % "3.3.1" % Test,
-	 "com.typesafe.akka" %% "akka-actor" % "2.4.17",
-	 "com.typesafe.akka" %% "akka-testkit" % "2.4.17" % Test,
-	 "com.typesafe.akka" %% "akka-slf4j" % "2.4.17",
-	 "com.typesafe.akka" %% "akka-http-core" % "10.0.6",
-	 "com.typesafe.akka" %% "akka-http" % "10.0.6",
-	 "com.typesafe.akka" %% "akka-http-testkit" % "10.0.6" % Test,
-	 "com.typesafe.akka" %% "akka-http-spray-json" % "10.0.6",
-	 "com.typesafe.akka" %% "akka-camel" % "2.4.17",
+	 "com.typesafe.akka" %% "akka-actor" % AKKA_VERSION,
+	 "com.typesafe.akka" %% "akka-testkit" % AKKA_VERSION % Test,
+	 "com.typesafe.akka" %% "akka-slf4j" % AKKA_VERSION,
+	 "com.typesafe.akka" %% "akka-stream" % AKKA_VERSION,
+	 "com.typesafe.akka" %% "akka-http-core" % AKKA_HTTP_VERSION,
+	 "com.typesafe.akka" %% "akka-http" % AKKA_HTTP_VERSION,
+	 "com.typesafe.akka" %% "akka-http-testkit" % AKKA_HTTP_VERSION % Test,
+	 "com.typesafe.akka" %% "akka-http-spray-json" % AKKA_HTTP_VERSION,
+	 "com.typesafe.akka" %% "akka-camel" % AKKA_VERSION,
 	 "org.apache.camel" % "camel-stream" % "2.18.2",
 	 "com.typesafe.scala-logging" %% "scala-logging" % "3.5.0",
 	 "ch.qos.logback" % "logback-classic" % "1.1.7",
@@ -65,11 +68,11 @@ libraryDependencies ++= Seq(
 	 "org.zeromq" % "jeromq" % "0.3.5",
 	 "org.neo4j" % "neo4j" % "3.1.1",
 	 "org.neo4j" % "neo4j-slf4j" % "3.1.1",
-	 "com.softwaremill.akka-http-session" %% "core" % "0.4.0",
-   "com.softwaremill.akka-http-session" %% "jwt"  % "0.4.0",
+	 "com.softwaremill.akka-http-session" %% "core" % "0.5.1",
+   "com.softwaremill.akka-http-session" %% "jwt"  % "0.5.1",
 	 "org.neo4j" % "neo4j-graphviz" % "3.1.1" % Test,
 	 "org.neo4j" % "neo4j-io" % "3.1.1" % Test,
-	 "net.liftweb" %% "lift-json" % "3.0-RC3",
+	 "net.liftweb" %% "lift-json" % "3.2.0-M1", //3.0-RC3
 	 "com.squareup.okhttp3" % "okhttp" % "3.6.0"% Test
 )
 

@@ -1,7 +1,7 @@
 {
   "name": "Update DataSet",
   "description": "Update a dataset.",
-  "scope": "internal_user_space",
+  "scope": "user",
   "entityType": "DataSet",
   "actionType": "Update",
   "filter": "None",

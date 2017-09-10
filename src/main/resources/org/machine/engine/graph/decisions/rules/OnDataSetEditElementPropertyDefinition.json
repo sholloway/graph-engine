@@ -1,7 +1,7 @@
 {
   "name": "Update Element Definition Property Definition on a Dataset",
   "description": "Update an element definition's property.",
-  "scope": "internal_data_set",
+  "scope": "data_set",
   "entityType": "PropertyDefinition",
   "actionType": "Update",
   "filter": "None",

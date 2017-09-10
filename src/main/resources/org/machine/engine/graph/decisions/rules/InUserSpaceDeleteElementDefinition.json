@@ -1,7 +1,7 @@
 {
   "name": "Delete Element Definition",
   "description": "Delete an element definition.",
-  "scope": "internal_user_space",
+  "scope": "user",
   "entityType": "ElementDefinition",
   "actionType": "Delete",
   "filter": "None",

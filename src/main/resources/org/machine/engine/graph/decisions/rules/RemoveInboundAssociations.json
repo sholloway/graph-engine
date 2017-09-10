@@ -1,7 +1,7 @@
 {
   "name": "Remove Inbound Associations",
   "description": "Remove all inbound associations from an element.",
-  "scope": "internal_data_set",
+  "scope": "data_set",
   "entityType": "InboundAssociation",
   "actionType": "Delete",
   "filter": "None",

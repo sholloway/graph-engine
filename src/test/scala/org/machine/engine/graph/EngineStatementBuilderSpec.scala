@@ -18,13 +18,25 @@ import org.machine.engine.graph.commands._
 import org.machine.engine.exceptions._
 import org.machine.engine.graph.nodes._
 
-class EngineStatementBuilderSpec extends FunSpec with Matchers with EasyMockSugar with BeforeAndAfterAll{
+class EngineStatementBuilderSpec extends FunSpec
+  with Matchers
+  with EasyMockSugar
+  with BeforeAndAfterAll{
   import Neo4JHelper._
   import TestUtils._
   var engine:Engine = null
+  private var activeUserId:String = null
   override def beforeAll(){
     engine = Engine.getInstance
     perge
+    activeUserId = Engine.getInstance
+      .createUser
+      .withFirstName("Bob")
+      .withLastName("Grey")
+      .withEmailAddress("onebadclown@derry-maine.com")
+      .withUserName("pennywise")
+      .withUserPassword("You'll float too...")
+    .end
   }
 
   override def afterAll(){
@@ -36,12 +48,10 @@ class EngineStatementBuilderSpec extends FunSpec with Matchers with EasyMockSuga
   */
   describe("Engine Statement Builder"){
     it ("should find all datasets"){
-      engine.createDataSet("Dataset A", "")
-      engine.createDataSet("Dataset B", "")
-      engine.createDataSet("Dataset C", "")
-      val result:EngineCmdResult = engine
-        .reset
-        .setUser(Some("da user"))
+      engine.forUser(activeUserId).createDataSet("Dataset A", "")
+      engine.forUser(activeUserId).createDataSet("Dataset B", "")
+      engine.forUser(activeUserId).createDataSet("Dataset C", "")
+      val result:EngineCmdResult = engine.forUser(activeUserId)
         .setScope(CommandScopes.UserSpaceScope)
         .setActionType(ActionTypes.Retrieve)
         .setEntityType(EntityTypes.DataSet)
@@ -51,7 +61,7 @@ class EngineStatementBuilderSpec extends FunSpec with Matchers with EasyMockSuga
       result.asInstanceOf[QueryCmdResult[DataSet]].results.length should equal(3)
     }
 
-    it("should use refelction"){
+    it("should use reflection"){
       val cmd = DynamicCmdLoader.provision("ListDataSets", null, null, null)
       cmd shouldBe a [ListDataSets]
     }

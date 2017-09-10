@@ -20,14 +20,26 @@ import org.machine.engine.exceptions._
 import org.machine.engine.graph.nodes._
 
 
-class UserSpaceSpec extends FunSpec with Matchers with EasyMockSugar with BeforeAndAfterAll{
+class UserSpaceSpec extends FunSpec
+  with Matchers
+  with EasyMockSugar
+  with BeforeAndAfterAll{
   import Neo4JHelper._
   import TestUtils._
-  var engine:Engine = null
+  private var engine:Engine = null
+  private var activeUserId:String = null
 
   override def beforeAll(){
     engine = Engine.getInstance
     perge
+    activeUserId = Engine.getInstance
+      .createUser
+      .withFirstName("Bob")
+      .withLastName("Grey")
+      .withEmailAddress("onebadclown@derry-maine.com")
+      .withUserName("pennywise")
+      .withUserPassword("You'll float too...")
+    .end
   }
 
   override def afterAll(){
@@ -70,13 +82,6 @@ class UserSpaceSpec extends FunSpec with Matchers with EasyMockSugar with Before
   describe("Machine Engine"){
 
     describe("User Space"){
-      it("should have one and only one user space"){
-        val findUserSpace = "match (us:internal_user_space) return us.mid as id, us.name as name"
-        val userSpaces = query[UserSpace](engine.database, findUserSpace, null, UserSpace.queryMapper)
-        userSpaces.isEmpty shouldBe false
-        userSpaces.length shouldBe 1
-      }
-
       describe("Element Definitions"){
         it("should create an ElementDefinition"){
           val name = "Use Case"
@@ -86,12 +91,13 @@ class UserSpaceSpec extends FunSpec with Matchers with EasyMockSugar with Before
           val ptype = "String"
           val pdescription = "A detailed series of paragraphs capturing the use case."
           engine
+            .forUser(activeUserId)
             .inUserSpace
             .defineElement(name, description)
             .withProperty(pname, ptype, pdescription)
             .end
 
-          val useCase = engine
+          val useCase = engine.forUser(activeUserId)
             .inUserSpace
             .findElementDefinitionByName("Use Case")
 
@@ -106,13 +112,13 @@ class UserSpaceSpec extends FunSpec with Matchers with EasyMockSugar with Before
         }
 
         it("should update both name & defintion"){
-          engine
+          engine.forUser(activeUserId)
             .inUserSpace()
             .defineElement("System", "A thing about a thing...")
             .withProperty("Name", "String", "The name of the system.")
             .end()
 
-          val systemOption = engine
+          val systemOption = engine.forUser(activeUserId)
             .inUserSpace()
             .elementDefinitions()
             .find(e => {e.name == "System"})
@@ -123,14 +129,14 @@ class UserSpaceSpec extends FunSpec with Matchers with EasyMockSugar with Before
           | forming an integrated whole.
           """.stripMargin
 
-          engine
+          engine.forUser(activeUserId)
             .inUserSpace()
             .onElementDefinition(systemOption.get.id)
             .setName(updatedName)
             .setDescription(updatedDescription)
             .end()
 
-          val updatedSystem = engine
+          val updatedSystem = engine.forUser(activeUserId)
             .inUserSpace()
             .findElementDefinitionById(systemOption.get.id)
 
@@ -139,13 +145,13 @@ class UserSpaceSpec extends FunSpec with Matchers with EasyMockSugar with Before
         }
 
         it("should update an ElementDefinition's PropertyDefintion"){
-          engine
+          engine.forUser(activeUserId)
             .inUserSpace()
             .defineElement("System", "A thing about a thing...")
             .withProperty("Name", "String", "The name of the system.")
             .end()
 
-          val systemOption = engine
+          val systemOption = engine.forUser(activeUserId)
             .inUserSpace()
             .elementDefinitions()
             .find(e => {e.name == "System"})
@@ -155,7 +161,7 @@ class UserSpaceSpec extends FunSpec with Matchers with EasyMockSugar with Before
           val updatedDescription = "Illogical field. The type doesn't make sense."
 
           //find the property by its name, then change the name, type and description.
-          engine
+          engine.forUser(activeUserId)
             .inUserSpace()
             .onElementDefinition(systemOption.get.id)
             .editPropertyDefinition("Name")
@@ -164,7 +170,7 @@ class UserSpaceSpec extends FunSpec with Matchers with EasyMockSugar with Before
             .setDescription(updatedDescription)
             .end()
 
-          val updatedSystem = engine
+          val updatedSystem = engine.forUser(activeUserId)
             .inUserSpace()
             .findElementDefinitionById(systemOption.get.id)
 
@@ -177,7 +183,7 @@ class UserSpaceSpec extends FunSpec with Matchers with EasyMockSugar with Before
         }
 
         it("should remove an ElementDefinition's PropertyDefintion"){
-          engine
+          engine.forUser(activeUserId)
             .inUserSpace()
             .defineElement("Committee Review", "Critical examination of a document or plan, resulting in a score and/or written feedback.")
             .withProperty("Status", "String", "The current status of the review in the review process.")
@@ -185,7 +191,7 @@ class UserSpaceSpec extends FunSpec with Matchers with EasyMockSugar with Before
             .withProperty("Rating", "String", "The rating that was issued by the review board.")
             .end()
 
-          val committeReviewOption = engine
+          val committeReviewOption = engine.forUser(activeUserId)
             .inUserSpace()
             .elementDefinitions()
             .find(e => {e.name == "Committee Review"})
@@ -193,13 +199,13 @@ class UserSpaceSpec extends FunSpec with Matchers with EasyMockSugar with Before
           committeReviewOption.get.properties.length shouldBe 3
           committeReviewOption.get.properties.exists(_.name == "Rating") shouldBe true
 
-          engine
+          engine.forUser(activeUserId)
             .inUserSpace()
             .onElementDefinition(committeReviewOption.get.id)
             .removePropertyDefinition("Rating")
             .end()
 
-          val committeReview = engine
+          val committeReview = engine.forUser(activeUserId)
             .inUserSpace()
             .findElementDefinitionById(committeReviewOption.get.id)
 
@@ -215,7 +221,7 @@ class UserSpaceSpec extends FunSpec with Matchers with EasyMockSugar with Before
           |well articulated, testable, and significant.
           """.stripMargin
 
-          engine
+          engine.forUser(activeUserId)
             .inUserSpace
             .defineElement("Architecture Principle", definition)
             .withProperty("Description", "String", "A paragraph about the principle.")
@@ -223,17 +229,17 @@ class UserSpaceSpec extends FunSpec with Matchers with EasyMockSugar with Before
             .withProperty("Area of Relevence", "String", "Classification of when the principle is appropriate.")
             .end
 
-          val archPrinciple = engine
+          val archPrinciple = engine.forUser(activeUserId)
             .inUserSpace
             .findElementDefinitionByName("Architecture Principle")
 
-          engine
+          engine.forUser(activeUserId)
             .inUserSpace
             .onElementDefinition(archPrinciple.id)
             .delete()
             .end
 
-          val expectedIdMsg = "No element definition with ID: %s could be found in %s".format(archPrinciple.id, "internal_user_space")
+          val expectedIdMsg = "No element definition with ID: %s could be found in %s".format(archPrinciple.id, "user")
           the [InternalErrorException] thrownBy{
             engine
               .inUserSpace
@@ -241,7 +247,7 @@ class UserSpaceSpec extends FunSpec with Matchers with EasyMockSugar with Before
           }should have message expectedIdMsg
 
           the [InternalErrorException] thrownBy{
-            engine
+            engine.forUser(activeUserId)
               .inUserSpace
               .findElementDefinitionByName(archPrinciple.name)
           }should have message Engine.EmptyResultErrorMsg

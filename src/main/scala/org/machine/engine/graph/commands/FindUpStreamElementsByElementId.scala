@@ -90,6 +90,6 @@ class FindUpStreamElementsByElementId(database: GraphDatabaseService,
   /** Remove the (dataset)-[:contains]->(element) relationship.
   */
   private def filterElements(elements:List[Element]):List[Element] = {
-    return elements.filterNot(e => e.elementType == "internal_data_set")
+    return elements.filterNot(e => e.elementType == "data_set")
   }
 }

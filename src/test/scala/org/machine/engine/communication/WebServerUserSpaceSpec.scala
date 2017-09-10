@@ -30,15 +30,21 @@ import org.machine.engine.flow.requests._
 class WebServerUserSpaceSpec extends FunSpecLike
   with Matchers
   with ScalaFutures
-  with BeforeAndAfterAll{
+  with BeforeAndAfterAll
+  with BeforeAndAfterEach{
   import WSHelper._
   import TestUtils._
+  import LoginHelper._
 
   //Configure the whenReady for how long to wait.
   implicit val defaultPatience = PatienceConfig(timeout = Span(5, Seconds), interval = Span(500, Millis))
 
   private val config = ConfigFactory.load()
   val server = new WebServer()
+  private val serviceCreds = serviceCredentials()
+  private val PROTOCOL: String = "engine.json.v1"
+  private var jwtSessionToken:String = null
+  private var activeUserId:String = null
   val dbPath = config.getString("engine.graphdb.path")
   val dbFile = new File(dbPath)
   var engine:Engine = null
@@ -54,6 +60,9 @@ class WebServerUserSpaceSpec extends FunSpecLike
     engine = Engine.getInstance
     perge
     server.start()
+    val newUserResponse = createUser(serviceCreds)
+    activeUserId = getUserId(newUserResponse._2)
+    jwtSessionToken = login(serviceCreds)
   }
 
   override def afterAll(){
@@ -61,23 +70,27 @@ class WebServerUserSpaceSpec extends FunSpecLike
     perge
   }
 
+  override def afterEach(){
+    engine.reset()
+  }
+
   describe("Receiving Requests"){
     describe("WebSocket Requests"){
       describe("User Space"){
-        it ("should CreateElementDefinition"){
+        it("should CreateElementDefinition"){
           val edSpec = Map("name"->"Mobile Device",
             "description"->"A computer that can be carried by the user.",
             "properties"->Seq(Map("name"->"Model", "propertyType"->"String", "description"->"The specific manufacture model."),
               Map("name"->"Manufacture", "propertyType"->"String", "description"->"The company that made the device.")))
 
-          val request = buildWSRequest(user="Bob",
-            actionType="Create",
-            scope="UserSpace",
-            entityType="ElementDefinition",
-            filter="None",
-            options=edSpec)
+          val request = buildWSRequest(activeUserId,
+            "Create",
+            "UserSpace",
+            "ElementDefinition",
+            "None",
+            edSpec)
 
-          val closed:Future[Seq[Message]] = invokeWS(request, enginePath)
+          val closed:Future[Seq[Message]] = invokeWS(request, enginePath, PROTOCOL, jwtSessionToken)
 
           whenReady(closed){ results =>
             results should have length 2
@@ -85,27 +98,29 @@ class WebServerUserSpaceSpec extends FunSpecLike
             val payloadMap = strToMap(envelopeMap("textMessage").asInstanceOf[String])
             payloadMap.contains("id") should equal(true)
             val edId = payloadMap("id").asInstanceOf[String]
-            val ed = engine.inUserSpace.findElementDefinitionById(edId)
+            val ed = engine.forUser(activeUserId)
+              .inUserSpace
+              .findElementDefinitionById(edId)
             ed.name should equal("Mobile Device")
             ed.description should equal("A computer that can be carried by the user.")
             ed.properties should have length 2
           }
         }
 
-        it ("should ListAllElementDefinitions"){
-          engine
+        it("should ListAllElementDefinitions"){
+          engine.forUser(activeUserId)
             .inUserSpace
             .defineElement("Note", "A brief record of something, captured to assist the memory or for future reference.")
             .withProperty("Note Text", "String", "The body of the note.")
           .end
 
-          val request = buildWSRequest(user="Bob",
-            actionType="Retrieve",
-            scope="UserSpace",
-            entityType="ElementDefinition",
-            filter="All")
+          val request = buildWSRequest(activeUserId,
+            "Retrieve",
+            "UserSpace",
+            "ElementDefinition",
+            "All")
 
-          val closed:Future[Seq[Message]] = invokeWS(request, enginePath)
+          val closed:Future[Seq[Message]] = invokeWS(request, enginePath, PROTOCOL, jwtSessionToken)
 
           whenReady(closed){ results =>
             results should have length 2
@@ -116,19 +131,19 @@ class WebServerUserSpaceSpec extends FunSpecLike
           }
         }
 
-        it ("should EditElementDefintion"){
-          purgeAllElementDefinitions(CommandScopes.UserSpaceScope)
-          val edId = createTimepieceElementDefinition(CommandScopes.UserSpaceScope)
+        it("should EditElementDefintion"){
+          purgeAllElementDefinitions(CommandScopes.UserSpaceScope, activeUserId)
+          val edId = createTimepieceElementDefinition(CommandScopes.UserSpaceScope, activeUserId)
 
-          val request = buildWSRequest(user="Bob",
-            actionType="Update",
-            scope="UserSpace",
-            entityType="ElementDefinition",
-            filter="None",
-            options=Map("mid"->edId, "name" -> "Watch")
+          val request = buildWSRequest(activeUserId,
+            "Update",
+            "UserSpace",
+            "ElementDefinition",
+            "None",
+            Map("mid"->edId, "name" -> "Watch")
           )
 
-          val closed:Future[Seq[Message]] = invokeWS(request, enginePath)
+          val closed:Future[Seq[Message]] = invokeWS(request, enginePath, PROTOCOL, jwtSessionToken)
 
           whenReady(closed){ results =>
             results should have length 2
@@ -137,26 +152,28 @@ class WebServerUserSpaceSpec extends FunSpecLike
             payloadMap.contains("id") should equal(true)
 
             //verify with engine that it has changed. :)
-            val ed = engine.inUserSpace.findElementDefinitionById(edId)
+            val ed = engine.forUser(activeUserId)
+              .inUserSpace
+              .findElementDefinitionById(edId)
             ed.name should equal("Watch")
           }
         }
 
 
-        it ("should EditElementPropertyDefinition"){
-          purgeAllElementDefinitions(CommandScopes.UserSpaceScope)
-          val edId = createTimepieceElementDefinition(CommandScopes.UserSpaceScope)
+        it("should EditElementPropertyDefinition"){
+          purgeAllElementDefinitions(CommandScopes.UserSpaceScope, activeUserId)
+          val edId = createTimepieceElementDefinition(CommandScopes.UserSpaceScope, activeUserId)
 
-          val request = buildWSRequest(user="Bob",
-            actionType="Update",
-            scope="UserSpace",
-            entityType="PropertyDefinition",
-            filter="None",
-            options=Map("mid"->edId, "pname" -> "Hours",
+          val request = buildWSRequest(activeUserId,
+            "Update",
+            "UserSpace",
+            "PropertyDefinition",
+            "None",
+            Map("mid"->edId, "pname" -> "Hours",
               "description" -> "Tracks the passing of hours.")
           )
 
-          val closed:Future[Seq[Message]] = invokeWS(request, enginePath)
+          val closed:Future[Seq[Message]] = invokeWS(request, enginePath, PROTOCOL, jwtSessionToken)
 
           whenReady(closed){ results =>
             results should have length 2
@@ -165,7 +182,9 @@ class WebServerUserSpaceSpec extends FunSpecLike
             payloadMap.contains("id") should equal(true)
 
             //verify with engine that it has changed. :)
-            val ed = engine.inUserSpace.findElementDefinitionById(edId)
+            val ed = engine.forUser(activeUserId)
+              .inUserSpace
+              .findElementDefinitionById(edId)
             ed.properties.length should equal(3)
             val hoursPropOption = ed.properties.find{ prop => prop.name == "Hours" }
             hoursPropOption.isEmpty should equal(false)
@@ -173,19 +192,19 @@ class WebServerUserSpaceSpec extends FunSpecLike
           }
         }
 
-        it ("should RemoveElementPropertyDefinition"){
-          purgeAllElementDefinitions(CommandScopes.UserSpaceScope)
-          val edId = createTimepieceElementDefinition(CommandScopes.UserSpaceScope)
+        it("should RemoveElementPropertyDefinition"){
+          purgeAllElementDefinitions(CommandScopes.UserSpaceScope, activeUserId)
+          val edId = createTimepieceElementDefinition(CommandScopes.UserSpaceScope, activeUserId)
 
-          val request = buildWSRequest(user="Bob",
-            actionType="Delete",
-            scope="UserSpace",
-            entityType="PropertyDefinition",
-            filter="None",
-            options=Map("mid"->edId, "pname" -> "Hours")
+          val request = buildWSRequest(activeUserId,
+            "Delete",
+            "UserSpace",
+            "PropertyDefinition",
+            "None",
+            Map("mid"->edId, "pname" -> "Hours")
           )
 
-          val closed:Future[Seq[Message]] = invokeWS(request, enginePath)
+          val closed:Future[Seq[Message]] = invokeWS(request, enginePath, PROTOCOL, jwtSessionToken)
 
           whenReady(closed){ results =>
             results should have length 2
@@ -194,26 +213,28 @@ class WebServerUserSpaceSpec extends FunSpecLike
             payloadMap.contains("id") should equal(true)
 
             //verify with engine that it has changed. :)
-            val ed = engine.inUserSpace.findElementDefinitionById(edId)
+            val ed = engine.forUser(activeUserId)
+              .inUserSpace
+              .findElementDefinitionById(edId)
             ed.properties.length should equal(2)
             val hoursPropOption = ed.properties.find{ prop => prop.name == "Hours" }
             hoursPropOption.isEmpty should equal(true)
           }
         }
 
-        it ("should DeleteElementDefintion"){
-          purgeAllElementDefinitions(CommandScopes.UserSpaceScope)
-          val edId = createTimepieceElementDefinition(CommandScopes.UserSpaceScope)
+        it("should DeleteElementDefintion"){
+          purgeAllElementDefinitions(CommandScopes.UserSpaceScope, activeUserId)
+          val edId = createTimepieceElementDefinition(CommandScopes.UserSpaceScope, activeUserId)
 
-          val request = buildWSRequest(user="Bob",
-            actionType="Delete",
-            scope="UserSpace",
-            entityType="ElementDefinition",
-            filter="None",
-            options=Map("mid"->edId)
+          val request = buildWSRequest(activeUserId,
+            "Delete",
+            "UserSpace",
+            "ElementDefinition",
+            "None",
+            Map("mid"->edId)
           )
 
-          val closed:Future[Seq[Message]] = invokeWS(request, enginePath)
+          val closed:Future[Seq[Message]] = invokeWS(request, enginePath, PROTOCOL, jwtSessionToken)
 
           whenReady(closed){ results =>
             results should have length 2
@@ -221,7 +242,7 @@ class WebServerUserSpaceSpec extends FunSpecLike
             val payloadMap = strToMap(envelopeMap("textMessage").asInstanceOf[String])
             payloadMap.contains("id") should equal(true)
 
-            val expectedIdMsg = "No element definition with ID: %s could be found in %s".format(edId, "internal_user_space")
+            val expectedIdMsg = "No element definition with ID: %s could be found in %s".format(edId, "user")
             the [InternalErrorException] thrownBy{
               engine
                 .inUserSpace
@@ -230,19 +251,19 @@ class WebServerUserSpaceSpec extends FunSpecLike
           }
         }
 
-        it ("should FindElementDefinitionById"){
-          purgeAllElementDefinitions(CommandScopes.UserSpaceScope)
-          val edId = createTimepieceElementDefinition(CommandScopes.UserSpaceScope)
+        it("should FindElementDefinitionById"){
+          purgeAllElementDefinitions(CommandScopes.UserSpaceScope, activeUserId)
+          val edId = createTimepieceElementDefinition(CommandScopes.UserSpaceScope, activeUserId)
 
-          val request = buildWSRequest(user="Bob",
-            actionType="Retrieve",
-            scope="UserSpace",
-            entityType="ElementDefinition",
-            filter="ID",
-            options=Map("mid"->edId)
+          val request = buildWSRequest(activeUserId,
+            "Retrieve",
+            "UserSpace",
+            "ElementDefinition",
+            "ID",
+            Map("mid"->edId)
           )
 
-          val closed:Future[Seq[Message]] = invokeWS(request, enginePath)
+          val closed:Future[Seq[Message]] = invokeWS(request, enginePath, PROTOCOL, jwtSessionToken)
 
           whenReady(closed){ results =>
             results should have length 2
@@ -257,19 +278,19 @@ class WebServerUserSpaceSpec extends FunSpecLike
           }
         }
 
-        it ("should FindElementDefinitionByName"){
-          purgeAllElementDefinitions(CommandScopes.UserSpaceScope)
-          val edId = createTimepieceElementDefinition(CommandScopes.UserSpaceScope)
+        it("should FindElementDefinitionByName"){
+          purgeAllElementDefinitions(CommandScopes.UserSpaceScope, activeUserId)
+          val edId = createTimepieceElementDefinition(CommandScopes.UserSpaceScope, activeUserId)
 
-          val request = buildWSRequest(user="Bob",
-            actionType="Retrieve",
-            scope="UserSpace",
-            entityType="ElementDefinition",
-            filter="Name",
-            options=Map("name"->"Timepiece")
+          val request = buildWSRequest(activeUserId,
+            "Retrieve",
+            "UserSpace",
+            "ElementDefinition",
+            "Name",
+            Map("name"->"Timepiece")
           )
 
-          val closed:Future[Seq[Message]] = invokeWS(request, enginePath)
+          val closed:Future[Seq[Message]] = invokeWS(request, enginePath, PROTOCOL, jwtSessionToken)
 
           whenReady(closed){ results =>
             results should have length 2
@@ -284,20 +305,19 @@ class WebServerUserSpaceSpec extends FunSpecLike
           }
         }
 
-
-        it ("should CreateDataSet"){
+        it("should CreateDataSet"){
           // deleteAllDataSets("Bob")
           val dsName = "Favorite Timepieces"
           val dsDesc = "A collection focused on timepieces."
-          val request = buildWSRequest(user="Bob",
-            actionType="Create",
-            scope="UserSpace",
-            entityType="DataSet",
-            filter="None",
-            options=Map("name"->dsName, "description"->dsDesc)
+          val request = buildWSRequest(activeUserId,
+            "Create",
+            "UserSpace",
+            "DataSet",
+            "None",
+            Map("name"->dsName, "description"->dsDesc)
           )
 
-          val closed:Future[Seq[Message]] = invokeWS(request, enginePath)
+          val closed:Future[Seq[Message]] = invokeWS(request, enginePath, PROTOCOL, jwtSessionToken)
 
           whenReady(closed){ results =>
             results should have length 2
@@ -305,26 +325,28 @@ class WebServerUserSpaceSpec extends FunSpecLike
             val payloadMap = strToMap(envelopeMap("textMessage").asInstanceOf[String])
             payloadMap.contains("id") should equal(true)
             val id = payloadMap("id").asInstanceOf[String]
-            val ds = engine.findDataSetByName(dsName)
+            val ds = engine.forUser(activeUserId)
+              .findDataSetByName(dsName)
             ds.id should equal(id)
             ds.name should equal(dsName)
             ds.description should equal(dsDesc)
           }
         }
 
-        it ("should EditDataSet"){
+        it("should EditDataSet"){
           val dsName = "Original Dataset"
-          val dsId = engine.createDataSet(dsName, "The original intent.")
+          val dsId = engine.forUser(activeUserId)
+            .createDataSet(dsName, "The original intent.")
           val updatedDesc = "Modified Description"
-          val request = buildWSRequest(user="Bob",
-            actionType="Update",
-            scope="UserSpace",
-            entityType="DataSet",
-            filter="None",
-            options=Map("dsId"->dsId, "description"->updatedDesc)
+          val request = buildWSRequest(activeUserId,
+            "Update",
+            "UserSpace",
+            "DataSet",
+            "None",
+            Map("dsId"->dsId, "description"->updatedDesc)
           )
 
-          val closed:Future[Seq[Message]] = invokeWS(request, enginePath)
+          val closed:Future[Seq[Message]] = invokeWS(request, enginePath, PROTOCOL, jwtSessionToken)
 
           whenReady(closed){ results =>
             results should have length 2
@@ -332,27 +354,29 @@ class WebServerUserSpaceSpec extends FunSpecLike
             val payloadMap = strToMap(envelopeMap("textMessage").asInstanceOf[String])
             payloadMap.contains("id") should equal(true)
             val id = payloadMap("id").asInstanceOf[String]
-            val ds = engine.findDataSetById(dsId)
+            val ds = engine.forUser(activeUserId)
+              .findDataSetById(dsId)
             ds.id should equal(id)
             ds.name should equal(dsName)
             ds.description should equal(updatedDesc)
           }
         }
 
-        it ("should FindDataSetById"){
+        it("should FindDataSetById"){
           val dsName = "Da DataSet"
           val desc = "Da DataSet Description"
-          val dsId = engine.createDataSet(dsName, desc)
+          val dsId = engine.forUser(activeUserId)
+            .createDataSet(dsName, desc)
 
-          val request = buildWSRequest(user="Bob",
-            actionType="Retrieve",
-            scope="UserSpace",
-            entityType="DataSet",
-            filter="ID",
-            options=Map("dsId"->dsId)
+          val request = buildWSRequest(activeUserId,
+            "Retrieve",
+            "UserSpace",
+            "DataSet",
+            "ID",
+            Map("dsId"->dsId)
           )
 
-          val closed:Future[Seq[Message]] = invokeWS(request, enginePath)
+          val closed:Future[Seq[Message]] = invokeWS(request, enginePath, PROTOCOL, jwtSessionToken)
 
           whenReady(closed){ results =>
             results should have length 2
@@ -366,20 +390,21 @@ class WebServerUserSpaceSpec extends FunSpecLike
           }
         }
 
-        it ("should FindDataSetByName"){
+        it("should FindDataSetByName"){
           val dsName = "Yet another DataSet"
           val desc = "Da DataSet Description"
-          val dsId = engine.createDataSet(dsName, desc)
+          val dsId = engine.forUser(activeUserId)
+            .createDataSet(dsName, desc)
 
-          val request = buildWSRequest(user="Bob",
-            actionType="Retrieve",
-            scope="UserSpace",
-            entityType="DataSet",
-            filter="Name",
-            options=Map("name"->dsName)
+          val request = buildWSRequest(activeUserId,
+            "Retrieve",
+            "UserSpace",
+            "DataSet",
+            "Name",
+            Map("name"->dsName)
           )
 
-          val closed:Future[Seq[Message]] = invokeWS(request, enginePath)
+          val closed:Future[Seq[Message]] = invokeWS(request, enginePath, PROTOCOL, jwtSessionToken)
 
           whenReady(closed){ results =>
             results should have length 2
@@ -393,19 +418,19 @@ class WebServerUserSpaceSpec extends FunSpecLike
           }
         }
 
-        it ("should ListDataSets"){
-          engine.createDataSet("dsA", "A")
-          engine.createDataSet("dsB", "B")
-          engine.createDataSet("dsC", "C")
+        it("should ListDataSets"){
+          engine.forUser(activeUserId).createDataSet("dsA", "A")
+          engine.forUser(activeUserId).createDataSet("dsB", "B")
+          engine.forUser(activeUserId).createDataSet("dsC", "C")
 
-          val request = buildWSRequest(user="Bob",
-            actionType="Retrieve",
-            scope="UserSpace",
-            entityType="DataSet",
-            filter="All"
+          val request = buildWSRequest(activeUserId,
+            "Retrieve",
+            "UserSpace",
+            "DataSet",
+            "All"
           )
 
-          val closed:Future[Seq[Message]] = invokeWS(request, enginePath)
+          val closed:Future[Seq[Message]] = invokeWS(request, enginePath, PROTOCOL, jwtSessionToken)
 
           whenReady(closed){ results =>
             results should have length 2
@@ -413,7 +438,7 @@ class WebServerUserSpaceSpec extends FunSpecLike
             val payloadMap = strToMap(envelopeMap("textMessage").asInstanceOf[String])
             payloadMap.contains("datasets") should equal(true)
             val dsList = payloadMap("datasets").asInstanceOf[List[Map[String, Any]]]
-            val engineList = engine.datasets()
+            val engineList = engine.forUser(activeUserId).datasets()
             dsList.length should equal(engineList.length)
           }
         }

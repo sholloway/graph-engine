@@ -1,7 +1,7 @@
 {
   "name": "List Data Sets",
   "description": "Query for the list of all datasets associated with a specific user.",
-  "scope": "internal_user_space",
+  "scope": "user",
   "entityType": "DataSet",
   "actionType": "Retrieve",
   "filter": "All",

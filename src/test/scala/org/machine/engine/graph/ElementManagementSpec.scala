@@ -23,16 +23,25 @@ import org.machine.engine.graph.nodes._
 class ElementManagementSpec extends FunSpec with Matchers with EasyMockSugar with BeforeAndAfterAll{
   import Neo4JHelper._
   import TestUtils._
-  var engine:Engine = null
-  var notesDataSetId:String = null
-  var noteElementDefininitionId:String = null
+  private var engine:Engine = null
+  private var notesDataSetId:String = null
+  private var noteElementDefininitionId:String = null
+  private var activeUserId:String = null
 
   override def beforeAll(){
     engine = Engine.getInstance
     perge
-    notesDataSetId = engine.createDataSet("notes", "My collection of notes.")
+    activeUserId = Engine.getInstance
+      .createUser
+      .withFirstName("Bob")
+      .withLastName("Grey")
+      .withEmailAddress("onebadclown@derry-maine.com")
+      .withUserName("pennywise")
+      .withUserPassword("You'll float too...")
+    .end
+    notesDataSetId = engine.forUser(activeUserId).createDataSet("notes", "My collection of notes.")
     noteElementDefininitionId =
-      engine
+      engine.forUser(activeUserId)
         .onDataSet(notesDataSetId)
         .defineElement("note", "short piece of text")
           .withProperty("title", "String", "The title of the note.")
@@ -55,7 +64,7 @@ class ElementManagementSpec extends FunSpec with Matchers with EasyMockSugar wit
           """.stripMargin
 
           val noteId =
-            engine
+            engine.forUser(activeUserId)
               .onDataSet(notesDataSetId)
               .provision(noteElementDefininitionId)
                 .withField("title", "observations")
@@ -64,7 +73,7 @@ class ElementManagementSpec extends FunSpec with Matchers with EasyMockSugar wit
             .end
 
           val note =
-            engine
+            engine.forUser(activeUserId)
               .onDataSet(notesDataSetId)
               .findElement(noteId)
 
@@ -78,11 +87,11 @@ class ElementManagementSpec extends FunSpec with Matchers with EasyMockSugar wit
 
         it("should store and retrieve elements with Java primative types"){
           val dsId =
-            engine
+            engine.forUser(activeUserId)
               .createDataSet("ZZ", "")
 
           val edId =
-            engine
+            engine.forUser(activeUserId)
               .onDataSet(dsId)
               .defineElement("example", "a node that contains every possible data type.")
                 .withProperty("bool", "Boolean", "A boolean value. true/false")
@@ -106,7 +115,7 @@ class ElementManagementSpec extends FunSpec with Matchers with EasyMockSugar wit
         	val str:String = "a string"
 
           val exampleId =
-            engine
+            engine.forUser(activeUserId)
               .onDataSet(dsId)
               .provision(edId)
                 .withField("integer", i)
@@ -120,7 +129,7 @@ class ElementManagementSpec extends FunSpec with Matchers with EasyMockSugar wit
             .end
 
           val element =
-            engine
+            engine.forUser(activeUserId)
               .onDataSet(dsId)
               .findElement(exampleId)
 
@@ -139,11 +148,11 @@ class ElementManagementSpec extends FunSpec with Matchers with EasyMockSugar wit
 
         ignore("should store and retrieve elements with arrays of Java primatives"){
           val dsId =
-            engine
+            engine.forUser(activeUserId)
               .createDataSet("ZZ", "")
 
           val edId =
-            engine
+            engine.forUser(activeUserId)
               .onDataSet(dsId)
               .defineElement("array example", "a node that contains every possible data type.")
               .withProperty("bool_array", "Boolean[]", "An array of boolean values")
@@ -159,7 +168,7 @@ class ElementManagementSpec extends FunSpec with Matchers with EasyMockSugar wit
 
             val doubleArray:Array[Double] = Array(1d,2d,3d)
             val exampleId =
-              engine
+              engine.forUser(activeUserId)
                 .onDataSet(dsId)
                 .provision(edId)
                   .withField("double_array", doubleArray)
@@ -168,7 +177,7 @@ class ElementManagementSpec extends FunSpec with Matchers with EasyMockSugar wit
 
         it("should update an Element's fields"){
           val noteId =
-            engine
+            engine.forUser(activeUserId)
               .onDataSet(notesDataSetId)
               .provision(noteElementDefininitionId)
                 .withField("title", "Funny Thing Happened Today")
@@ -181,14 +190,14 @@ class ElementManagementSpec extends FunSpec with Matchers with EasyMockSugar wit
           John never haves two cups of coffee.
           """.stripMargin
 
-          engine
+          engine.forUser(activeUserId)
             .onDataSet(notesDataSetId)
             .onElement(noteId)
             .setField("body", updatedBody)
           .end
 
           val noteElement =
-            engine
+            engine.forUser(activeUserId)
               .onDataSet(notesDataSetId)
               .findElement(noteId)
 
@@ -197,7 +206,7 @@ class ElementManagementSpec extends FunSpec with Matchers with EasyMockSugar wit
 
         it ("should update multiple fields on an Element"){
           val noteId =
-            engine
+            engine.forUser(activeUserId)
               .onDataSet(notesDataSetId)
               .provision(noteElementDefininitionId)
                 .withField("title", "Blah")
@@ -209,7 +218,7 @@ class ElementManagementSpec extends FunSpec with Matchers with EasyMockSugar wit
           val updatedDesc = "Colors that I enjoy"
           val updatedBody = "Blue, light blue, and robin blue."
 
-          engine
+          engine.forUser(activeUserId)
             .onDataSet(notesDataSetId)
             .onElement(noteId)
             .setField("title", updatedTitle)
@@ -218,7 +227,7 @@ class ElementManagementSpec extends FunSpec with Matchers with EasyMockSugar wit
           .end
 
           val noteElement =
-            engine
+            engine.forUser(activeUserId)
               .onDataSet(notesDataSetId)
               .findElement(noteId)
 
@@ -229,7 +238,7 @@ class ElementManagementSpec extends FunSpec with Matchers with EasyMockSugar wit
 
         it("should delete an Element"){
           val noteId =
-            engine
+            engine.forUser(activeUserId)
               .onDataSet(notesDataSetId)
               .provision(noteElementDefininitionId)
                 .withField("title", "Poorly thought out note")
@@ -237,7 +246,7 @@ class ElementManagementSpec extends FunSpec with Matchers with EasyMockSugar wit
                 .withField("body", "Thibbbbit")
             .end
 
-          engine
+          engine.forUser(activeUserId)
             .onDataSet(notesDataSetId)
             .onElement(noteId)
             .delete
@@ -245,14 +254,14 @@ class ElementManagementSpec extends FunSpec with Matchers with EasyMockSugar wit
 
           val expectedNameMsg = "No element with mid: %s could be found.".format(noteId)
           the [InternalErrorException] thrownBy{
-            engine
+            engine.forUser(activeUserId)
               .onDataSet(notesDataSetId)
               .findElement(noteId)
           }should have message expectedNameMsg
         }
 
         it("should remove a field on an Element"){
-          val noteId = engine
+          val noteId = engine.forUser(activeUserId)
             .onDataSet(notesDataSetId)
             .provision(noteElementDefininitionId)
             .withField("title", "Poorly thought out note")
@@ -262,19 +271,19 @@ class ElementManagementSpec extends FunSpec with Matchers with EasyMockSugar wit
             .withField("another_bad_field", false)
           .end
 
-          engine
+          engine.forUser(activeUserId)
             .onDataSet(notesDataSetId)
             .findElement(noteId)
             .fields should have size 5
 
-          engine
+          engine.forUser(activeUserId)
             .onDataSet(notesDataSetId)
             .onElement(noteId)
             .removeField("bad_field")
             .removeField("another_bad_field")
           .end
 
-          engine
+          engine.forUser(activeUserId)
             .onDataSet(notesDataSetId)
             .findElement(noteId)
             .fields should have size 3

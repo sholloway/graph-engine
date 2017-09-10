@@ -1,15 +1,18 @@
 package org.machine.engine.graph
 
+import java.lang.NumberFormatException
 import org.neo4j.graphdb._
-import scala.collection.JavaConversions._
-import scala.collection.mutable.ArrayBuffer
 import org.machine.engine.exceptions._
 import org.machine.engine.graph.commands._
+import scala.collection.JavaConversions._
+import scala.collection.mutable.ArrayBuffer
 
 /** A mixin for making working with Neo4J easier.
 */
 object Neo4JHelper{
   private val NOT_FOUND_VALUE = ""
+  val UNSET_LONG:Long = 0
+  val NOT_FOUND_LONG:Long = 0
 
   /** A wrapper function for executing Neo4J operations inside a database transaction.
 
@@ -164,6 +167,36 @@ object Neo4JHelper{
       throw new InternalErrorException(msg)
     }else{
       response = NOT_FOUND_VALUE
+    }
+    return response
+  }
+
+  /** Given a record from a query result set, finds a value corrisponding to
+  *   the provided column name. Thows an exception if the field is not found
+  *   when required is set to true. Returns the value of 0 when the field is
+  *   not required.
+  *
+  * @param name The name of the field to find.
+  * @param record The record to map a value from.
+  * @param required Specifies if an error should be thrown if the desired field is not found.
+  * @return The mapped value as a String.
+  */
+  def mapLong(name: String,
+    record: java.util.Map[java.lang.String, Object],
+    required: Boolean):Long = {
+    var response:Long = UNSET_LONG
+    if (record.containsKey(name) && record.get(name) != null){
+      val foundValue = record.get(name).toString
+      try{
+        response = foundValue.toLong
+      }catch{
+        case e:NumberFormatException => throw new InternalErrorException(s"Failed to parse the expected long: ${foundValue}")
+      }
+    }else if(!record.containsKey(name) && required){
+      val msg = "The required field: %s was not found in the query response.".format(name)
+      throw new InternalErrorException(msg)
+    }else{
+      response = NOT_FOUND_LONG
     }
     return response
   }

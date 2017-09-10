@@ -27,32 +27,41 @@ import org.machine.engine.graph.commands.{CommandScopes}
 import org.machine.engine.graph.nodes._
 import org.machine.engine.flow.requests._
 
-class WebServerDataSetSpec extends FunSpecLike with Matchers with ScalaFutures with BeforeAndAfterAll{
+class WebServerDataSetSpec extends FunSpecLike
+  with Matchers
+  with ScalaFutures
+  with BeforeAndAfterAll
+  with BeforeAndAfterEach{
   import WSHelper._
   import TestUtils._
+  import LoginHelper._
 
   //Configure the whenReady for how long to wait.
   implicit val defaultPatience = PatienceConfig(timeout = Span(5, Seconds), interval = Span(500, Millis))
 
   private val config = ConfigFactory.load()
-  val server = new WebServer()
-  val dbPath = config.getString("engine.graphdb.path")
-  val dbFile = new File(dbPath)
-  var engine:Engine = null
+  private val server = new WebServer()
+  private val serviceCreds = serviceCredentials()
+  private val PROTOCOL: String = "engine.json.v1"
+  private var jwtSessionToken:String = null
+  private var activeUserId:String = null
+  private val dbPath = config.getString("engine.graphdb.path")
+  private val dbFile = new File(dbPath)
+  private var engine:Engine = null
 
-  val scheme = "http"
-  val host = config.getString("engine.communication.webserver.host")
-  val port = config.getString("engine.communication.webserver.port")
-  val engineVersion = config.getString("engine.version")
-  val enginePath = s"ws://$host:$port/ws"
-  val echoPath = s"ws://$host:$port/ws/ping"
+  private val scheme = "http"
+  private val host = config.getString("engine.communication.webserver.host")
+  private val port = config.getString("engine.communication.webserver.port")
+  private val engineVersion = config.getString("engine.version")
+  private val enginePath = s"ws://$host:$port/ws"
+  private val echoPath = s"ws://$host:$port/ws/ping"
 
-  var starwarsDsId:String = null
-  var hanId:String = null
-  var chewieId:String = null
-  var leiaId:String = null
-  var lukeId:String = null
-  var r2Id:String = null
+  private var starwarsDsId:String = null
+  private var hanId:String = null
+  private var chewieId:String = null
+  private var leiaId:String = null
+  private var lukeId:String = null
+  private var r2Id:String = null
 
   /*
   TODO Test the WebServer
@@ -63,8 +72,11 @@ class WebServerDataSetSpec extends FunSpecLike with Matchers with ScalaFutures w
   override def beforeAll(){
     engine = Engine.getInstance
     perge
-    createStarWarsSet()
     server.start()
+    val newUserResponse = createUser(serviceCreds)
+    activeUserId = getUserId(newUserResponse._2)
+    jwtSessionToken = login(serviceCreds)
+    createStarWarsSet()
   }
 
   override def afterAll(){
@@ -72,7 +84,12 @@ class WebServerDataSetSpec extends FunSpecLike with Matchers with ScalaFutures w
     perge
   }
 
+  override def afterEach(){
+    engine.reset()
+  }
+
   def createStarWarsSet() = {
+    engine.setUser(activeUserId)
     starwarsDsId = engine.createDataSet("Star Wars", "Space Opera")
     val charEDId = engine.onDataSet(starwarsDsId)
       .defineElement("Character", "A person in the movie.")
@@ -95,7 +112,7 @@ class WebServerDataSetSpec extends FunSpecLike with Matchers with ScalaFutures w
     describe("WebSocket Requests"){
       describe("Datasets"){
         it ("should CreateElementDefinition By DS ID"){
-          val dsId = engine.createDataSet("dsQ", "DS")
+          val dsId = engine.forUser(activeUserId).createDataSet("dsQ", "DS")
           val edName = "Space Ship"
           val edDesc = "A ship that can traverse outer space."
           val edSpec = Map("dsId"->dsId,
@@ -104,14 +121,14 @@ class WebServerDataSetSpec extends FunSpecLike with Matchers with ScalaFutures w
             "properties"->Seq(Map("name"->"p1", "propertyType"->"String", "description"->"p1"),
               Map("name"->"p2", "propertyType"->"String", "description"->"p2")))
 
-          val request = buildWSRequest(user="Bob",
-            actionType="Create",
-            scope="DataSet",
-            entityType="ElementDefinition",
-            filter="None",
-            options=edSpec)
+          val request = buildWSRequest(activeUserId,
+            "Create",
+            "DataSet",
+            "ElementDefinition",
+            "None",
+            edSpec)
 
-          val closed:Future[Seq[Message]] = invokeWS(request, enginePath)
+          val closed:Future[Seq[Message]] = invokeWS(request, enginePath, PROTOCOL, jwtSessionToken)
 
           whenReady(closed){ results =>
             results should have length 2
@@ -128,7 +145,7 @@ class WebServerDataSetSpec extends FunSpecLike with Matchers with ScalaFutures w
 
         it ("should CreateElementDefinition By DS Name"){
           val dsName = "dsD"
-          val datasetId = engine.createDataSet(dsName, "DS")
+          val datasetId = engine.forUser(activeUserId).createDataSet(dsName, "DS")
           val edName = "Tardis"
           val edDesc = "A ship that can traverse outer space."
           val edSpec = Map("dsName"->dsName,
@@ -137,14 +154,14 @@ class WebServerDataSetSpec extends FunSpecLike with Matchers with ScalaFutures w
             "properties"->Seq(Map("name"->"p1", "propertyType"->"String", "description"->"p1"),
               Map("name"->"p2", "propertyType"->"String", "description"->"p2")))
 
-          val request = buildWSRequest(user="Bob",
-            actionType="Create",
-            scope="DataSet",
-            entityType="ElementDefinition",
-            filter="None",
-            options=edSpec)
+          val request = buildWSRequest(activeUserId,
+            "Create",
+            "DataSet",
+            "ElementDefinition",
+            "None",
+            edSpec)
 
-          val closed:Future[Seq[Message]] = invokeWS(request, enginePath)
+          val closed:Future[Seq[Message]] = invokeWS(request, enginePath, PROTOCOL, jwtSessionToken)
 
           whenReady(closed){ results =>
             results should have length 2
@@ -167,18 +184,17 @@ class WebServerDataSetSpec extends FunSpecLike with Matchers with ScalaFutures w
         }
 
         it ("should ListAllElementDefinitions"){
-          val dataset = engine.findDataSetByName("dsD")
-
+          val dataset = engine.forUser(activeUserId).findDataSetByName("dsD")
           val opts = Map("dsId" -> dataset.id)
 
-          val request = buildWSRequest(user="Bob",
-            actionType="Retrieve",
-            scope="DataSet",
-            entityType="ElementDefinition",
-            filter="All",
-            options=opts)
+          val request = buildWSRequest(activeUserId,
+            "Retrieve",
+            "DataSet",
+            "ElementDefinition",
+            "All",
+            opts)
 
-          val closed:Future[Seq[Message]] = invokeWS(request, enginePath)
+          val closed:Future[Seq[Message]] = invokeWS(request, enginePath, PROTOCOL, jwtSessionToken)
 
           whenReady(closed){ results =>
             results should have length 2
@@ -190,22 +206,22 @@ class WebServerDataSetSpec extends FunSpecLike with Matchers with ScalaFutures w
         }
 
         it ("should EditElementDefintion By DS ID"){
-          val dsId = engine.createDataSet("temp", "A data set.")
-          val edId = engine.onDataSet(dsId)
+          val dsId = engine.forUser(activeUserId).createDataSet("temp", "A data set.")
+          val edId = engine.forUser(activeUserId).onDataSet(dsId)
             .defineElement("blah", "A poorly named element definition.")
           .end
 
           val betterName = "Better Name"
 
-          val request = buildWSRequest(user="Bob",
-            actionType="Update",
-            scope="DataSet",
-            entityType="ElementDefinition",
-            filter="None",
-            options=Map("dsId" -> dsId, "mid"->edId, "name" -> betterName)
+          val request = buildWSRequest(activeUserId,
+            "Update",
+            "DataSet",
+            "ElementDefinition",
+            "None",
+            Map("dsId" -> dsId, "mid"->edId, "name" -> betterName)
           )
 
-          val closed:Future[Seq[Message]] = invokeWS(request, enginePath)
+          val closed:Future[Seq[Message]] = invokeWS(request, enginePath, PROTOCOL, jwtSessionToken)
 
           whenReady(closed){ results =>
             results should have length 2
@@ -214,29 +230,31 @@ class WebServerDataSetSpec extends FunSpecLike with Matchers with ScalaFutures w
             payloadMap.contains("id") should equal(true)
 
             //verify with engine that it has changed. :)
-            val ed = engine.onDataSet(dsId).findElementDefinitionById(edId)
+            val ed = engine.forUser(activeUserId)
+              .onDataSet(dsId)
+              .findElementDefinitionById(edId)
             ed.name should equal(betterName)
           }
         }
 
         it ("should EditElementDefintion By DS Name"){
           val dsName = "Murphy"
-          val dsId = engine.createDataSet(dsName, "A data set.")
-          val edId = engine.onDataSet(dsId)
-            .defineElement("blah", "A poorly named element definition.")
+          val dsId = engine.forUser(activeUserId).createDataSet(dsName, "A data set.")
+          val edId = engine.forUser(activeUserId).onDataSet(dsId)
+            .defineElement("Bad name", "A poorly named element definition.")
           .end
 
-          val betterName = "Better Name"
+          val betterName = "Another Better Name"
 
-          val request = buildWSRequest(user="Bob",
-            actionType="Update",
-            scope="DataSet",
-            entityType="ElementDefinition",
-            filter="None",
-            options=Map("dsName" -> dsName, "mid"->edId, "name" -> betterName)
+          val request = buildWSRequest(activeUserId,
+            "Update",
+            "DataSet",
+            "ElementDefinition",
+            "None",
+            Map("dsName" -> dsName, "mid"->edId, "name" -> betterName)
           )
 
-          val closed:Future[Seq[Message]] = invokeWS(request, enginePath)
+          val closed:Future[Seq[Message]] = invokeWS(request, enginePath, PROTOCOL, jwtSessionToken)
 
           whenReady(closed){ results =>
             results should have length 2
@@ -245,33 +263,34 @@ class WebServerDataSetSpec extends FunSpecLike with Matchers with ScalaFutures w
             payloadMap.contains("id") should equal(true)
 
             //verify with engine that it has changed. :)
-            val ed = engine.onDataSet(dsId).findElementDefinitionById(edId)
+            val ed = engine.forUser(activeUserId).onDataSet(dsId).findElementDefinitionById(edId)
             ed.name should equal(betterName)
           }
         }
 
-        it ("should EditElementPropertyDefinition"){
+       it ("should EditElementPropertyDefinition"){
           val dsName = "Monsters"
-          val dsId = engine.createDataSet(dsName, "A collection of monster types.")
+          val dsId = engine.forUser(activeUserId).createDataSet(dsName, "A collection of monster types.")
           val propName = "Weakness"
-          val edId = engine.onDataSet(dsId)
+          val edId = engine.forUser(activeUserId)
+            .onDataSet(dsId)
             .defineElement("Wolfman", "Guy who gets hairy at night.")
             .withProperty(propName, "String", "Fatal Flay")
           .end
 
           val improvedDesc = "Fatal Flaw"
-          val request = buildWSRequest(user="Bob",
-            actionType="Update",
-            scope="DataSet",
-            entityType="PropertyDefinition",
-            filter="None",
-            options=Map("dsId" -> dsId,
+          val request = buildWSRequest(activeUserId,
+            "Update",
+            "DataSet",
+            "PropertyDefinition",
+            "None",
+            Map("dsId" -> dsId,
               "mid"->edId,
               "pname" -> propName,
               "description" -> improvedDesc)
           )
 
-          val closed:Future[Seq[Message]] = invokeWS(request, enginePath)
+          val closed:Future[Seq[Message]] = invokeWS(request, enginePath, PROTOCOL, jwtSessionToken)
 
           whenReady(closed){ results =>
             results should have length 2
@@ -280,7 +299,7 @@ class WebServerDataSetSpec extends FunSpecLike with Matchers with ScalaFutures w
             payloadMap.contains("id") should equal(true)
 
             //verify with engine that it has changed. :)
-            val ed = engine.onDataSet(dsId).findElementDefinitionById(edId)
+            val ed = engine.forUser(activeUserId).onDataSet(dsId).findElementDefinitionById(edId)
             ed.properties.length should equal(1)
             val weaknessPropOption = ed.properties.find{ prop => prop.name == propName }
             weaknessPropOption.isEmpty should equal(false)
@@ -289,22 +308,23 @@ class WebServerDataSetSpec extends FunSpecLike with Matchers with ScalaFutures w
         }
 
         it ("should RemoveElementPropertyDefinition"){
-          val dsId = engine.createDataSet("Aliens", "A collection of alien types.")
+          val dsId = engine.forUser(activeUserId).createDataSet("Aliens", "A collection of alien types.")
           val propName = "Weakness"
-          val edId = engine.onDataSet(dsId)
+          val edId = engine.forUser(activeUserId)
+            .onDataSet(dsId)
             .defineElement("Xenomorph", "Guy with personal boundry issues.")
             .withProperty(propName, "String", "Emotionally Insecure")
           .end
 
-          val request = buildWSRequest(user="Bob",
-            actionType="Delete",
-            scope="DataSet",
-            entityType="PropertyDefinition",
-            filter="None",
-            options=Map("dsId"-> dsId, "mid"->edId, "pname" -> propName)
+          val request = buildWSRequest(activeUserId,
+            "Delete",
+            "DataSet",
+            "PropertyDefinition",
+            "None",
+            Map("dsId"-> dsId, "mid"->edId, "pname" -> propName)
           )
 
-          val closed:Future[Seq[Message]] = invokeWS(request, enginePath)
+          val closed:Future[Seq[Message]] = invokeWS(request, enginePath, PROTOCOL, jwtSessionToken)
 
           whenReady(closed){ results =>
             results should have length 2
@@ -313,27 +333,30 @@ class WebServerDataSetSpec extends FunSpecLike with Matchers with ScalaFutures w
             payloadMap.contains("id") should equal(true)
 
             //verify with engine that it has changed. :)
-            val ed = engine.onDataSet(dsId).findElementDefinitionById(edId)
+            val ed = engine.forUser(activeUserId)
+              .onDataSet(dsId)
+              .findElementDefinitionById(edId)
             ed.properties.length should equal(0)
           }
         }
 
-        it ("should DeleteElementDefintion"){
-          val dataset = engine.findDataSetByName("Aliens")
-          val edId = engine.onDataSet(dataset.id)
+         it ("should DeleteElementDefintion"){
+          val dataset = engine.forUser(activeUserId).findDataSetByName("Aliens")
+          val edId = engine.forUser(activeUserId)
+            .onDataSet(dataset.id)
             .defineElement("Preditor", "Bit of a bully.")
             .withProperty("Weakness", "String", "Skin Condition")
           .end
 
-          val request = buildWSRequest(user="Bob",
-            actionType="Delete",
-            scope="DataSet",
-            entityType="ElementDefinition",
-            filter="None",
-            options=Map("dsId" -> dataset.id, "mid" -> edId)
+          val request = buildWSRequest(activeUserId,
+            "Delete",
+            "DataSet",
+            "ElementDefinition",
+            "None",
+            Map("dsId" -> dataset.id, "mid" -> edId)
           )
 
-          val closed:Future[Seq[Message]] = invokeWS(request, enginePath)
+          val closed:Future[Seq[Message]] = invokeWS(request, enginePath, PROTOCOL, jwtSessionToken)
 
           whenReady(closed){ results =>
             results should have length 2
@@ -344,6 +367,7 @@ class WebServerDataSetSpec extends FunSpecLike with Matchers with ScalaFutures w
             val expectedIdMsg = "No element definition with ID: %s could be found in dataset: %s".format(edId, dataset.id)
             the [InternalErrorException] thrownBy{
               engine
+                .forUser(activeUserId)
                 .onDataSet(dataset.id)
                 .findElementDefinitionById(edId)
             }should have message expectedIdMsg
@@ -351,18 +375,20 @@ class WebServerDataSetSpec extends FunSpecLike with Matchers with ScalaFutures w
         }
 
         it ("should FindElementDefinitionById"){
-          val dataset = engine.findDataSetByName("Aliens")
-          val xenomorph = engine.onDataSet(dataset.id).findElementDefinitionByName("Xenomorph")
+          val dataset = engine.forUser(activeUserId).findDataSetByName("Aliens")
+          val xenomorph = engine.forUser(activeUserId)
+            .onDataSet(dataset.id)
+            .findElementDefinitionByName("Xenomorph")
 
-          val request = buildWSRequest(user="Bob",
-            actionType="Retrieve",
-            scope="DataSet",
-            entityType="ElementDefinition",
-            filter="ID",
-            options=Map("dsId" -> dataset.id, "mid" -> xenomorph.id)
+          val request = buildWSRequest(activeUserId,
+            "Retrieve",
+            "DataSet",
+            "ElementDefinition",
+            "ID",
+            Map("dsId" -> dataset.id, "mid" -> xenomorph.id)
           )
 
-          val closed:Future[Seq[Message]] = invokeWS(request, enginePath)
+          val closed:Future[Seq[Message]] = invokeWS(request, enginePath, PROTOCOL, jwtSessionToken)
 
           whenReady(closed){ results =>
             results should have length 2
@@ -378,18 +404,20 @@ class WebServerDataSetSpec extends FunSpecLike with Matchers with ScalaFutures w
         }
 
         it ("should FindElementDefinitionByName"){
-          val dataset = engine.findDataSetByName("Aliens")
-          val xenomorph = engine.onDataSet(dataset.id).findElementDefinitionByName("Xenomorph")
+          val dataset = engine.forUser(activeUserId).findDataSetByName("Aliens")
+          val xenomorph = engine.forUser(activeUserId)
+            .onDataSet(dataset.id)
+            .findElementDefinitionByName("Xenomorph")
 
-          val request = buildWSRequest(user="Bob",
-            actionType="Retrieve",
-            scope="DataSet",
-            entityType="ElementDefinition",
-            filter="Name",
-            options=Map("dsId" -> dataset.id, "name" -> xenomorph.name)
+          val request = buildWSRequest(activeUserId,
+            "Retrieve",
+            "DataSet",
+            "ElementDefinition",
+            "Name",
+            Map("dsId" -> dataset.id, "name" -> xenomorph.name)
           )
 
-          val closed:Future[Seq[Message]] = invokeWS(request, enginePath)
+          val closed:Future[Seq[Message]] = invokeWS(request, enginePath, PROTOCOL, jwtSessionToken)
 
           whenReady(closed){ results =>
             results should have length 2
@@ -404,23 +432,26 @@ class WebServerDataSetSpec extends FunSpecLike with Matchers with ScalaFutures w
           }
         }
 
-        it ("should CreateElement"){
-          val dsId = engine.createDataSet("Bands", "Interesting Music Groups")
+       it ("should CreateElement"){
+          val dsId = engine.forUser(activeUserId)
+            .createDataSet("Bands", "Interesting Music Groups")
+
           val edName = "RockBand"
           val edDesc = "A band that likes to roll..."
-          val edId = engine.onDataSet(dsId)
+          val edId = engine.forUser(activeUserId)
+            .onDataSet(dsId)
             .defineElement(edName, edDesc)
             .withProperty("Name", "String", "The name of the band.")
             .withProperty("Singer", "String", "A person responsible for singing.")
             .withProperty("LeadGuitarist", "String", "The primary guitarists.")
           .end
 
-          val request = buildWSRequest(user="Bob",
-            actionType="Create",
-            scope="DataSet",
-            entityType="Element",
-            filter="None",
-            options=Map("dsId" -> dsId,
+          val request = buildWSRequest(activeUserId,
+            "Create",
+            "DataSet",
+            "Element",
+            "None",
+            Map("dsId" -> dsId,
               "edId" -> edId,
               "Singer" -> "Axl Rose",
               "LeadGuitarist" -> "Slash",
@@ -428,7 +459,7 @@ class WebServerDataSetSpec extends FunSpecLike with Matchers with ScalaFutures w
             )
           )
 
-          val closed:Future[Seq[Message]] = invokeWS(request, enginePath)
+          val closed:Future[Seq[Message]] = invokeWS(request, enginePath, PROTOCOL, jwtSessionToken)
 
           whenReady(closed){ results =>
             results should have length 2
@@ -437,7 +468,10 @@ class WebServerDataSetSpec extends FunSpecLike with Matchers with ScalaFutures w
 
             payloadMap.contains("id") should equal(true)
             val eId = payloadMap("id").asInstanceOf[String]
-            val element = engine.onDataSet(dsId).findElement(eId)
+            val element = engine.forUser(activeUserId)
+              .onDataSet(dsId)
+              .findElement(eId)
+
             element.id should equal(eId)
             element.elementType should equal(edName)
             element.elementDescription should equal(edDesc)
@@ -449,23 +483,22 @@ class WebServerDataSetSpec extends FunSpecLike with Matchers with ScalaFutures w
         }
 
         it ("should FindElementById"){
-          val dataset = engine.findDataSetByName("Bands")
-          val bands = engine.onDataSet(dataset.id).elements()
+          val dataset = engine.forUser(activeUserId).findDataSetByName("Bands")
+          val bands = engine.forUser(activeUserId).onDataSet(dataset.id).elements()
           val gnrOpt = bands.find{ prop =>
             prop.fields.contains("Name") &&
             prop.fields("Name") == "Guns N' Roses"
           }
 
-          val request = buildWSRequest(user="Bob",
-            actionType="Retrieve",
-            scope="DataSet",
-            entityType="Element",
-            filter="ID",
-            options=Map("dsId" -> dataset.id,
-              "mid" -> gnrOpt.get.id)
+          val request = buildWSRequest(activeUserId,
+            "Retrieve",
+            "DataSet",
+            "Element",
+            "ID",
+            Map("dsId" -> dataset.id, "mid" -> gnrOpt.get.id)
           )
 
-          val closed:Future[Seq[Message]] = invokeWS(request, enginePath)
+          val closed:Future[Seq[Message]] = invokeWS(request, enginePath, PROTOCOL, jwtSessionToken)
 
           whenReady(closed){ results =>
             results should have length 2
@@ -478,24 +511,31 @@ class WebServerDataSetSpec extends FunSpecLike with Matchers with ScalaFutures w
         }
 
         it("should FindAllElements"){
-          val dataset = engine.findDataSetByName("Bands")
-          val ed = engine.onDataSet(dataset.id).findElementDefinitionByName("RockBand")
-          engine.onDataSet(dataset.id)
+          val dataset = engine.forUser(activeUserId).findDataSetByName("Bands")
+          val ed = engine.forUser(activeUserId)
+            .onDataSet(dataset.id)
+            .findElementDefinitionByName("RockBand")
+
+          engine.forUser(activeUserId)
+            .onDataSet(dataset.id)
             .provision(ed.id)
             .withField("Name", "Daft Punk")
           .end
 
-          val expectedElementsCount = engine.onDataSet(dataset.id).elements().length
+          val expectedElementsCount = engine.forUser(activeUserId)
+            .onDataSet(dataset.id)
+            .elements()
+            .length
 
-          val request = buildWSRequest(user="Bob",
-            actionType="Retrieve",
-            scope="DataSet",
-            entityType="Element",
-            filter="All",
-            options=Map("dsId" -> dataset.id)
+          val request = buildWSRequest(activeUserId,
+            "Retrieve",
+            "DataSet",
+            "Element",
+            "All",
+            Map("dsId" -> dataset.id)
           )
 
-          val closed:Future[Seq[Message]] = invokeWS(request, enginePath)
+          val closed:Future[Seq[Message]] = invokeWS(request, enginePath, PROTOCOL, jwtSessionToken)
 
           whenReady(closed){ results =>
             results should have length 2
@@ -507,28 +547,30 @@ class WebServerDataSetSpec extends FunSpecLike with Matchers with ScalaFutures w
         }
 
         it ("should EditElement"){
-          val dsId = engine.createDataSet("Un-natural Disasters", "Epic Events of Calamity")
-          val edId = engine.onDataSet(dsId)
+          val dsId = engine.forUser(activeUserId)
+            .createDataSet("Un-natural Disasters", "Epic Events of Calamity")
+          val edId = engine.forUser(activeUserId)
+            .onDataSet(dsId)
             .defineElement("Disaster", "Oh No!")
             .withProperty("Name", "String", "The name of the disaster.")
           .end
 
-          val zaId = engine.onDataSet(dsId).provision(edId).withField("Name", "Zombie Attack!").end()
-          val maId = engine.onDataSet(dsId).provision(edId).withField("Name", "Monster Attack!").end()
-          val zimID = engine.onDataSet(dsId).provision(edId).withField("Name", "Martians!").end()
+          val zaId = engine.forUser(activeUserId).onDataSet(dsId).provision(edId).withField("Name", "Zombie Attack!").end()
+          val maId = engine.forUser(activeUserId).onDataSet(dsId).provision(edId).withField("Name", "Monster Attack!").end()
+          val zimID = engine.forUser(activeUserId).onDataSet(dsId).provision(edId).withField("Name", "Martians!").end()
 
           val updatedField = "Invader Zim Attack!"
-          val request = buildWSRequest(user="Bob",
-            actionType="Update",
-            scope="DataSet",
-            entityType="Element",
-            filter="None",
-            options=Map("dsId" -> dsId,
+          val request = buildWSRequest(activeUserId,
+            "Update",
+            "DataSet",
+            "Element",
+            "None",
+            Map("dsId" -> dsId,
               "elementId" -> zimID,
               "Name" -> updatedField)
           )
 
-          val closed:Future[Seq[Message]] = invokeWS(request, enginePath)
+          val closed:Future[Seq[Message]] = invokeWS(request, enginePath, PROTOCOL, jwtSessionToken)
 
           whenReady(closed){ results =>
             results should have length 2
@@ -539,28 +581,31 @@ class WebServerDataSetSpec extends FunSpecLike with Matchers with ScalaFutures w
 
             //get the ID and verify it is zimID.
             //Using the engine to get the element and verify it has been updated.
-            val martian = engine.onDataSet(dsId).findElement(zimID)
+            val martian = engine.forUser(activeUserId).onDataSet(dsId).findElement(zimID)
             martian.field[String]("Name") should equal(updatedField)
           }
         }
 
         it ("should AddElementField"){
-          val dataset = engine.findDataSetByName("Un-natural Disasters")
-          val elements = engine.onDataSet(dataset.id).elements()
+          val dataset = engine.forUser(activeUserId)
+            .findDataSetByName("Un-natural Disasters")
+          val elements = engine.forUser(activeUserId)
+            .onDataSet(dataset.id)
+            .elements()
           val zombieAttack = elements.find(e => e.field[String]("Name") == "Zombie Attack!").get
           zombieAttack.fields.size should equal(1)
 
-          val request = buildWSRequest(user="Bob",
-            actionType="Update",
-            scope="DataSet",
-            entityType="Element",
-            filter="None",
-            options=Map("dsId" -> dataset.id,
+          val request = buildWSRequest(activeUserId,
+            "Update",
+            "DataSet",
+            "Element",
+            "None",
+            Map("dsId" -> dataset.id,
               "elementId" -> zombieAttack.id,
               "DeadlyRanking" -> "4")
           )
 
-          val closed:Future[Seq[Message]] = invokeWS(request, enginePath)
+          val closed:Future[Seq[Message]] = invokeWS(request, enginePath, PROTOCOL, jwtSessionToken)
 
           whenReady(closed){ results =>
             results should have length 2
@@ -568,28 +613,32 @@ class WebServerDataSetSpec extends FunSpecLike with Matchers with ScalaFutures w
             val payloadMap = strToMap(envelopeMap("textMessage").asInstanceOf[String])
             payloadMap.contains("id") should equal(true)
             payloadMap("id") should equal(zombieAttack.id)
-            val updatedElement = engine.onDataSet(dataset.id).findElement(zombieAttack.id)
+            val updatedElement = engine.forUser(activeUserId)
+              .onDataSet(dataset.id)
+              .findElement(zombieAttack.id)
             updatedElement.fields.size should equal(2)
           }
         }
 
         it ("should RemoveElementField"){
-          val dataset = engine.findDataSetByName("Un-natural Disasters")
-          val elements = engine.onDataSet(dataset.id).elements()
+          val dataset = engine.forUser(activeUserId).findDataSetByName("Un-natural Disasters")
+          val elements = engine.forUser(activeUserId)
+            .onDataSet(dataset.id)
+            .elements()
           val zombieAttack = elements.find(e => e.field[String]("Name") == "Zombie Attack!").get
           zombieAttack.fields.size should equal(2)
 
-          val request = buildWSRequest(user="Bob",
-            actionType="Delete",
-            scope="DataSet",
-            entityType="ElementField",
-            filter="None",
-            options=Map("dsId" -> dataset.id,
+          val request = buildWSRequest(activeUserId,
+            "Delete",
+            "DataSet",
+            "ElementField",
+            "None",
+            Map("dsId" -> dataset.id,
               "elementId" -> zombieAttack.id,
               "DeadlyRanking" -> "DeadlyRanking")
           )
 
-          val closed:Future[Seq[Message]] = invokeWS(request, enginePath)
+          val closed:Future[Seq[Message]] = invokeWS(request, enginePath, PROTOCOL, jwtSessionToken)
 
           whenReady(closed){ results =>
             results should have length 2
@@ -597,27 +646,32 @@ class WebServerDataSetSpec extends FunSpecLike with Matchers with ScalaFutures w
             val payloadMap = strToMap(envelopeMap("textMessage").asInstanceOf[String])
             payloadMap.contains("id") should equal(true)
             payloadMap("id") should equal(zombieAttack.id)
-            val updatedElement = engine.onDataSet(dataset.id).findElement(zombieAttack.id)
+            val updatedElement = engine.forUser(activeUserId)
+              .onDataSet(dataset.id)
+              .findElement(zombieAttack.id)
             updatedElement.fields.size should equal(1)
           }
         }
 
         it ("should DeleteElement"){
-          val dataset = engine.findDataSetByName("Un-natural Disasters")
-          val elements = engine.onDataSet(dataset.id).elements()
+          val dataset = engine.forUser(activeUserId)
+            .findDataSetByName("Un-natural Disasters")
+          val elements = engine.forUser(activeUserId)
+            .onDataSet(dataset.id)
+            .elements()
           elements.length should equal(3)
           val zombieAttack = elements.find(e => e.field[String]("Name") == "Zombie Attack!").get
 
-          val request = buildWSRequest(user="Bob",
-            actionType="Delete",
-            scope="DataSet",
-            entityType="Element",
-            filter="None",
-            options=Map("dsId" -> dataset.id,
+          val request = buildWSRequest(activeUserId,
+            "Delete",
+            "DataSet",
+            "Element",
+            "None",
+            Map("dsId" -> dataset.id,
               "elementId" -> zombieAttack.id)
           )
 
-          val closed:Future[Seq[Message]] = invokeWS(request, enginePath)
+          val closed:Future[Seq[Message]] = invokeWS(request, enginePath, PROTOCOL, jwtSessionToken)
 
           whenReady(closed){ results =>
             results should have length 2
@@ -625,19 +679,21 @@ class WebServerDataSetSpec extends FunSpecLike with Matchers with ScalaFutures w
             val payloadMap = strToMap(envelopeMap("textMessage").asInstanceOf[String])
             payloadMap.contains("id") should equal(true)
             payloadMap("id") should equal(zombieAttack.id)
-            val updatedElementList = engine.onDataSet(dataset.id).elements
+            val updatedElementList = engine.forUser(activeUserId)
+              .onDataSet(dataset.id)
+              .elements
             updatedElementList.length should equal(2)
           }
         }
 
         it ("should AssociateElements"){
           val associationType = "friends_with"
-          val request = buildWSRequest(user="Bob",
-            actionType="Create",
-            scope="DataSet",
-            entityType="Association",
-            filter="None",
-            options=Map("dsId"    -> starwarsDsId,
+          val request = buildWSRequest(activeUserId,
+            "Create",
+            "DataSet",
+            "Association",
+            "None",
+            Map("dsId"    -> starwarsDsId,
               "startingElementId" -> hanId,
               "endingElementId"   -> chewieId,
               "associationName"   -> associationType,
@@ -645,7 +701,7 @@ class WebServerDataSetSpec extends FunSpecLike with Matchers with ScalaFutures w
             )
           )
 
-          val closed:Future[Seq[Message]] = invokeWS(request, enginePath)
+          val closed:Future[Seq[Message]] = invokeWS(request, enginePath, PROTOCOL, jwtSessionToken)
 
           whenReady(closed){ results =>
             results should have length 2
@@ -654,7 +710,7 @@ class WebServerDataSetSpec extends FunSpecLike with Matchers with ScalaFutures w
 
             payloadMap.contains("id") should equal(true)
             val assocId           = payloadMap("id").toString
-            val friendshipEternal = engine.onDataSet(starwarsDsId).findAssociation(assocId)
+            val friendshipEternal = engine.forUser(activeUserId).onDataSet(starwarsDsId).findAssociation(assocId)
 
             friendshipEternal.id                should equal(assocId)
             friendshipEternal.associationType   should equal(associationType)
@@ -665,21 +721,25 @@ class WebServerDataSetSpec extends FunSpecLike with Matchers with ScalaFutures w
         }
 
         it ("should FindAssociationById"){
-          val associations = engine.onDataSet(starwarsDsId).onElement(hanId).findOutboundAssociations()
+          val associations = engine.forUser(activeUserId)
+            .onDataSet(starwarsDsId)
+            .onElement(hanId)
+            .findOutboundAssociations()
           associations.length should equal(2)
+
           val friendsWith = associations.find({a => a.associationType == "friends_with"}).get
 
-          val request = buildWSRequest(user="Bob",
-            actionType="Retrieve",
-            scope="DataSet",
-            entityType="Association",
-            filter="ID",
-            options=Map(
+          val request = buildWSRequest(activeUserId,
+            "Retrieve",
+            "DataSet",
+            "Association",
+            "ID",
+            Map(
               "associationId" -> friendsWith.id
             )
           )
 
-          val closed:Future[Seq[Message]] = invokeWS(request, enginePath)
+          val closed:Future[Seq[Message]] = invokeWS(request, enginePath, PROTOCOL, jwtSessionToken)
 
           whenReady(closed){ results =>
             results should have length 2
@@ -698,23 +758,27 @@ class WebServerDataSetSpec extends FunSpecLike with Matchers with ScalaFutures w
         }
 
         it ("should EditAssociation"){
-          val associations = engine.onDataSet(starwarsDsId).onElement(hanId).findOutboundAssociations()
+          val associations = engine.forUser(activeUserId)
+            .onDataSet(starwarsDsId)
+            .onElement(hanId)
+            .findOutboundAssociations()
+
           associations.length should equal(2)
           val friendsWith = associations.find({a => a.associationType == "friends_with"}).get
 
-          val request = buildWSRequest(user="Bob",
-            actionType="Update",
-            scope="DataSet",
-            entityType="Association",
-            filter="None",
-            options=Map(
+          val request = buildWSRequest(activeUserId,
+            "Update",
+            "DataSet",
+            "Association",
+            "None",
+            Map(
               "associationId"  -> friendsWith.id,
               "friendshipType" -> "meaningful",
               "duration"       -> "A long time."
             )
           )
 
-          val closed:Future[Seq[Message]] = invokeWS(request, enginePath)
+          val closed:Future[Seq[Message]] = invokeWS(request, enginePath, PROTOCOL, jwtSessionToken)
 
           whenReady(closed){ results =>
             results should have length 2
@@ -722,7 +786,10 @@ class WebServerDataSetSpec extends FunSpecLike with Matchers with ScalaFutures w
             val payloadMap  = strToMap(envelopeMap("textMessage").asInstanceOf[String])
             payloadMap.contains("id") should equal(true)
             payloadMap("id") should equal(friendsWith.id)
-            val updatedAssoc = engine.onDataSet(starwarsDsId).findAssociation(friendsWith.id)
+
+            val updatedAssoc = engine.forUser(activeUserId)
+              .onDataSet(starwarsDsId)
+              .findAssociation(friendsWith.id)
             updatedAssoc.fields.size should equal(2)
             updatedAssoc.field[String]("friendshipType") should equal("meaningful")
             updatedAssoc.field[String]("duration") should equal("A long time.")
@@ -730,23 +797,25 @@ class WebServerDataSetSpec extends FunSpecLike with Matchers with ScalaFutures w
         }
 
         it ("should RemoveAssociationField"){
-          val associations = engine.onDataSet(starwarsDsId).onElement(hanId).findOutboundAssociations()
+          val associations = engine.forUser(activeUserId)
+            .onDataSet(starwarsDsId)
+            .onElement(hanId).findOutboundAssociations()
           associations.length should equal(2)
           val friendsWith = associations.find({a => a.associationType == "friends_with"}).get
           friendsWith.fields.size should equal(2)
 
-          val request = buildWSRequest(user="Bob",
-            actionType="Delete",
-            scope="DataSet",
-            entityType="AssociationField",
-            filter="None",
-            options=Map(
+          val request = buildWSRequest(activeUserId,
+            "Delete",
+            "DataSet",
+            "AssociationField",
+            "None",
+            Map(
               "associationId"  -> friendsWith.id,
               "duration"       -> "duration"
             )
           )
 
-          val closed:Future[Seq[Message]] = invokeWS(request, enginePath)
+          val closed:Future[Seq[Message]] = invokeWS(request, enginePath, PROTOCOL, jwtSessionToken)
 
           whenReady(closed){ results =>
             results should have length 2
@@ -754,28 +823,33 @@ class WebServerDataSetSpec extends FunSpecLike with Matchers with ScalaFutures w
             val payloadMap  = strToMap(envelopeMap("textMessage").asInstanceOf[String])
             payloadMap.contains("id") should equal(true)
             payloadMap("id") should equal(friendsWith.id)
-            val updatedAssoc = engine.onDataSet(starwarsDsId).findAssociation(friendsWith.id)
+            val updatedAssoc = engine.forUser(activeUserId)
+              .onDataSet(starwarsDsId)
+              .findAssociation(friendsWith.id)
             updatedAssoc.fields.size should equal(1)
             updatedAssoc.field[String]("friendshipType") should equal("meaningful")
           }
         }
 
         it ("should DeleteAssociation"){
-          val associations = engine.onDataSet(starwarsDsId).onElement(hanId).findOutboundAssociations()
+          val associations = engine.forUser(activeUserId)
+            .onDataSet(starwarsDsId)
+            .onElement(hanId)
+            .findOutboundAssociations()
           associations.length should equal(2)
           val friendsWith = associations.find({a => a.associationType == "friends_with"}).get
 
-          val request = buildWSRequest(user="Bob",
-            actionType="Delete",
-            scope="DataSet",
-            entityType="Association",
-            filter="None",
-            options=Map(
+          val request = buildWSRequest(activeUserId,
+            "Delete",
+            "DataSet",
+            "Association",
+            "None",
+            Map(
               "associationId"  -> friendsWith.id
             )
           )
 
-          val closed:Future[Seq[Message]] = invokeWS(request, enginePath)
+          val closed:Future[Seq[Message]] = invokeWS(request, enginePath, PROTOCOL, jwtSessionToken)
 
           whenReady(closed){ results =>
             results should have length 2
@@ -792,20 +866,23 @@ class WebServerDataSetSpec extends FunSpecLike with Matchers with ScalaFutures w
         }
 
         it ("should FindInboundAssociationsByElementId"){
-          val associations = engine.onDataSet(starwarsDsId).onElement(hanId).findInboundAssociations()
+          val associations = engine.forUser(activeUserId)
+            .onDataSet(starwarsDsId)
+            .onElement(hanId)
+            .findInboundAssociations()
           associations.length should equal(1) //From Leia
 
-          val request = buildWSRequest(user="Bob",
-            actionType="Retrieve",
-            scope="DataSet",
-            entityType="InboundAssociation",
-            filter="None",
-            options=Map(
+          val request = buildWSRequest(activeUserId,
+            "Retrieve",
+            "DataSet",
+            "InboundAssociation",
+            "None",
+            Map(
               "elementId"  -> hanId
             )
           )
 
-          val closed:Future[Seq[Message]] = invokeWS(request, enginePath)
+          val closed:Future[Seq[Message]] = invokeWS(request, enginePath, PROTOCOL, jwtSessionToken)
 
           whenReady(closed){ results =>
             results should have length 2
@@ -819,20 +896,23 @@ class WebServerDataSetSpec extends FunSpecLike with Matchers with ScalaFutures w
         }
 
         it ("should FindOutboundAssociationsByElementId"){
-          val associations = engine.onDataSet(starwarsDsId).onElement(leiaId).findOutboundAssociations()
+          val associations = engine.forUser(activeUserId)
+            .onDataSet(starwarsDsId)
+            .onElement(leiaId)
+            .findOutboundAssociations()
           associations.length should equal(2) //To Han & Luke
 
-          val request = buildWSRequest(user="Bob",
-            actionType="Retrieve",
-            scope="DataSet",
-            entityType="OutboundAssociation",
-            filter="None",
-            options=Map(
+          val request = buildWSRequest("Bob",
+            "Retrieve",
+            "DataSet",
+            "OutboundAssociation",
+            "None",
+            Map(
               "elementId"  -> leiaId
             )
           )
 
-          val closed:Future[Seq[Message]] = invokeWS(request, enginePath)
+          val closed:Future[Seq[Message]] = invokeWS(request, enginePath, PROTOCOL, jwtSessionToken)
 
           whenReady(closed){ results =>
             results should have length 2
@@ -844,27 +924,26 @@ class WebServerDataSetSpec extends FunSpecLike with Matchers with ScalaFutures w
           }
         }
 
-        /*
-        import org.machine.engine.viz.GraphVizHelper
-        GraphVizHelper.visualize(engine.database)
-        */
         it ("should FindDownStreamElementsByElementId"){
-          val downstream = engine.onDataSet(starwarsDsId).onElement(lukeId).findDownStreamElements()
+          val downstream = engine.forUser(activeUserId)
+            .onDataSet(starwarsDsId)
+            .onElement(lukeId)
+            .findDownStreamElements()
           downstream.length should equal(1)
           val r2 = downstream.head
           r2.field[String]("Name") should equal("R2D2")
 
-          val request = buildWSRequest(user="Bob",
-            actionType="Retrieve",
-            scope="DataSet",
-            entityType="Element",
-            filter="Downstream",
-            options=Map(
+          val request = buildWSRequest(activeUserId,
+            "Retrieve",
+            "DataSet",
+            "Element",
+            "Downstream",
+            Map(
               "elementId"  -> lukeId
             )
           )
 
-          val closed:Future[Seq[Message]] = invokeWS(request, enginePath)
+          val closed:Future[Seq[Message]] = invokeWS(request, enginePath, PROTOCOL, jwtSessionToken)
 
           whenReady(closed){ results =>
             results should have length 2
@@ -880,22 +959,25 @@ class WebServerDataSetSpec extends FunSpecLike with Matchers with ScalaFutures w
         }
 
         it ("should FindUpStreamElementsByElementId"){
-          val upstream = engine.onDataSet(starwarsDsId).onElement(lukeId).findUpStreamElements()
+          val upstream = engine.forUser(activeUserId)
+            .onDataSet(starwarsDsId)
+            .onElement(lukeId)
+            .findUpStreamElements()
           upstream.length should equal(1)
           val leia = upstream.head
           leia.field[String]("Name") should equal("Princess Leia Organa")
 
-          val request = buildWSRequest(user="Bob",
-            actionType="Retrieve",
-            scope="DataSet",
-            entityType="Element",
-            filter="Upstream",
-            options=Map(
+          val request = buildWSRequest(activeUserId,
+            "Retrieve",
+            "DataSet",
+            "Element",
+            "Upstream",
+            Map(
               "elementId"  -> lukeId
             )
           )
 
-          val closed:Future[Seq[Message]] = invokeWS(request, enginePath)
+          val closed:Future[Seq[Message]] = invokeWS(request, enginePath, PROTOCOL, jwtSessionToken)
 
           whenReady(closed){ results =>
             results should have length 2
@@ -911,20 +993,22 @@ class WebServerDataSetSpec extends FunSpecLike with Matchers with ScalaFutures w
         }
 
         it ("should RemoveInboundAssociations"){
-          engine.onDataSet(starwarsDsId).onElement(hanId)
+          engine.forUser(activeUserId)
+            .onDataSet(starwarsDsId)
+            .onElement(hanId)
             .findInboundAssociations().length should equal(1)
 
-          val request = buildWSRequest(user="Bob",
-            actionType="Delete",
-            scope="DataSet",
-            entityType="InboundAssociation",
-            filter="None",
-            options=Map(
+          val request = buildWSRequest(activeUserId,
+            "Delete",
+            "DataSet",
+            "InboundAssociation",
+            "None",
+            Map(
               "elementId"  -> hanId
             )
           )
 
-          val closed:Future[Seq[Message]] = invokeWS(request, enginePath)
+          val closed:Future[Seq[Message]] = invokeWS(request, enginePath, PROTOCOL, jwtSessionToken)
 
           whenReady(closed){ results =>
             results should have length 2
@@ -932,26 +1016,31 @@ class WebServerDataSetSpec extends FunSpecLike with Matchers with ScalaFutures w
             val payloadMap  = strToMap(envelopeMap("textMessage").asInstanceOf[String])
             payloadMap.contains("status") should equal(true)
             payloadMap("status").toString should equal("OK")
-            engine.onDataSet(starwarsDsId).onElement(hanId)
+            engine.forUser(activeUserId)
+              .onDataSet(starwarsDsId)
+              .onElement(hanId)
               .findInboundAssociations().length should equal(0)
           }
         }
 
         it ("should RemoveOutboundAssociations"){
-          engine.onDataSet(starwarsDsId).onElement(hanId)
-            .findOutboundAssociations().length should equal(1) //To Leia
+          engine.forUser(activeUserId)
+            .onDataSet(starwarsDsId)
+            .onElement(hanId)
+            .findOutboundAssociations()
+            .length should equal(1) //To Leia
 
-          val request = buildWSRequest(user="Bob",
-            actionType="Delete",
-            scope="DataSet",
-            entityType="OutboundAssociation",
-            filter="None",
-            options=Map(
+          val request = buildWSRequest(activeUserId,
+            "Delete",
+            "DataSet",
+            "OutboundAssociation",
+            "None",
+            Map(
               "elementId"  -> hanId
             )
           )
 
-          val closed:Future[Seq[Message]] = invokeWS(request, enginePath)
+          val closed:Future[Seq[Message]] = invokeWS(request, enginePath, PROTOCOL, jwtSessionToken)
 
           whenReady(closed){ results =>
             results should have length 2
@@ -959,8 +1048,11 @@ class WebServerDataSetSpec extends FunSpecLike with Matchers with ScalaFutures w
             val payloadMap  = strToMap(envelopeMap("textMessage").asInstanceOf[String])
             payloadMap.contains("status") should equal(true)
             payloadMap("status").toString should equal("OK")
-            engine.onDataSet(starwarsDsId).onElement(hanId)
-              .findOutboundAssociations().length should equal(0)
+            engine.forUser(activeUserId)
+              .onDataSet(starwarsDsId)
+              .onElement(hanId)
+              .findOutboundAssociations()
+              .length should equal(0)
           }
         }
       }

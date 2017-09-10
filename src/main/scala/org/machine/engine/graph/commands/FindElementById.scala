@@ -5,16 +5,14 @@ import org.neo4j.graphdb._
 
 import scala.collection.JavaConversions._
 import scala.collection.JavaConverters._
-
 import scala.collection.mutable.{ArrayBuffer, ListBuffer, Map}
-
 
 import org.machine.engine.exceptions._
 import org.machine.engine.graph._
 import org.machine.engine.graph.commands._
-import org.machine.engine.graph.nodes._
-import org.machine.engine.graph.labels._
 import org.machine.engine.graph.internal._
+import org.machine.engine.graph.labels._
+import org.machine.engine.graph.nodes._
 
 /*
 This command deviates from the normal path of having cmdOptions:Map[String, AnyRef]
@@ -106,7 +104,7 @@ class FindElementById(database: GraphDatabaseService,
     fields: GraphCommandOptions
   ):List[scala.collection.immutable.Map[String, List[String]]] = {
     val statement = """
-    |match (ds:internal_data_set {mid:{dsId}})-[:contains]->(n {mid:{mid}})
+    |match (u:user {mid:{activeUserId}})-[:owns]->(ds:data_set {mid:{dsId}})-[:contains]->(n {mid:{mid}})
     |return keys(n) as keys, labels(n) as labels
     """.stripMargin
     val records = query[scala.collection.immutable.Map[String, List[String]]](database,
@@ -130,7 +128,7 @@ class FindElementById(database: GraphDatabaseService,
     val fetchClause = buildFetchClause(prefix, keys, List.empty[String])
     val labels:List[String] = elementDefintion.get("labels").get.asInstanceOf[List[String]]
     val template = """
-    |match (ds:internal_data_set {mid:{dsId}})-[:contains]->(e:label {mid:{mid}})
+    |match (u:user {mid:{activeUserId}})-[:owns]->(ds:data_set {mid:{dsId}})-[:contains]->(e:label {mid:{mid}})
     |return fetch
     """.stripMargin
       .replaceAll("fetch", fetchClause)

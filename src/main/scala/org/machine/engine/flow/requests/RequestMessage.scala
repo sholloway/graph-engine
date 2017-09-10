@@ -1,6 +1,6 @@
 package org.machine.engine.flow.requests
 
-case class RequestMessage(user: String,
+case class RequestMessage(userId: String,
   actionType: String,
   scope: String,
   entityType: String,
@@ -26,13 +26,11 @@ object RequestMessage{
 
   def parseJSON(msg: String):RequestMessage = {
     val json = parse(msg)
-
-    val user = (json \ "user").asInstanceOf[JString].values
-    val actionType = (json \ "actionType").asInstanceOf[JString].values
-    val scope = (json \ "scope").asInstanceOf[JString].values
-    val entityType = (json \ "entityType").asInstanceOf[JString].values
-    val filter = (json \ "filter").asInstanceOf[JString].values
-
+    val userId = (json \ "userId").extract[String]
+    val actionType = (json \ "actionType").extract[String]
+    val scope = (json \ "scope").extract[String]
+    val entityType = (json \ "entityType").extract[String]
+    val filter = (json \ "filter").extract[String]
     val jsonMap = json.values.asInstanceOf[Map[String, Any]]
     val options = mutable.Map.empty[String, Any]
 
@@ -49,12 +47,36 @@ object RequestMessage{
         options += ("properties" -> jsonProps)
       }
     }
-    RequestMessage(user, actionType, scope, entityType, filter, options.toMap)
+    RequestMessage(userId, actionType, scope, entityType, filter, options.toMap)
   }
 
   def jsonToMap(json: String):Map[String, Any] ={
     val jsonDom = parse(json)
+    println(jsonDom)
     return jsonDom.values.asInstanceOf[Map[String, Any]]
+  }
+
+  /*
+  Checks for the presence of all required fields.
+
+  Returns:
+  Tuple: (fully defined, optional error message)
+  */
+  def isFullyDefined(msg: RequestMessage):(Boolean,Option[String])  = {
+    val response:(Boolean, Option[String]) = if (msg.userId == null){
+      (false, Some("The request must contain a valid user ID."))
+    }else if(msg.actionType == null){
+      (false, Some("The request must contain a valid action type."))
+    }else if(msg.scope == null){
+      (false, Some("The request must contain a valid scope."))
+    }else if(msg.entityType == null){
+      (false, Some("The request must contain a valid entity type."))
+    }else if(msg.filter == null){
+      (false, Some("The request must contain a valid filter."))
+    }else{
+      (true, None)
+    }
+    return response
   }
 
   private def fetchString(str: String, options: mutable.Map[String, Any], jsonOptions: Map[String, Any]) = {

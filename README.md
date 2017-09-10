@@ -59,26 +59,25 @@ for doing administration (i.e. pausing, shutdown).
 * ?
 
 #### Communicating via STDIN/STDOUT
-A complete example of communicating with the Engine via it's STDIN endpoint
+A complete example of communicating with the Engine via its STDIN endpoint
 can be seen in the code base at src/test/node/index.js.
 Supported Commands:
 * SIGHUP: Shutdown command issued by the client.
 * ENGINE_READY: Sent to STDOUT by the Engine once the engine is ready to receive
   commands on the WebSocket endpoint.
 
-
 ### SBT Tasks
-| Name  | Description                                                                                                                |
-|-------|----------------------------------------------------------------------------------------------------------------------------|
-| tasks | Displays the list of available sbt tasks.                                                                                  |
-| test  | Compiles the project and runs the tests.                                                                                   |
-| test-only *TestClassName  | Only runs a specific test.                                                                             |
-| sbt "test-only *TestClassName"  | Only runs a specific test.                                                                       |
-| assembly | Create executable jar.                                                                                                  |
-| assemblyPackageDependency | make a JAR file containing only the external dependencies                                              |
-| cov   | Compiles the project, runs the tests, generates the code coverage metric and then opens the report in the default browser. |
-| doc   | Generates the Scaladoc site.                                                                                               |
-| dependencyUpdates  | Show a list of project dependencies that can be updated                                                       |
+| Name                            | Description                                                                                                                |
+|---------------------------------|----------------------------------------------------------------------------------------------------------------------------|
+| tasks                           | Displays the list of available sbt tasks.                                                                                  |
+| test                            | Compiles the project and runs the tests.                                                                                   |
+| test-only *TestClassName        | Only runs a specific test.                                                                                                 |
+| sbt "test-only *TestClassName"  | Only runs a specific test.                                                                                                 |
+| assembly                        | Create executable jar.                                                                                                     |
+| assemblyPackageDependency       | make a JAR file containing only the external dependencies                                                                  |
+| cov                             | Compiles the project, runs the tests, generates the code coverage metric and then opens the report in the default browser. |
+| doc                             | Generates the Scaladoc site.                                                                                               |
+| dependencyUpdates               | Show a list of project dependencies that can be updated                                                                    |
 
 ## Related Resources
 ### Scala
@@ -91,6 +90,13 @@ Supported Commands:
 * [Apache Camel Stream](https://camel.apache.org/stream.html)
 * [Akka Stdin Example](https://searler.github.io/scala/akka/camel/reactive/2015/01/11/Simple-Akka-Stream-Camel-Integration.html)
 * [Akka REST DSL with Actors Example](https://spindance.com/reactive-rest-services-akka-http/)
+* [Akka Sessions](https://github.com/softwaremill/akka-http-session)
+
+### JSON
+* [Lift JSON](https://github.com/lift/framework/tree/master/core/json)
+* [Lift Community](https://groups.google.com/forum/#!forum/liftweb)
+* [Lift API Docs](https://liftweb.net/api/31/api/net/liftweb/json/index.html)
+* [Lift JSON Docs](https://app.assembla.com/spaces/liftweb/wiki/JSON_Support)
 
 ### ZeroMQ
 * [ZeroMQ Node](https://github.com/JustinTulloss/zeromq.node)
@@ -101,11 +107,13 @@ Supported Commands:
 * [Java Docs](http://neo4j.com/docs/2.3.3/javadocs/)
 * [Stored Procedures](https://github.com/neo4j-contrib/neo4j-apoc-procedures)
 
+### Logging
+* [TypeSafe LazyLogging](https://github.com/typesafehub/scala-logging)
+* [Logback](http://logback.qos.ch/)
+
 ### Misc
 * [Google Protocol Buffers](https://developers.google.com/protocol-buffers/)
 * [TypeSafe Configuration](https://github.com/typesafehub/config)
-* [TypeSafe LazyLogging](https://github.com/typesafehub/scala-logging)
-* [Logback](http://logback.qos.ch/)
 * [I Am Done](https://github.com/imdone/imdone-core#metadata)
 * [Semantic Versioning](http://semver.org/)
 * [Web Socket Protocol](https://tools.ietf.org/html/rfc6455)
