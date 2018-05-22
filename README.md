@@ -1,16 +1,11 @@
 # Graph Engine
 - - -
-A marriage of 0MQ, Google Protocol Buffers, embedded Neo4J, Scala and Akka.
+A marriage of Scala, Akka and embedded Neo4J.
 
 Status: Under active development working towards version 0.1.0. Not stable. Do not use.
 
 ## Getting Started
 ### Dependencies
-* Install protocol buffer compiler
-```
-brew install protobuf
-```
-
 * Install Scala and SBT.
 ```
 brew install scala
@@ -97,10 +92,6 @@ Supported Commands:
 * [Lift Community](https://groups.google.com/forum/#!forum/liftweb)
 * [Lift API Docs](https://liftweb.net/api/31/api/net/liftweb/json/index.html)
 * [Lift JSON Docs](https://app.assembla.com/spaces/liftweb/wiki/JSON_Support)
-
-### ZeroMQ
-* [ZeroMQ Node](https://github.com/JustinTulloss/zeromq.node)
-* [ZeroMQ Socket Types](http://api.zeromq.org/2-1:zmq-socket)
 
 ### Neo4J
 * [Documentation](http://neo4j.com/docs/)
