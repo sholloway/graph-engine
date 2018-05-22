@@ -21,7 +21,6 @@ lazy val sbtAssemblySettings = Seq(
 )
 
 //skip tests during assembly process
-test in assembly := {}
 
 assemblyMergeStrategy in assembly := {
 	case PathList("META-INF", "LICENSES.txt")  => MergeStrategy.discard
@@ -29,10 +28,6 @@ assemblyMergeStrategy in assembly := {
 		val oldStrategy = (assemblyMergeStrategy in assembly).value
 		oldStrategy(x)
 }
-
-//Set up the Protobuf plugin.
-import sbtprotobuf.{ProtobufPlugin=>PB}
-PB.protobufSettings
 
 //Tests must be run sequentially due to neo4j interaction.
 parallelExecution in Test := false
