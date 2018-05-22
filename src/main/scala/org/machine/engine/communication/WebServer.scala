@@ -11,7 +11,7 @@ import scala.collection.JavaConversions._
 import scala.concurrent.{Await, Future}
 import scala.concurrent.duration._
 
-import org.machine.engine.communication.routes.{IdentityServiceRouteBuilder, RPCOverWSRouteBuilder, WebSocketRouteBuilder}
+import org.machine.engine.communication.routes.{IdentityServiceRouteBuilder, RPCOverWSRouteBuilder}
 
 class WebServer {
   private implicit val system = ActorSystem()
