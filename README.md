@@ -1,4 +1,4 @@
-# Graph Engine
+# Graph Engine [![Build Status](https://travis-ci.org/sholloway/graph-engine.svg?branch=dev)](https://travis-ci.org/sholloway/graph-engine)
 - - -
 A marriage of Scala, Akka and embedded Neo4J.
 
