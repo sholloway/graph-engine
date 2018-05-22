@@ -65,7 +65,6 @@ libraryDependencies ++= Seq(
 	 "com.typesafe.scala-logging" %% "scala-logging" % "3.5.0",
 	 "ch.qos.logback" % "logback-classic" % "1.1.7",
 	 "com.typesafe" % "config" % "1.3.1",
-	 "org.zeromq" % "jeromq" % "0.3.5",
 	 "org.neo4j" % "neo4j" % "3.1.1",
 	 "org.neo4j" % "neo4j-slf4j" % "3.1.1",
 	 "com.softwaremill.akka-http-session" %% "core" % "0.5.1",
