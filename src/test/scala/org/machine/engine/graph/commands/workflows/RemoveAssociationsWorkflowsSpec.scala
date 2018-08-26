@@ -146,10 +146,6 @@ class RemoveAssociationsWorkflowsSpec extends FunSpecLike
         buildRemoveInboundAssociationsStmt.isDefinedAt(emptyCapsule) should equal(true)
       }
 
-      it ("should change status to an error if inbound associations is not in the context "){
-        buildRemoveInboundAssociationsStmt(emptyCapsule)._5 should equal(Right(ExistingAssociationsRequiredErrorMsg))
-      }
-
       it ("should build the removal statement"){
         options.reset
         val pretext = mutable.Map.empty[String, Any]
@@ -157,13 +153,10 @@ class RemoveAssociationsWorkflowsSpec extends FunSpecLike
           Association("123", null, null, null, null, null, null),
           Association("456", null, null, null, null, null, null)))
         val capsule = (null, null, options, pretext, Left(WorkflowStatuses.OK))
+
         val (db, scope, opts, context, status) = buildRemoveInboundAssociationsStmt(capsule)
+
         status should equal(Left(WorkflowStatuses.OK))
-        context.contains(AssociationIds) should equal(true)
-        val ids = context(AssociationIds).asInstanceOf[Seq[String]]
-        ids.length should equal(2)
-        ids(0) should equal("123")
-        ids(1) should equal("456")
         context.contains(RemoveAssociationsStmt) should equal(true)
       }
     }
@@ -171,10 +164,6 @@ class RemoveAssociationsWorkflowsSpec extends FunSpecLike
     describe("Build Remove Outbound Associations Statement"){
       it ("should be defined when status is OK"){
         buildRemoveOutboundAssociationsStmt.isDefinedAt(emptyCapsule) should equal(true)
-      }
-
-      it ("should change status to an error if outbound associations is not in the context "){
-        buildRemoveOutboundAssociationsStmt(emptyCapsule)._5 should equal(Right(ExistingAssociationsRequiredErrorMsg))
       }
 
       it ("should build the removal statement"){
@@ -186,11 +175,6 @@ class RemoveAssociationsWorkflowsSpec extends FunSpecLike
         val capsule = (null, null, options, pretext, Left(WorkflowStatuses.OK))
         val (db, scope, opts, context, status) = buildRemoveOutboundAssociationsStmt(capsule)
         status should equal(Left(WorkflowStatuses.OK))
-        context.contains(AssociationIds) should equal(true)
-        val ids = context(AssociationIds).asInstanceOf[Seq[String]]
-        ids.length should equal(2)
-        ids(0) should equal("123")
-        ids(1) should equal("456")
         context.contains(RemoveAssociationsStmt) should equal(true)
       }
     }
@@ -198,10 +182,6 @@ class RemoveAssociationsWorkflowsSpec extends FunSpecLike
     describe("Remove Associations"){
       it ("should be defined when status is OK"){
         removeAssociations.isDefinedAt(emptyCapsule) should equal(true)
-      }
-
-      it ("should change the status to an error if AssociationIds in not in the context"){
-        removeAssociations(emptyCapsule)._5 should equal(Right(AssociationIdsRequiredErrorMsg))
       }
 
       it ("should change the status to an error if RemoveAssociationsStmt in not in the context"){
