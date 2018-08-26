@@ -43,31 +43,33 @@ lazy val root = (project in file(".")).
 
 val AKKA_VERSION = "2.5.4"
 val AKKA_HTTP_VERSION = "10.0.10"
+val AKKA_HTTP_SESSION="0.5.1"
+val NEO4J_VERSION="3.3.0" //3.2.12 works. Gotta get to 3.4.6
 //Maven Format: groupID % artifactID % revision
 libraryDependencies ++= Seq(
+	"com.typesafe.akka" %% "akka-actor" % AKKA_VERSION,
+	"com.typesafe.akka" %% "akka-testkit" % AKKA_VERSION % Test,
+	"com.typesafe.akka" %% "akka-slf4j" % AKKA_VERSION,
+	"com.typesafe.akka" %% "akka-stream" % AKKA_VERSION,
+	"com.typesafe.akka" %% "akka-http-core" % AKKA_HTTP_VERSION,
+	"com.typesafe.akka" %% "akka-http" % AKKA_HTTP_VERSION,
+	"com.typesafe.akka" %% "akka-http-testkit" % AKKA_HTTP_VERSION % Test,
+	"com.typesafe.akka" %% "akka-http-spray-json" % AKKA_HTTP_VERSION,
+	"com.typesafe.akka" %% "akka-camel" % AKKA_VERSION,
+	"com.softwaremill.akka-http-session" %% "core" % AKKA_HTTP_SESSION,
+	"com.softwaremill.akka-http-session" %% "jwt"  % AKKA_HTTP_SESSION,
+	"org.apache.camel" % "camel-stream" % "2.18.2",
+	"com.typesafe.scala-logging" %% "scala-logging" % "3.5.0",
+	"ch.qos.logback" % "logback-classic" % "1.1.7",
+	"com.typesafe" % "config" % "1.3.1",
+	"net.liftweb" %% "lift-json" % "3.2.0-M1",
+	"org.neo4j" % "neo4j" % NEO4J_VERSION,
+	"org.neo4j" % "neo4j-slf4j" % NEO4J_VERSION,
+	"org.neo4j" % "neo4j-graphviz" % "3.1.1" % Test,
+	"org.neo4j" % "neo4j-io" % NEO4J_VERSION % Test,
 	"org.scalatest" % "scalatest_2.11" % "2.2.6" % Test,
 	"org.easymock" % "easymock" % "3.3.1" % Test,
-	 "com.typesafe.akka" %% "akka-actor" % AKKA_VERSION,
-	 "com.typesafe.akka" %% "akka-testkit" % AKKA_VERSION % Test,
-	 "com.typesafe.akka" %% "akka-slf4j" % AKKA_VERSION,
-	 "com.typesafe.akka" %% "akka-stream" % AKKA_VERSION,
-	 "com.typesafe.akka" %% "akka-http-core" % AKKA_HTTP_VERSION,
-	 "com.typesafe.akka" %% "akka-http" % AKKA_HTTP_VERSION,
-	 "com.typesafe.akka" %% "akka-http-testkit" % AKKA_HTTP_VERSION % Test,
-	 "com.typesafe.akka" %% "akka-http-spray-json" % AKKA_HTTP_VERSION,
-	 "com.typesafe.akka" %% "akka-camel" % AKKA_VERSION,
-	 "org.apache.camel" % "camel-stream" % "2.18.2",
-	 "com.typesafe.scala-logging" %% "scala-logging" % "3.5.0",
-	 "ch.qos.logback" % "logback-classic" % "1.1.7",
-	 "com.typesafe" % "config" % "1.3.1",
-	 "org.neo4j" % "neo4j" % "3.1.1",
-	 "org.neo4j" % "neo4j-slf4j" % "3.1.1",
-	 "com.softwaremill.akka-http-session" %% "core" % "0.5.1",
-   "com.softwaremill.akka-http-session" %% "jwt"  % "0.5.1",
-	 "org.neo4j" % "neo4j-graphviz" % "3.1.1" % Test,
-	 "org.neo4j" % "neo4j-io" % "3.1.1" % Test,
-	 "net.liftweb" %% "lift-json" % "3.2.0-M1", //3.0-RC3
-	 "com.squareup.okhttp3" % "okhttp" % "3.6.0"% Test
+	"com.squareup.okhttp3" % "okhttp" % "3.6.0"% Test
 )
 
 //Split the project and dependencies.

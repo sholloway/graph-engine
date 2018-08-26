@@ -19,7 +19,6 @@ import org.machine.engine.graph._
 import org.machine.engine.exceptions._
 import org.machine.engine.graph.nodes._
 
-
 class ElementAssociationsSpec extends FunSpec
   with Matchers
   with EasyMockSugar
@@ -50,6 +49,7 @@ class ElementAssociationsSpec extends FunSpec
       .withUserName("pennywise")
       .withUserPassword("You'll float too...")
     .end
+
     systemsDataSetId = engine.forUser(activeUserId).createDataSet("System Under Review", "System that need to be reviewed.")
     noteElementDefininitionId = engine.forUser(activeUserId)
       .onDataSet(systemsDataSetId)
@@ -123,7 +123,7 @@ class ElementAssociationsSpec extends FunSpec
   describe("Machine Engine"){
     describe("DataSet"){
       describe("Element Associations"){
-        it("should associate two elements"){
+        it ("should associate two elements"){
           val annotationId = engine.forUser(activeUserId)
             .onDataSet(systemsDataSetId)
             .attach(noteId)
@@ -253,7 +253,7 @@ class ElementAssociationsSpec extends FunSpec
             .fields should have size 0
         }
 
-        it("should find outbound associations of an element"){
+        it ("should find outbound associations of an element"){
           val annotationId = engine.forUser(activeUserId)
             .onDataSet(systemsDataSetId)
             .attach(noteId)
@@ -312,11 +312,10 @@ class ElementAssociationsSpec extends FunSpec
         }
 
         it("should find inbound associations of an element"){
-          //need to clear the existing connections or create a new node.
           engine.forUser(activeUserId)
             .onDataSet(systemsDataSetId)
             .onElement(systemId)
-            .removeInboundAssociations
+          .removeInboundAssociations
 
           val annotationId = engine.forUser(activeUserId)
             .onDataSet(systemsDataSetId)
@@ -337,7 +336,7 @@ class ElementAssociationsSpec extends FunSpec
           val inboundAssociations:Seq[Association] = engine.forUser(activeUserId)
             .onDataSet(systemsDataSetId)
             .onElement(systemId)
-            .findInboundAssociations()
+          .findInboundAssociations()
 
           inboundAssociations should have length 2
 
@@ -356,7 +355,7 @@ class ElementAssociationsSpec extends FunSpec
           )
         }
 
-        it("should find upstream (parents) elements"){
+        it ("should find upstream (parents) elements"){
           engine.forUser(activeUserId)
             .onDataSet(systemsDataSetId)
             .onElement(systemId)
@@ -394,7 +393,7 @@ class ElementAssociationsSpec extends FunSpec
           )
         }
 
-        it("should find downstream (children) elements"){
+        it ("should find downstream (children) elements"){
           engine.forUser(activeUserId)
             .onDataSet(systemsDataSetId)
             .onElement(systemId)

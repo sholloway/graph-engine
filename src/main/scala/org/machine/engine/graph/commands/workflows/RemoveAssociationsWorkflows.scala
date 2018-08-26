@@ -18,7 +18,6 @@ object RemoveAssociationsWorkflows extends LazyLogging{
   def removeInboundAssociations(capsule: CapsuleWithContext):CapsuleWithContext = {
     val wf = Function.chain(Seq(
       requireElementId,
-      findInboundAssociations,
       buildRemoveInboundAssociationsStmt,
       removeAssociations
     ))
@@ -28,23 +27,12 @@ object RemoveAssociationsWorkflows extends LazyLogging{
   def removeOutboundAssociations(capsule: CapsuleWithContext):CapsuleWithContext = {
     val wf = Function.chain(Seq(
       requireElementId,
-      findOutboundAssociations,
       buildRemoveOutboundAssociationsStmt,
       removeAssociations
     ))
     return wf(capsule)
   }
 
-  val requireElementId = new PartialFunction[CapsuleWithContext, CapsuleWithContext]{
-    def isDefinedAt(capsule: CapsuleWithContext):Boolean = capsule._5 == Left(WorkflowStatuses.OK)
-    def apply(capsule: CapsuleWithContext):CapsuleWithContext = {
-      if(!isDefinedAt(capsule)) return capsule
-      val status = if(capsule._3.contains(ElementId)) Left(WorkflowStatuses.OK) else Right(ElementIdMissingErrorMsg)
-      return (capsule._1, capsule._2, capsule._3, capsule._4, status)
-    }
-  }
-
-  val ExistingAssociations = "ExistingAssociations"
   val findInboundAssociations = new PartialFunction[CapsuleWithContext, CapsuleWithContext]{
     def isDefinedAt(capsule: CapsuleWithContext):Boolean = {
       capsule._5 == Left(WorkflowStatuses.OK)
@@ -69,25 +57,45 @@ object RemoveAssociationsWorkflows extends LazyLogging{
     }
   }
 
+  val requireElementId = new PartialFunction[CapsuleWithContext, CapsuleWithContext]{
+    def isDefinedAt(capsule: CapsuleWithContext):Boolean = capsule._5 == Left(WorkflowStatuses.OK)
+    def apply(capsule: CapsuleWithContext):CapsuleWithContext = {
+      if(!isDefinedAt(capsule)) return capsule
+      val status = if(capsule._3.contains(ElementId)) Left(WorkflowStatuses.OK) else Right(ElementIdMissingErrorMsg)
+      return (capsule._1, capsule._2, capsule._3, capsule._4, status)
+    }
+  }
+
+  val ExistingAssociations = "ExistingAssociations"
   val ExistingAssociationsRequiredErrorMsg = "Internal Error: ExistingAssociations is required in the context for RemoveAssociationsWorkflows.buildRemoveInboundAssociationsStmt()."
   val AssociationIds = "associationIds"
   val RemoveAssociationsStmt = "RemoveAssociationsStmt"
+
   val buildRemoveInboundAssociationsStmt = new PartialFunction[CapsuleWithContext, CapsuleWithContext]{
     def isDefinedAt(capsule: CapsuleWithContext):Boolean = {
       capsule._5 == Left(WorkflowStatuses.OK)
     }
     def apply(capsule: CapsuleWithContext):CapsuleWithContext = {
       if(!isDefinedAt(capsule)) return capsule
-      if(!capsule._4.contains(ExistingAssociations)){
-        return (capsule._1, capsule._2, capsule._3, capsule._4, Right(ExistingAssociationsRequiredErrorMsg))
-      }
-      val ids = capsule._4(ExistingAssociations).asInstanceOf[Seq[Association]].map{ a => a.id}
-      capsule._4 += (AssociationIds -> ids)
       val statement = """
-      |match (x)-[association]->(y)
-      |where association.associationId in {associationIds}
-      | and y.mid = {elementId}
-      |delete association
+      |match (x)-[a]->(y {mid: {elementId}})
+      |where type(a) <> "contains"
+      |delete a;
+      """.stripMargin
+      capsule._4 += (RemoveAssociationsStmt -> statement)
+      return capsule
+    }
+  }
+
+  val buildRemoveOutboundAssociationsStmt = new PartialFunction[CapsuleWithContext, CapsuleWithContext]{
+    def isDefinedAt(capsule: CapsuleWithContext):Boolean = {
+      capsule._5 == Left(WorkflowStatuses.OK)
+    }
+    def apply(capsule: CapsuleWithContext):CapsuleWithContext = {
+      if(!isDefinedAt(capsule)) return capsule
+      val statement = """
+      |match (x {mid: {elementId}})-[a]->(y)
+      |delete a;
       """.stripMargin
       capsule._4 += (RemoveAssociationsStmt -> statement)
       return capsule
@@ -103,23 +111,22 @@ object RemoveAssociationsWorkflows extends LazyLogging{
     def apply(capsule: CapsuleWithContext):CapsuleWithContext = {
       if(!isDefinedAt(capsule)){
         return capsule
-      }else if(!capsule._4.contains(AssociationIds)){
-        return (capsule._1, capsule._2, capsule._3, capsule._4, Right(AssociationIdsRequiredErrorMsg))
       }else if(!capsule._4.contains(RemoveAssociationsStmt)){
         return (capsule._1, capsule._2, capsule._3, capsule._4, Right(RemoveAssociationsStmtRequiredErrorMsg))
       }
 
       val statement = capsule._4(RemoveAssociationsStmt).toString
-      val existingAssocIds = capsule._4(AssociationIds).asInstanceOf[Seq[String]]
       val options = capsule._3.toJavaMap
-      options.put("associationIds", existingAssocIds)
       var status: Status = null;
+
       try{
-        run(capsule._1,
-          statement,
-          options,
-          emptyResultProcessor[Association])
-        status = Left(WorkflowStatuses.OK)
+        transaction(capsule._1, (graphDB: GraphDatabaseService) => {
+          run(graphDB,
+            statement,
+            options,
+            emptyResultProcessor[Association]);
+          status = Left(WorkflowStatuses.OK);
+        });
       }catch{
         case e: Throwable => {
           logger.error("Error raised while trying to remove associations.", e)
@@ -127,28 +134,6 @@ object RemoveAssociationsWorkflows extends LazyLogging{
         }
       }
       return (capsule._1, capsule._2, capsule._3, capsule._4, status)
-    }
-  }
-
-  val buildRemoveOutboundAssociationsStmt = new PartialFunction[CapsuleWithContext, CapsuleWithContext]{
-    def isDefinedAt(capsule: CapsuleWithContext):Boolean = {
-      capsule._5 == Left(WorkflowStatuses.OK)
-    }
-    def apply(capsule: CapsuleWithContext):CapsuleWithContext = {
-      if(!isDefinedAt(capsule)) return capsule
-      if(!capsule._4.contains(ExistingAssociations)){
-        return (capsule._1, capsule._2, capsule._3, capsule._4, Right(ExistingAssociationsRequiredErrorMsg))
-      }
-      val ids = capsule._4(ExistingAssociations).asInstanceOf[Seq[Association]].map{ a => a.id}
-      capsule._4 += (AssociationIds -> ids)
-      val statement = """
-      |match (x)-[association]->(y)
-      |where association.associationId in {associationIds}
-      | and x.mid = {elementId}
-      |delete association
-      """.stripMargin
-      capsule._4 += (RemoveAssociationsStmt -> statement)
-      return capsule
     }
   }
 }
