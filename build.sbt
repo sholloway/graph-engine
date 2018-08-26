@@ -41,10 +41,10 @@ lazy val root = (project in file(".")).
 	settings(projectSettings: _*).
   enablePlugins(AssemblyPlugin)
 
-val AKKA_VERSION = "2.5.4"
-val AKKA_HTTP_VERSION = "10.0.10"
-val AKKA_HTTP_SESSION="0.5.1"
-val NEO4J_VERSION="3.4.6" //3.3.0 works. Gotta get to 3.4.6
+val AKKA_VERSION = "2.5.15"
+val AKKA_HTTP_VERSION = "10.1.4"
+val AKKA_HTTP_SESSION="0.5.5"
+val NEO4J_VERSION="3.4.6"
 //Maven Format: groupID % artifactID % revision
 libraryDependencies ++= Seq(
 	"com.typesafe.akka" %% "akka-actor" % AKKA_VERSION,
