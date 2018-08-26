@@ -61,15 +61,15 @@ libraryDependencies ++= Seq(
 	"org.apache.camel" % "camel-stream" % "2.18.2",
 	"com.typesafe.scala-logging" %% "scala-logging" % "3.9.0",
 	"ch.qos.logback" % "logback-classic" % "1.2.3",
-	"com.typesafe" % "config" % "1.3.1",
+	"com.typesafe" % "config" % "1.3.3",
 	"net.liftweb" %% "lift-json" % "3.2.0-M1",
 	"org.neo4j" % "neo4j" % NEO4J_VERSION,
 	"org.neo4j" % "neo4j-slf4j" % NEO4J_VERSION,
 	"org.neo4j" % "neo4j-graphviz" % "3.1.1" % Test,
 	"org.neo4j" % "neo4j-io" % NEO4J_VERSION % Test,
 	"org.scalatest" % "scalatest_2.11" % "2.2.6" % Test,
-	"org.easymock" % "easymock" % "3.3.1" % Test,
-	"com.squareup.okhttp3" % "okhttp" % "3.6.0"% Test
+	"org.easymock" % "easymock" % "3.6" % Test,
+	"com.squareup.okhttp3" % "okhttp" % "3.11.0"% Test
 )
 
 //Split the project and dependencies.
