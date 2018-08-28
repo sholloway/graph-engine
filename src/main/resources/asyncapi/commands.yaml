@@ -1,0 +1,61 @@
+asyncapi: "1.2.0"
+info: 
+  title: The Engine Command API
+  version: "0.1.0"
+  description: |
+    This is the AsyncAPI specification file for the Engine's primary websocket API.
+  license:
+    name: "MIT"
+    url: "https://opensource.org/licenses/MIT"
+
+servers:
+  - url: localhost
+    description: Websocket Endpoint
+    scheme: wss
+
+events:
+  receive:
+    - $ref: '#/components/messages/layoutDefinitions'
+  send:
+    - $ref: '#/components/messages/layoutDefinitions'
+
+components:
+  messages:
+    layoutDefinitions:
+      summary: Registered Layout Definitions
+      description: |
+        A list of all registered layout definitions.
+      headers:
+        type: object
+        properties:
+          X-ENGINE-MESSAGE-TOPIC: 
+            $ref: "#/components/schemas/TopicHeader"
+      payload:
+        type: object
+        properties: 
+          layouts:
+            type: array
+            items:
+              $ref: "#/components/schemas/layoutDefinition"
+            
+  schemas:
+    TopicHeader:
+      title: messageTopic
+      type: string
+
+    layoutDefinition:
+      type: object
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        description:
+          type: string
+        creation_time:
+          type: string
+          format: dateTime
+        last_modified_time:
+          type: string
+          format: dateTime
+
