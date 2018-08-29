@@ -69,7 +69,9 @@ libraryDependencies ++= Seq(
 	"org.neo4j" % "neo4j-io" % NEO4J_VERSION % Test,
 	"org.scalatest" % "scalatest_2.11" % "2.2.6" % Test,
 	"org.easymock" % "easymock" % "3.6" % Test,
-	"com.squareup.okhttp3" % "okhttp" % "3.11.0"% Test
+	"com.squareup.okhttp3" % "okhttp" % "3.11.0" % Test,
+	"io.circe" %% "circe-yaml" % "0.8.0" % Test,
+	"io.circe" %% "circe-generic" % "0.9.3" % Test
 )
 
 //Split the project and dependencies.
