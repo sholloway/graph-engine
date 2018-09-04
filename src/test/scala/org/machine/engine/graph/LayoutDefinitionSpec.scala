@@ -39,11 +39,6 @@ class LayoutDefinitionSpec extends FunSpec
 
   it ("should create the property graph with the system layout definitions"){
     val layoutDefs:Seq[LayoutDefinition] = engine.layoutDefinitions()
-    import org.machine.engine.viz.GraphVizHelper._
-    import org.machine.engine.viz.GraphVizHelper
-    visualize(engine.database,
-      s"${GraphVizHelper.wd}/viz",
-      "temp.dot")
     layoutDefs.length should equal(1)
   }
 }

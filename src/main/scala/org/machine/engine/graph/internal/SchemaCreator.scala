@@ -35,7 +35,7 @@ object SchemaCreator extends StrictLogging{
   )
 
   private val layoutDefinitions = scala.collection.immutable.Seq(
-    LayoutDefinition(uuid, "adhoc_graph", "Layout allows the user to layout nodes one by one.", time.toString, null)
+    LayoutDefinition(uuid, "Adhoc Graph", "Layout allows the user to layout nodes one by one.", time.toString, null)
   )
 
   private val createLayoutDefinitionStmt = """match (ss:internal_system_space)

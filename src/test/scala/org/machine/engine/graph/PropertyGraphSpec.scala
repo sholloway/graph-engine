@@ -46,7 +46,7 @@ class PropertyGraphSpec extends FunSpec
             results += constrainDescription
           }
       )
-      foundConstraints.length should equal(12)
+      foundConstraints.length should equal(14)
     }
 
     it("should have the system space created"){
@@ -58,5 +58,29 @@ class PropertyGraphSpec extends FunSpec
     }
 
     it("should have the system element definitions created")(pending)
+    it("should have the system layout definitions created"){
+      val layoutDefs:Array[LayoutDefinition] = query[LayoutDefinition](engine.database,
+        """
+        |match (ss:internal_system_space)-[:exists_in]->(ld:layout_definition)
+        |return ld.mid as id,
+        |  ld.name as name,
+        |  ld.description as description,
+        |  ld.creation_time as creationTime,
+        |  ld.last_modified_time as lastModifiedTime
+        """.stripMargin,
+        null,
+        ( results: ArrayBuffer[LayoutDefinition],
+          record: java.util.Map[java.lang.String, Object])  => {
+          val id = record.get("id").toString()
+          val name = record.get("name").toString()
+          val description = record.get("description").toString()
+          val creationTime = record.get("creationTime").toString()
+          val lastModifiedTime = record.get("lastModifiedTime").toString()
+          results += new LayoutDefinition(id, name, description, creationTime, lastModifiedTime)
+        })
+      layoutDefs should have size 1
+      layoutDefs(0).name should equal("Adhoc Graph")
+      layoutDefs(0).description should equal("Layout allows the user to layout nodes one by one.")
+    }
   }
 }
