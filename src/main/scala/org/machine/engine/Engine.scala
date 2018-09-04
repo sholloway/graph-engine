@@ -272,6 +272,12 @@ class Engine private (dbPath:String, decisionTree: Question) extends GraphDSL wi
     val result:QueryCmdResult[ElementDefinition] = cmd.execute()
     return result.results
   }
+  
+  def layoutDefinitions():Seq[LayoutDefinition] = {
+    val cmd = new ListAllLayoutDefinitions(database, scope, cmdOptions)
+    val result:QueryCmdResult[LayoutDefinition] = cmd.execute()
+    return result.results
+  }
 
   def findElementDefinitionById(id:String):ElementDefinition = {
     if(scope != CommandScopes.DataSetScope){

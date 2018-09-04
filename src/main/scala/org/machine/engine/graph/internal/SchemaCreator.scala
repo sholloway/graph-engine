@@ -19,19 +19,35 @@ object SchemaCreator extends StrictLogging{
   //Note: Creating a constraint also creates an index on it.
   private val constraints = scala.collection.immutable.Seq(
     "CREATE CONSTRAINT ON (u:user) ASSERT u.mid IS UNIQUE",
+    "CREATE CONSTRAINT ON (u:user) ASSERT u.username IS UNIQUE",
     "CREATE CONSTRAINT ON (c:credential) ASSERT c.mid IS UNIQUE",
     "CREATE CONSTRAINT ON (d:data_set) ASSERT d.mid IS UNIQUE",
+    "CREATE CONSTRAINT ON (d:data_set) ASSERT d.name IS UNIQUE",
     "CREATE CONSTRAINT ON (s:internal_system_space) ASSERT s.mid IS UNIQUE",
+    "CREATE CONSTRAINT ON (s:internal_system_space) ASSERT s.name IS UNIQUE",
     "CREATE CONSTRAINT ON (ed:element_definition) ASSERT ed.mid IS UNIQUE",
+    "CREATE CONSTRAINT ON (ed:element_definition) ASSERT ed.name IS UNIQUE",
     "CREATE CONSTRAINT ON (pd:property_definition) ASSERT pd.mid IS UNIQUE",
     "CREATE CONSTRAINT ON (e:element) ASSERT e.mid IS UNIQUE",
-    "CREATE CONSTRAINT ON (s:session) ASSERT s.session IS UNIQUE",
-
-    "CREATE CONSTRAINT ON (u:user) ASSERT u.username IS UNIQUE",
-    "CREATE CONSTRAINT ON (d:data_set) ASSERT d.name IS UNIQUE",
-    "CREATE CONSTRAINT ON (s:internal_system_space) ASSERT s.name IS UNIQUE",
-    "CREATE CONSTRAINT ON (ed:element_definition) ASSERT ed.name IS UNIQUE"
+    "CREATE CONSTRAINT ON (ses:session) ASSERT ses.session IS UNIQUE",
+    "CREATE CONSTRAINT ON (ld:layout_definition) ASSERT ld.mid IS UNIQUE",
+    "CREATE CONSTRAINT ON (ld:layout_definition) ASSERT ld.name IS UNIQUE"
   )
+
+  private val layoutDefinitions = scala.collection.immutable.Seq(
+    LayoutDefinition(uuid, "adhoc_graph", "Layout allows the user to layout nodes one by one.", time.toString, null)
+  )
+
+  private val createLayoutDefinitionStmt = """match (ss:internal_system_space)
+    |create (ss)-[:exists_in]->(ld:layout_definition
+    |{
+    |  mid: {mid},
+    |  name: {name},
+    |  description: {description},
+    |  creation_time: {creationTime},
+    |  last_modified_time: {creationTime}
+    |})
+    """.stripMargin
 
   private val createSystemSpaceStmt = """
   |create (ss:internal_system_space{
@@ -51,6 +67,7 @@ object SchemaCreator extends StrictLogging{
       })
       systemSpace(db)
       defineSystemElementDefinitions(db)
+      createLayoutDefinitions(db)
     }
   }
 
@@ -94,5 +111,18 @@ object SchemaCreator extends StrictLogging{
     //Create Notes, Wikipedia, Video, etc... system level Elemend Definitions here.
     //Perhaps we need a data driven way of doing this, like setting up firewall rules.
     //Like having "sets" of ElementDefinitions that could be shared.
+  }
+
+  private def createLayoutDefinitions(db: GraphDatabaseService) = {
+    logger.debug("Creating the system layout definitions.")
+    transaction(db, (graphDB: GraphDatabaseService) =>{
+      layoutDefinitions.foreach(layoutDef => {
+        val params = Map("mid"->layoutDef.id, 
+          "name"->layoutDef.name, 
+          "description"-> layoutDef.description,
+          "creationTime"-> layoutDef.creationTime)
+        run[LayoutDefinition](db, createLayoutDefinitionStmt, params, emptyResultProcessor[LayoutDefinition])
+      })
+    })
   }
 }

@@ -11,7 +11,7 @@ object TestUtils{
 
   /*
   WARNING: Deletes all data in an attached Neo4J database while preserving
-  the system space and user space nodes.
+  the system space, user space nodes and layout definitions.
   Intended to only be used by tests.
   */
   def perge = {
